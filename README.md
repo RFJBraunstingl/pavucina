@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pavucina
+Pavucina is a task management application where tasks are stored hierarchically in a knowledge graph.
+The knowledge graph is a directed acyclic graph where nodes represent tasks and edges represent dependencies between task
+as well as other relationships such as assignments to people, deadlines, etc.
 
-## Getting Started
+## Data model
+- tasks are nodes in the knowledge graph
+- tasks have a variable set of properties (only the property "name" is mandatory)
+- properties can have data types such as
+  - short text
+  - long text
+  - date
+  - time
+  - boolean
+  - single select
+  - multi select
+- the user can configure the properties used by tasks
+- some recommended properties are set by default:
+  - description (long text)
+  - planned done date (date)
+  - planned start date (date)
+  - planned start time (time)
+  - planned end time (time)
+  - done (boolean)
+  - actual done date (date)
+  - actual done time (time)
+- tasks are represented as json objects internally and stored in a data store
+- task properties can be either represented as properties or as edges to nodes
+- pavucina makes an educated guess about the type of properties based on the data type
+  - some properties are nodes by default:
+    - dates
+    - select items
+  - some properties are properties by default:
+    - times
+    - short text
+    - long text
 
-First, run the development server:
+## Timeline view
+- page which shows an editable timeline
+- a time line consists of tasks and their child task along the vertical axis and a timeline on the x axis
+- tasks along the vertical axis are displayed with their name
+- tasks are indented based on their position in the hierarchy
+- a new child task can be added by clicking on a plus icon at the task
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Calender view
+- page which shows an editable calendar
+- tasks are displayed in the calendar with their planned start date and time and their planned end date and time
+- tasks can be "scheduled" by dragging them to a new position in the calendar
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ToDo list view
+- shows a checklist of tasks for the current day
+- tasks are displayed in a list with their name and their planned start date and time
+- tasks can be marked as done by clicking on a checkbox
