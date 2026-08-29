@@ -14,6 +14,17 @@ export function renameTask(graph: Graph, taskId: string, value: string) {
   };
 }
 
+export function setTaskDone(graph: Graph, taskId: string, done: boolean) {
+  return {
+    ...graph,
+    nodes: graph.nodes.map((node) =>
+      node.id === taskId && node.type === "task"
+        ? { ...node, properties: { ...node.properties, done } }
+        : node,
+    ),
+  };
+}
+
 export function flattenTasks(graph: Graph): FlatTask[] {
   const tasks = graph.nodes.filter((node): node is TaskNode => node.type === "task");
   const children = new Map<string, string[]>();
@@ -37,6 +48,22 @@ export function flattenTasks(graph: Graph): FlatTask[] {
   };
   for (const task of tasks) if (!childIds.has(task.id)) visit(task.id, 0);
   return result;
+}
+
+export function getTasksForDate(graph: Graph, date: string) {
+  return flattenTasks(graph)
+    .map(({ task }) => task)
+    .filter((task) => {
+      const start = getTaskDate(graph, task.id, "plannedStartDate");
+      const end = getTaskDate(graph, task.id, "plannedEndDate") ?? start;
+      return Boolean(start && end && start <= date && date <= end);
+    })
+    .sort(
+      (left, right) =>
+        (left.properties.plannedStartTime ?? "24:00").localeCompare(
+          right.properties.plannedStartTime ?? "24:00",
+        ) || left.properties.name.localeCompare(right.properties.name),
+    );
 }
 
 export function addChildTask(graph: Graph, parentId: string, childId: string) {

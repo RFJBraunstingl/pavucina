@@ -51,3 +51,10 @@ as well as other relationships such as assignments to people, deadlines, etc.
 - shows a checklist of tasks for the current day
 - tasks are displayed in a list with their name and their planned start date and time
 - tasks can be marked as done by clicking on a checkbox
+
+## Storage
+- pavucina can store the graph data in localStorage without an account (this also means the data is not synchronized)
+- if the user is logged in via google or github, the data is stored in a MongoDB database backend
+- in general the data consists of nodes and edges
+- nodes are stored as JSON objects due to their dynamic schema
+- edges are stored as graph object which holds all relation types and the IDs of referenced nodes

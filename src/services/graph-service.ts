@@ -37,6 +37,8 @@ export function isGraph(value: unknown): value is Graph {
     }
     if (!isRecord(rawNode.properties)) return false;
     const properties = rawNode.properties;
+    const validDone =
+      properties.done === undefined || typeof properties.done === "boolean";
 
     const validTimes = ["plannedStartTime", "plannedEndTime"].every((key) => {
       const time = properties[key];
@@ -47,7 +49,8 @@ export function isGraph(value: unknown): value is Graph {
     if (
       rawNode.type === "task" &&
       typeof properties.name === "string" &&
-      properties.name.trim()
+      properties.name.trim() &&
+      validDone
     ) {
       nodes.set(rawNode.id, rawNode as TaskNode);
     } else if (

@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   addChildTask,
   flattenTasks,
+  getTasksForDate,
+  setTaskDone,
 } from "./task-service.ts";
 import {
   getTaskDate,
@@ -24,6 +26,18 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.equal(makeDateRange("2026-03-29").at(-1), "2026-04-25");
   assert.equal(addDays("2026-03-29", 1), "2026-03-30");
   assert.equal(flattenTasks(graph)[1].depth, 1);
+  assert.deepEqual(
+    getTasksForDate(graph, "2026-03-29").map((task) => task.id),
+    ["project", "prototype", "frontend", "design"],
+  );
+
+  graph = setTaskDone(graph, "frontend", true);
+  assert.equal(
+    getTasksForDate(graph, "2026-03-29").find(
+      (task) => task.id === "frontend",
+    )?.properties.done,
+    true,
+  );
 
   graph = addChildTask(graph, "project", "child-id");
   assert.equal(getTaskDate(graph, "child-id", "plannedStartDate"), "2026-03-20");

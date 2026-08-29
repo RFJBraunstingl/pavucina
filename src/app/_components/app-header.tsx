@@ -23,6 +23,9 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
         >
           Calendar
         </Link>
+        <Link href="/todo" aria-current={active === "todo" ? "page" : undefined}>
+          ToDo
+        </Link>
       </nav>
     </header>
   );

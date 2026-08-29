@@ -4,6 +4,7 @@ export type TaskProperties = {
   name: string;
   plannedStartTime?: string;
   plannedEndTime?: string;
+  done?: boolean;
 };
 
 export type TaskNode = {
