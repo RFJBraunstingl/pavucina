@@ -14,6 +14,11 @@ const rangeFormatter = new Intl.DateTimeFormat("en", {
   year: "numeric",
   timeZone: "UTC",
 });
+const compactFormatter = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
 
 function asDay(value: string) {
   if (!DATE_PATTERN.test(value)) return Number.NaN;
@@ -51,6 +56,11 @@ export function makeDateRange(start: string, length = 28) {
   return Array.from({ length }, (_, index) => addDays(start, index));
 }
 
+export function startOfWeek(value: string) {
+  const day = toDate(value).getUTCDay();
+  return addDays(value, day === 0 ? -6 : 1 - day);
+}
+
 export function dayLabel(value: string) {
   return weekdayFormatter.format(toDate(value));
 }
@@ -65,6 +75,10 @@ export function dayOfMonth(value: string) {
 
 export function rangeLabel(start: string, end: string) {
   return `${rangeFormatter.format(toDate(start))} – ${rangeFormatter.format(toDate(end))}`;
+}
+
+export function compactDateLabel(value: string) {
+  return compactFormatter.format(toDate(value));
 }
 
 export function isWeekend(value: string) {

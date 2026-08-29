@@ -1,0 +1,39 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import CalendarGrid from "./calendar-grid";
+import AppHeader from "../../_components/app-header";
+import { useGraph } from "@/hooks/use-graph";
+import { addDays, makeDateRange, rangeLabel, startOfWeek } from "@/utils/date";
+
+export default function CalendarView() {
+  const { graph, setGraph, today, hydrated } = useGraph();
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
+  const days = useMemo(() => makeDateRange(weekStart, 7), [weekStart]);
+
+  if (!hydrated || !graph) {
+    return <main className="loading-screen"><p>Loading calendar…</p></main>;
+  }
+
+  return (
+    <main className="app-shell">
+      <AppHeader active="calendar" title="Calendar" />
+      <section className="calendar-card" aria-labelledby="calendar-heading">
+        <div className="timeline-toolbar">
+          <div>
+            <p className="eyebrow">Weekly schedule</p>
+            <h2 id="calendar-heading">{rangeLabel(days[0], days[6])}</h2>
+          </div>
+          <div className="range-controls" aria-label="Calendar range">
+            <button type="button" aria-label="Previous week" onClick={() => setWeekStart((day) => addDays(day, -7))}>←</button>
+            <button type="button" className="today-button" onClick={() => setWeekStart(startOfWeek(today))}>Today</button>
+            <button type="button" aria-label="Next week" onClick={() => setWeekStart((day) => addDays(day, 7))}>→</button>
+          </div>
+        </div>
+        <p className="calendar-hint">Drag tasks between days and times. Arrow keys move the focused task.</p>
+        <CalendarGrid graph={graph} days={days} today={today} onGraphChange={setGraph} />
+      </section>
+    </main>
+  );
+}

@@ -1,5 +1,6 @@
-import { getTaskDate } from "./task-service.ts";
+import { getTaskDate } from "./task-schedule-service.ts";
 import { daysBetween, isIsoDate } from "../utils/date.ts";
+import { isTime } from "../utils/time.ts";
 import type {
   DateNode,
   Graph,
@@ -35,18 +36,25 @@ export function isGraph(value: unknown): value is Graph {
       return false;
     }
     if (!isRecord(rawNode.properties)) return false;
+    const properties = rawNode.properties;
+
+    const validTimes = ["plannedStartTime", "plannedEndTime"].every((key) => {
+      const time = properties[key];
+      return time === undefined || (typeof time === "string" && isTime(time));
+    });
+    if (!validTimes) return false;
 
     if (
       rawNode.type === "task" &&
-      typeof rawNode.properties.name === "string" &&
-      rawNode.properties.name.trim()
+      typeof properties.name === "string" &&
+      properties.name.trim()
     ) {
       nodes.set(rawNode.id, rawNode as TaskNode);
     } else if (
       rawNode.type === "date" &&
-      typeof rawNode.properties.value === "string" &&
-      isIsoDate(rawNode.properties.value) &&
-      rawNode.id === `date:${rawNode.properties.value}`
+      typeof properties.value === "string" &&
+      isIsoDate(properties.value) &&
+      rawNode.id === `date:${properties.value}`
     ) {
       nodes.set(rawNode.id, rawNode as DateNode);
     } else {

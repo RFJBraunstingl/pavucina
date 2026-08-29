@@ -1,7 +1,15 @@
+export type TimeProperty = "plannedStartTime" | "plannedEndTime";
+
+export type TaskProperties = {
+  name: string;
+  plannedStartTime?: string;
+  plannedEndTime?: string;
+};
+
 export type TaskNode = {
   id: string;
   type: "task";
-  properties: { name: string };
+  properties: TaskProperties;
 };
 
 export type DateNode = {

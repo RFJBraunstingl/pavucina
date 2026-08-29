@@ -4,16 +4,22 @@ import test from "node:test";
 import {
   addChildTask,
   flattenTasks,
+} from "./task-service.ts";
+import {
   getTaskDate,
+  getTaskTime,
   moveTask,
+  moveScheduledTask,
   resizeTask,
   setTaskDate,
-} from "./task-service.ts";
+} from "./task-schedule-service.ts";
 import { isGraph } from "./graph-service.ts";
 import { createSeedGraph } from "../data/seed-graph.ts";
+import { calendarItem } from "../utils/calendar.ts";
 import { addDays, makeDateRange } from "../utils/date.ts";
+import type { TaskNode } from "../types/graph.ts";
 
-test("graph timeline operations preserve relationships and calendar days", () => {
+test("task graph operations preserve relationships and schedules", () => {
   let graph = createSeedGraph("2026-03-29");
   assert.equal(makeDateRange("2026-03-29").at(-1), "2026-04-25");
   assert.equal(addDays("2026-03-29", 1), "2026-03-30");
@@ -38,6 +44,21 @@ test("graph timeline operations preserve relationships and calendar days", () =>
   );
   assert.equal(sharedDates.length, 1);
   assert.equal(isGraph(graph), true);
+
+  graph = moveScheduledTask(graph, "project", "2026-04-06", "11:00");
+  assert.equal(getTaskDate(graph, "project", "plannedStartDate"), "2026-04-06");
+  assert.equal(getTaskDate(graph, "project", "plannedEndDate"), "2026-04-27");
+  assert.equal(getTaskTime(graph, "project", "plannedStartTime"), "11:00");
+  assert.equal(getTaskTime(graph, "project", "plannedEndTime"), "12:00");
+  const project = graph.nodes.find(
+    (node): node is TaskNode => node.id === "project" && node.type === "task",
+  );
+  assert.ok(project);
+  assert.equal(
+    calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "12:00", "2026-04-06")
+      ?.top,
+    192,
+  );
 
   const cyclic = structuredClone(graph);
   cyclic.relationships.push({

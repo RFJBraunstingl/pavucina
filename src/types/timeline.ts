@@ -1,4 +1,11 @@
-import type { DateRelationshipType, Graph, TaskNode } from "./graph";
+import type { KeyboardEvent, PointerEvent } from "react";
+
+import type {
+  DateRelationshipType,
+  FlatTask,
+  Graph,
+  TaskNode,
+} from "./graph";
 
 export type DragMode = "move" | "start" | "end";
 
@@ -30,5 +37,27 @@ export type TaskInspectorProps = {
     taskId: string,
     type: DateRelationshipType,
     value: string,
+  ) => void;
+};
+
+export type TimelineTaskRowProps = FlatTask & {
+  graph: Graph;
+  days: string[];
+  rangeStart: string;
+  today: string;
+  selected: boolean;
+  onSelect: (taskId: string) => void;
+  onAddChild: (parentId: string) => void;
+  onDragStart: (
+    event: PointerEvent<HTMLButtonElement>,
+    taskId: string,
+    mode: DragMode,
+  ) => void;
+  onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
+  onPointerEnd: (event: PointerEvent<HTMLButtonElement>) => void;
+  onArrow: (
+    event: KeyboardEvent<HTMLButtonElement>,
+    taskId: string,
+    mode: DragMode,
   ) => void;
 };

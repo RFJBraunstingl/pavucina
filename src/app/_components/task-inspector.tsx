@@ -1,4 +1,4 @@
-import { getTaskDate } from "@/services/task-service";
+import { getTaskDate } from "@/services/task-schedule-service";
 import type { TaskInspectorProps } from "@/types/timeline";
 
 export default function TaskInspector({

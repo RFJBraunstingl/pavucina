@@ -1,0 +1,74 @@
+@media (max-width: 1050px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .inspector {
+    position: static;
+    min-height: 0;
+    order: -1;
+  }
+
+  .timeline-scroll,
+  .calendar-scroll {
+    max-height: 65vh;
+  }
+}
+
+@media (max-width: 680px) {
+  :root {
+    --task-column: 230px;
+  }
+
+  .app-shell {
+    padding: 22px 12px 32px;
+  }
+
+  .app-header {
+    grid-template-columns: auto 1fr;
+    margin-bottom: 18px;
+  }
+
+  .app-nav {
+    grid-column: 1 / -1;
+    margin-top: 16px;
+  }
+
+  .app-nav a {
+    flex: 1;
+    text-align: center;
+  }
+
+  .brand {
+    font-size: 0;
+  }
+
+  h1 {
+    font-size: 36px;
+  }
+
+  .timeline-toolbar {
+    min-height: 0;
+    padding: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .timeline-card,
+  .calendar-card,
+  .inspector {
+    border-radius: 14px;
+  }
+
+  .add-child {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

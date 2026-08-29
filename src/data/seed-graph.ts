@@ -1,17 +1,20 @@
-import { setTaskDates } from "../services/task-service.ts";
+import {
+  setTaskDates,
+  setTaskTimes,
+} from "../services/task-schedule-service.ts";
 import { addDays } from "../utils/date.ts";
 import type { Graph } from "@/types/graph";
 
 export function createSeedGraph(today: string): Graph {
   const taskData = [
-    ["project", "Launch Pavucina"],
-    ["research", "Research workflows"],
-    ["design", "Design timeline"],
-    ["prototype", "Build prototype"],
-    ["frontend", "Timeline interactions"],
-    ["graph", "Graph data model"],
-    ["testing", "Test the experience"],
-    ["release", "Release preview"],
+    ["project", "Launch Pavucina", "08:30", "09:30"],
+    ["research", "Research workflows", "10:00", "11:30"],
+    ["design", "Design timeline", "13:00", "14:30"],
+    ["prototype", "Build prototype", "09:00", "10:30"],
+    ["frontend", "Timeline interactions", "11:00", "12:00"],
+    ["graph", "Graph data model", "14:00", "15:30"],
+    ["testing", "Test the experience", "10:30", "12:00"],
+    ["release", "Release preview", "15:00", "16:00"],
   ] as const;
   const schedule = [
     ["project", -9, 12],
@@ -35,10 +38,10 @@ export function createSeedGraph(today: string): Graph {
 
   let graph: Graph = {
     version: 1,
-    nodes: taskData.map(([id, name]) => ({
+    nodes: taskData.map(([id, name, plannedStartTime, plannedEndTime]) => ({
       id,
       type: "task",
-      properties: { name },
+      properties: { name, plannedStartTime, plannedEndTime },
     })),
     relationships: childData.map(([parentId, childId]) => ({
       id: `child:${parentId}:${childId}`,
@@ -50,6 +53,9 @@ export function createSeedGraph(today: string): Graph {
 
   for (const [taskId, start, end] of schedule) {
     graph = setTaskDates(graph, taskId, addDays(today, start), addDays(today, end));
+  }
+  for (const [taskId, , start, end] of taskData) {
+    graph = setTaskTimes(graph, taskId, start, end);
   }
   return graph;
 }

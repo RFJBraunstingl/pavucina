@@ -1,0 +1,137 @@
+:root {
+  --ink: #18211c;
+  --muted: #66736b;
+  --line: #dde4df;
+  --surface: #ffffff;
+  --canvas: #f3f6f3;
+  --green: #167a54;
+  --green-dark: #0d5f40;
+  --task-column: 286px;
+  --day-column: 48px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--canvas);
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background:
+    radial-gradient(circle at 8% 5%, rgb(22 122 84 / 8%), transparent 28rem),
+    var(--canvas);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgb(22 122 84 / 25%);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 32px clamp(16px, 4vw, 56px) 48px;
+}
+
+.app-header {
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  align-items: end;
+  max-width: 1680px;
+  margin: 0 auto 24px;
+}
+
+.brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  align-self: center;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.brand-mark {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 6px double var(--green);
+  border-radius: 50% 50% 44% 56%;
+  transform: rotate(-16deg);
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 680;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.app-nav {
+  display: flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgb(255 255 255 / 65%);
+  gap: 3px;
+}
+
+.app-nav a {
+  padding: 8px 13px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav a[aria-current="page"] {
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgb(24 33 28 / 8%);
+  color: var(--green-dark);
+}
+
+.loading-screen {
+  display: grid;
+  min-height: 100vh;
+  color: var(--muted);
+  place-content: center;
+  place-items: center;
+}
+
+.loading-screen p {
+  margin: 12px 0 0;
+  font-size: 13px;
+}

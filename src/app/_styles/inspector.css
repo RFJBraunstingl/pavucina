@@ -1,0 +1,89 @@
+.inspector {
+  position: sticky;
+  top: 24px;
+  min-height: 320px;
+  padding: 24px;
+}
+
+.inspector h2 {
+  margin-bottom: 24px;
+}
+
+.inspector label {
+  display: grid;
+  margin-top: 16px;
+  color: var(--muted);
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.inspector input {
+  width: 100%;
+  height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fbfcfb;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 520;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.inspector-help {
+  display: flex;
+  margin-top: 26px;
+  padding: 13px;
+  border-radius: 10px;
+  background: #eef6f1;
+  color: var(--green-dark);
+  gap: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.inspector-help span {
+  font-size: 17px;
+}
+
+.inspector-help p,
+.empty-inspector p {
+  margin-bottom: 0;
+}
+
+.empty-inspector {
+  display: flex;
+  min-height: 270px;
+  color: var(--muted);
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.empty-inspector > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 15px;
+  border-radius: 50%;
+  background: #eef6f1;
+  color: var(--green);
+  font-size: 21px;
+  place-items: center;
+}
+
+.empty-inspector h2 {
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.empty-inspector p {
+  max-width: 210px;
+  font-size: 12px;
+  line-height: 1.55;
+}

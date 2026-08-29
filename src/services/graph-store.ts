@@ -19,5 +19,9 @@ export function loadGraph(today: string) {
 }
 
 export function saveGraph(graph: Graph) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(graph));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(graph));
+  } catch {
+    // Keep the in-memory app usable when browser storage is unavailable or full.
+  }
 }

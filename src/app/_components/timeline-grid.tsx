@@ -1,21 +1,21 @@
 import {
-  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
   useMemo,
   useRef,
 } from "react";
 
+import TimelineTaskRow from "./timeline-task-row";
 import {
   flattenTasks,
-  getTaskDate,
+} from "@/services/task-service";
+import {
   moveTask,
   resizeTask,
-} from "@/services/task-service";
+} from "@/services/task-schedule-service";
 import {
   dayLabel,
   dayOfMonth,
-  daysBetween,
   isWeekend,
   monthLabel,
 } from "@/utils/date";
@@ -114,103 +114,24 @@ export default function TimelineGrid({
           ))}
         </div>
 
-        {tasks.map(({ task, depth }) => {
-          const start = getTaskDate(graph, task.id, "plannedStartDate");
-          const end = getTaskDate(graph, task.id, "plannedEndDate");
-          const startOffset = start ? daysBetween(rangeStart, start) : 0;
-          const endOffset = end ? daysBetween(rangeStart, end) : -1;
-          const visibleStart = Math.max(0, startOffset);
-          const visibleEnd = Math.min(days.length - 1, endOffset);
-          const barVisible = Boolean(start && end && visibleStart <= visibleEnd);
-
-          return (
-            <div
-              className={`timeline-row task-row ${selectedId === task.id ? "selected" : ""}`}
-              data-depth={Math.min(depth, 2)}
-              key={task.id}
-            >
-              <div
-                className="task-label"
-                style={{ paddingLeft: `${18 + Math.min(depth, 8) * 20}px` }}
-              >
-                <button
-                  type="button"
-                  className="task-select"
-                  onClick={() => onSelect(task.id)}
-                >
-                  <span>{task.properties.name}</span>
-                </button>
-                <button
-                  type="button"
-                  className="add-child"
-                  aria-label={`Add child to ${task.properties.name}`}
-                  title="Add child task"
-                  onClick={() => onAddChild(task.id)}
-                >
-                  +
-                </button>
-              </div>
-
-              {days.map((day, index) => (
-                <div
-                  aria-hidden="true"
-                  className={`day-cell ${isWeekend(day) ? "weekend" : ""} ${day === today ? "today" : ""}`}
-                  style={{ gridColumn: index + 2 }}
-                  key={day}
-                />
-              ))}
-
-              {barVisible && (
-                <div
-                  className="task-bar"
-                  style={
-                    {
-                      gridColumn: `${visibleStart + 2} / span ${visibleEnd - visibleStart + 1}`,
-                    } as CSSProperties
-                  }
-                >
-                  {startOffset >= 0 && (
-                    <button
-                      type="button"
-                      className="resize-handle start"
-                      aria-label={`Resize start of ${task.properties.name}`}
-                      onPointerDown={(event) => beginDrag(event, task.id, "start")}
-                      onPointerMove={continueDrag}
-                      onPointerUp={endDrag}
-                      onPointerCancel={endDrag}
-                      onKeyDown={(event) => handleArrow(event, task.id, "start")}
-                    />
-                  )}
-                  <button
-                    type="button"
-                    className="bar-body"
-                    aria-label={`Move ${task.properties.name}`}
-                    title={`${task.properties.name}: ${start} to ${end}`}
-                    onPointerDown={(event) => beginDrag(event, task.id, "move")}
-                    onPointerMove={continueDrag}
-                    onPointerUp={endDrag}
-                    onPointerCancel={endDrag}
-                    onKeyDown={(event) => handleArrow(event, task.id, "move")}
-                  >
-                    <span>{task.properties.name}</span>
-                  </button>
-                  {endOffset < days.length && (
-                    <button
-                      type="button"
-                      className="resize-handle end"
-                      aria-label={`Resize end of ${task.properties.name}`}
-                      onPointerDown={(event) => beginDrag(event, task.id, "end")}
-                      onPointerMove={continueDrag}
-                      onPointerUp={endDrag}
-                      onPointerCancel={endDrag}
-                      onKeyDown={(event) => handleArrow(event, task.id, "end")}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {tasks.map(({ task, depth }) => (
+          <TimelineTaskRow
+            graph={graph}
+            task={task}
+            depth={depth}
+            days={days}
+            rangeStart={rangeStart}
+            today={today}
+            selected={selectedId === task.id}
+            onSelect={onSelect}
+            onAddChild={onAddChild}
+            onDragStart={beginDrag}
+            onPointerMove={continueDrag}
+            onPointerEnd={endDrag}
+            onArrow={handleArrow}
+            key={task.id}
+          />
+        ))}
       </div>
     </div>
   );
