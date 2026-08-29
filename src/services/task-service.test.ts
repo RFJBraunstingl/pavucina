@@ -3,16 +3,15 @@ import test from "node:test";
 
 import {
   addChildTask,
-  addDays,
-  createSeedGraph,
   flattenTasks,
   getTaskDate,
-  isGraph,
-  makeDateRange,
   moveTask,
   resizeTask,
   setTaskDate,
-} from "./timeline.ts";
+} from "./task-service.ts";
+import { isGraph } from "./graph-service.ts";
+import { createSeedGraph } from "../data/seed-graph.ts";
+import { addDays, makeDateRange } from "../utils/date.ts";
 
 test("graph timeline operations preserve relationships and calendar days", () => {
   let graph = createSeedGraph("2026-03-29");

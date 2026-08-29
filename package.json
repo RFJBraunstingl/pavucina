@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test --experimental-strip-types src/app/timeline.test.ts",
+    "test": "node --test --experimental-strip-types src/services/task-service.test.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
   },
