@@ -54,7 +54,7 @@ as well as other relationships such as assignments to people, deadlines, etc.
 
 ## Storage
 - pavucina can store the graph data in localStorage without an account (this also means the data is not synchronized)
-- if the user is logged in via google or github, the data is stored in a MongoDB database backend
+- if the user is logged in, the data is stored in a MongoDB database backend
 - in general the data consists of nodes and edges
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes

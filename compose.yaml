@@ -1,0 +1,22 @@
+services:
+  mongodb:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-pavucina}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-pavucina}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-pavucina}
+    ports:
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test:
+        ["CMD", "mongosh", "--quiet", "--eval", "quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongodb_data:
