@@ -13,6 +13,13 @@ import "./_styles/responsive.css";
 export const metadata: Metadata = {
   title: "Timeline · Pavucina",
   description: "Plan hierarchical tasks on a timeline.",
+  icons: {
+    icon: {
+      url: "/pavucina-logo.svg",
+      type: "image/svg+xml",
+      sizes: "any",
+    },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
