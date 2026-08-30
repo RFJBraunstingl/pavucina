@@ -74,3 +74,14 @@ separate head, user, account, profile, or session collection.
 
 Only the immutable numeric GitHub ID is kept as application identity. GitHub
 profile fields and provider tokens are not persisted.
+
+## ToDo
+- support collapsing tasks
+- support re-odering of tasks in a given level
+- filter tasks by level
+  - have one select field with all task levels and a second multi select with all tasks of that level
+  - when the level changes, the filter is cleared and the multi select is populated with all tasks of that level
+  - only selected tasks and their children are displayed
+- implement configurability of task schema
+- implement reasoning usecase
+- implement ML usecase
