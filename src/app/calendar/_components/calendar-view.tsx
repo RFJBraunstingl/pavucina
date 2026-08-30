@@ -4,21 +4,23 @@ import { useMemo, useState } from "react";
 
 import CalendarGrid from "./calendar-grid";
 import AppHeader from "../../_components/app-header";
-import { useGraph } from "@/hooks/use-graph";
+import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
+import { useGraph } from "@/providers/graph-provider";
 import { addDays, makeDateRange, rangeLabel, startOfWeek } from "@/utils/date";
 
 export default function CalendarView() {
-  const { graph, setGraph, today, hydrated } = useGraph();
+  const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const days = useMemo(() => makeDateRange(weekStart, 7), [weekStart]);
 
   if (!hydrated || !graph) {
-    return <main className="loading-screen"><p>Loading calendar…</p></main>;
+    return <GraphLoading label="Loading calendar…" error={syncError} onRetry={retry} />;
   }
 
   return (
     <main className="app-shell">
       <AppHeader active="calendar" title="Calendar" />
+      <GraphSyncError error={syncError} onRetry={retry} />
       <section className="calendar-card" aria-labelledby="calendar-heading">
         <div className="timeline-toolbar">
           <div>

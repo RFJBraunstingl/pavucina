@@ -16,6 +16,13 @@ const RELATIONSHIP_TYPES: RelationshipType[] = [
   "plannedEndDate",
 ];
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string) {
+  return UUID_PATTERN.test(value);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -32,7 +39,12 @@ export function isGraph(value: unknown): value is Graph {
 
   const nodes = new Map<string, GraphNode>();
   for (const rawNode of value.nodes) {
-    if (!isRecord(rawNode) || typeof rawNode.id !== "string" || nodes.has(rawNode.id)) {
+    if (
+      !isRecord(rawNode) ||
+      typeof rawNode.id !== "string" ||
+      !isUuid(rawNode.id) ||
+      nodes.has(rawNode.id)
+    ) {
       return false;
     }
     if (!isRecord(rawNode.properties)) return false;
@@ -56,8 +68,7 @@ export function isGraph(value: unknown): value is Graph {
     } else if (
       rawNode.type === "date" &&
       typeof properties.value === "string" &&
-      isIsoDate(properties.value) &&
-      rawNode.id === `date:${properties.value}`
+      isIsoDate(properties.value)
     ) {
       nodes.set(rawNode.id, rawNode as DateNode);
     } else {
@@ -74,6 +85,7 @@ export function isGraph(value: unknown): value is Graph {
     if (
       !isRecord(rawRelationship) ||
       typeof rawRelationship.id !== "string" ||
+      !isUuid(rawRelationship.id) ||
       relationshipIds.has(rawRelationship.id) ||
       typeof rawRelationship.sourceId !== "string" ||
       typeof rawRelationship.targetId !== "string" ||

@@ -61,20 +61,36 @@ export function setTaskDate(
   value?: string,
 ) {
   if (value && !isIsoDate(value)) throw new Error(`Invalid ISO date: ${value}`);
+  const currentRelationship = graph.relationships.find(
+    (item) => item.sourceId === taskId && item.type === type,
+  );
+  const currentDate = graph.nodes.find(
+    (node): node is DateNode =>
+      node.id === currentRelationship?.targetId && node.type === "date",
+  );
+  if (currentDate?.properties.value === value || (!currentRelationship && !value)) {
+    return graph;
+  }
+
   let nodes = graph.nodes;
   const relationships = graph.relationships.filter(
     (item) => !(item.sourceId === taskId && item.type === type),
   );
 
   if (value) {
-    const target: DateNode = {
-      id: `date:${value}`,
-      type: "date",
-      properties: { value },
-    };
-    if (!nodes.some((node) => node.id === target.id)) nodes = [...nodes, target];
+    const target =
+      nodes.find(
+        (node): node is DateNode =>
+          node.type === "date" && node.properties.value === value,
+      ) ??
+      ({
+        id: crypto.randomUUID(),
+        type: "date",
+        properties: { value },
+      } satisfies DateNode);
+    if (!nodes.includes(target)) nodes = [...nodes, target];
     relationships.push({
-      id: `${type}:${taskId}`,
+      id: crypto.randomUUID(),
       type,
       sourceId: taskId,
       targetId: target.id,

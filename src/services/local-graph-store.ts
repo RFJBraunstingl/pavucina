@@ -1,10 +1,10 @@
-import { createSeedGraph } from "../data/seed-graph.ts";
+import { createSeedGraph } from "@/data/seed-graph";
 import { isGraph } from "./graph-service.ts";
 import type { Graph } from "@/types/graph";
 
 const STORAGE_KEY = "pavucina.graph.v1";
 
-export function loadGraph(today: string) {
+export function loadGuestGraph(today: string) {
   if (typeof window === "undefined") return null;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -18,7 +18,7 @@ export function loadGraph(today: string) {
   return createSeedGraph(today);
 }
 
-export function saveGraph(graph: Graph) {
+export function saveGuestGraph(graph: Graph) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(graph));
   } catch {

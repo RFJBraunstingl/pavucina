@@ -35,27 +35,33 @@ export function createSeedGraph(today: string): Graph {
     ["project", "testing"],
     ["project", "release"],
   ] as const;
+  const taskIds = new Map(taskData.map(([key]) => [key, crypto.randomUUID()]));
 
   let graph: Graph = {
     version: 1,
-    nodes: taskData.map(([id, name, plannedStartTime, plannedEndTime]) => ({
-      id,
+    nodes: taskData.map(([key, name, plannedStartTime, plannedEndTime]) => ({
+      id: taskIds.get(key)!,
       type: "task",
       properties: { name, plannedStartTime, plannedEndTime },
     })),
     relationships: childData.map(([parentId, childId]) => ({
-      id: `child:${parentId}:${childId}`,
+      id: crypto.randomUUID(),
       type: "child",
-      sourceId: parentId,
-      targetId: childId,
+      sourceId: taskIds.get(parentId)!,
+      targetId: taskIds.get(childId)!,
     })),
   };
 
-  for (const [taskId, start, end] of schedule) {
-    graph = setTaskDates(graph, taskId, addDays(today, start), addDays(today, end));
+  for (const [taskKey, start, end] of schedule) {
+    graph = setTaskDates(
+      graph,
+      taskIds.get(taskKey)!,
+      addDays(today, start),
+      addDays(today, end),
+    );
   }
-  for (const [taskId, , start, end] of taskData) {
-    graph = setTaskTimes(graph, taskId, start, end);
+  for (const [taskKey, , start, end] of taskData) {
+    graph = setTaskTimes(graph, taskIds.get(taskKey)!, start, end);
   }
   return graph;
 }

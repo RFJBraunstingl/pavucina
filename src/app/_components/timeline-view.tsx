@@ -3,16 +3,17 @@
 import { useMemo, useState } from "react";
 
 import AppHeader from "./app-header";
+import { GraphLoading, GraphSyncError } from "./graph-state";
 import TaskInspector from "./task-inspector";
 import TimelineGrid from "./timeline-grid";
-import { useGraph } from "@/hooks/use-graph";
+import { useGraph } from "@/providers/graph-provider";
 import { addChildTask, renameTask } from "@/services/task-service";
 import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
 import type { DateRelationshipType, TaskNode } from "@/types/graph";
 
 export default function TimelineView() {
-  const { graph, setGraph, today, hydrated } = useGraph();
+  const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
   const [rangeStart, setRangeStart] = useState(() => addDays(today, -14));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const days = useMemo(() => makeDateRange(rangeStart), [rangeStart]);
@@ -21,12 +22,7 @@ export default function TimelineView() {
   );
 
   if (!hydrated || !graph) {
-    return (
-      <main className="loading-screen">
-        <span className="brand-mark" aria-hidden="true" />
-        <p>Loading timeline…</p>
-      </main>
-    );
+    return <GraphLoading label="Loading timeline…" error={syncError} onRetry={retry} />;
   }
 
   function updateName(taskId: string, value: string) {
@@ -52,6 +48,7 @@ export default function TimelineView() {
   return (
     <main className="app-shell">
       <AppHeader active="timeline" title="Timeline" />
+      <GraphSyncError error={syncError} onRetry={retry} />
 
       <div className="workspace">
         <section className="timeline-card" aria-labelledby="timeline-heading">

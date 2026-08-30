@@ -81,7 +81,7 @@ export function addChildTask(graph: Graph, parentId: string, childId: string) {
     relationships: [
       ...graph.relationships,
       {
-        id: `child:${parentId}:${childId}`,
+        id: crypto.randomUUID(),
         type: "child",
         sourceId: parentId,
         targetId: childId,

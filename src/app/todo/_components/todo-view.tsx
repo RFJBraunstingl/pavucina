@@ -1,16 +1,17 @@
 "use client";
 
 import AppHeader from "../../_components/app-header";
-import { useGraph } from "@/hooks/use-graph";
+import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
+import { useGraph } from "@/providers/graph-provider";
 import { getTasksForDate, setTaskDone } from "@/services/task-service";
 import { getTaskDate } from "@/services/task-schedule-service";
 import { compactDateLabel } from "@/utils/date";
 
 export default function TodoView() {
-  const { graph, setGraph, today, hydrated } = useGraph();
+  const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
 
   if (!hydrated || !graph) {
-    return <main className="loading-screen"><p>Loading tasks…</p></main>;
+    return <GraphLoading label="Loading tasks…" error={syncError} onRetry={retry} />;
   }
 
   const tasks = getTasksForDate(graph, today);
@@ -23,6 +24,7 @@ export default function TodoView() {
   return (
     <main className="app-shell">
       <AppHeader active="todo" title="ToDo" />
+      <GraphSyncError error={syncError} onRetry={retry} />
       <section className="todo-card" aria-labelledby="todo-heading">
         <header className="todo-heading">
           <div>

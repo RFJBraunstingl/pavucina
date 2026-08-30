@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Providers from "./_components/providers";
 import "./globals.css";
 import "./_styles/base.css";
 import "./_styles/controls.css";
@@ -17,7 +18,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

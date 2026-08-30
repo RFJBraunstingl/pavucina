@@ -123,6 +123,52 @@ h1 {
   color: var(--green-dark);
 }
 
+.header-actions,
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-controls {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.auth-controls button,
+.loading-screen button,
+.sync-error button {
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-controls button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.sync-error {
+  max-width: 1680px;
+  margin: -10px auto 18px;
+  padding: 10px 12px;
+  border: 1px solid #d8a29b;
+  border-radius: 10px;
+  background: #fff4f2;
+  color: #7a2920;
+  font-size: 13px;
+}
+
+.sync-error button {
+  margin-left: 8px;
+}
+
 .loading-screen {
   display: grid;
   min-height: 100vh;
@@ -134,4 +180,8 @@ h1 {
 .loading-screen p {
   margin: 12px 0 0;
   font-size: 13px;
+}
+
+.loading-screen button {
+  margin-top: 10px;
 }
