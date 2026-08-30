@@ -36,6 +36,7 @@ export default function TimelineGrid({
   onGraphChange,
   onSelect,
   onAddChild,
+  onCreate,
 }: TimelineGridProps) {
   const drag = useRef<DragState | null>(null);
   const tasks = useMemo(() => flattenTasks(graph), [graph]);
@@ -132,6 +133,26 @@ export default function TimelineGrid({
             key={task.id}
           />
         ))}
+        <div className="timeline-row task-row create-task-row">
+          <div className="task-label" style={{ paddingLeft: "18px" }}>
+            <button
+              type="button"
+              className="task-select create-task"
+              onClick={onCreate}
+            >
+              <span className="create-task-symbol" aria-hidden="true">+</span>
+              <span>Create new top-level task</span>
+            </button>
+          </div>
+          {days.map((day, index) => (
+            <div
+              aria-hidden="true"
+              className={`day-cell ${isWeekend(day) ? "weekend" : ""} ${day === today ? "today" : ""}`}
+              style={{ gridColumn: index + 2 }}
+              key={day}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

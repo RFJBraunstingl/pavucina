@@ -48,6 +48,30 @@
   white-space: nowrap;
 }
 
+.create-task {
+  display: flex;
+  color: var(--green-dark);
+  align-items: center;
+  gap: 10px;
+}
+
+.task-select .create-task-symbol {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 1px solid #b9d9ca;
+  border-radius: 7px;
+  background: #eef6f1;
+  color: var(--green);
+  font-size: 18px;
+  place-items: center;
+}
+
+.create-task:hover .create-task-symbol {
+  background: #dcefe5;
+}
+
 .task-row[data-depth="1"] .task-select,
 .task-row[data-depth="2"] .task-select {
   color: #4f5c54;

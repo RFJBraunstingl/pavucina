@@ -2,6 +2,7 @@ import {
   setTaskDates,
   setTaskTimes,
 } from "../services/task-schedule-service.ts";
+import { ensureRootNode } from "../services/graph-service.ts";
 import { addDays } from "../utils/date.ts";
 import type { Graph } from "@/types/graph";
 
@@ -63,5 +64,5 @@ export function createSeedGraph(today: string): Graph {
   for (const [taskKey, , start, end] of taskData) {
     graph = setTaskTimes(graph, taskIds.get(taskKey)!, start, end);
   }
-  return graph;
+  return ensureRootNode(graph);
 }

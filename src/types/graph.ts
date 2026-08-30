@@ -13,13 +13,19 @@ export type TaskNode = {
   properties: TaskProperties;
 };
 
+export type RootNode = {
+  id: string;
+  type: "root";
+  properties: Record<string, never>;
+};
+
 export type DateNode = {
   id: string;
   type: "date";
   properties: { value: string };
 };
 
-export type GraphNode = TaskNode | DateNode;
+export type GraphNode = RootNode | TaskNode | DateNode;
 export type DateRelationshipType = "plannedStartDate" | "plannedEndDate";
 export type RelationshipType = "child" | DateRelationshipType;
 

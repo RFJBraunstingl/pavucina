@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   addChildTask,
+  addTopLevelTask,
   deleteTask,
   flattenTasks,
   getTasksForDate,
@@ -18,7 +19,7 @@ import {
   resizeTask,
   setTaskDate,
 } from "./task-schedule-service.ts";
-import { isGraph, isUuid } from "./graph-service.ts";
+import { ensureRootNode, isGraph, isUuid } from "./graph-service.ts";
 import { createSeedGraph } from "../data/seed-graph.ts";
 import { calendarItem } from "../utils/calendar.ts";
 import { addDays, makeDateRange } from "../utils/date.ts";
@@ -110,7 +111,6 @@ test("task graph operations preserve relationships and schedules", () => {
     targetId: projectId,
   });
   assert.equal(isGraph(cyclic), false);
-
 });
 
 test("deleting a task removes all descendants and orphaned dates", () => {
@@ -159,4 +159,42 @@ test("deleting a task removes all descendants and orphaned dates", () => {
   );
   assert.equal(getTaskDate(deleted, designId, "plannedEndDate"), "2026-03-30");
   assert.equal(isGraph(deleted), true);
+});
+
+test("the structural root anchors visible top-level tasks", () => {
+  const graph = createSeedGraph("2026-03-29");
+  const root = graph.nodes.find((node) => node.type === "root");
+  assert.ok(root);
+  assert.equal(flattenTasks(graph)[0].task.properties.name, "Launch Pavucina");
+  assert.equal(deleteTask(graph, root.id), graph);
+
+  const legacy = {
+    ...graph,
+    nodes: graph.nodes.filter((node) => node.id !== root.id),
+    relationships: graph.relationships.filter(
+      (relationship) => relationship.sourceId !== root.id,
+    ),
+  };
+  assert.equal(isGraph(legacy), true);
+  assert.deepEqual(
+    flattenTasks(ensureRootNode(legacy)).map(({ task }) => task.properties.name),
+    flattenTasks(graph).map(({ task }) => task.properties.name),
+  );
+
+  const empty = deleteTask(graph, flattenTasks(graph)[0].task.id);
+  assert.deepEqual(empty.nodes, [root]);
+  const created = addTopLevelTask(empty, crypto.randomUUID());
+  assert.deepEqual(
+    flattenTasks(created).map(({ task, depth }) => [task.properties.name, depth]),
+    [["New task", 0]],
+  );
+  assert.equal(isGraph(created), true);
+  const scheduledRoot = structuredClone(graph);
+  scheduledRoot.relationships.push({
+    id: crypto.randomUUID(),
+    type: "plannedStartDate",
+    sourceId: root.id,
+    targetId: graph.nodes.find((node) => node.type === "date")!.id,
+  });
+  assert.equal(isGraph(scheduledRoot), false);
 });

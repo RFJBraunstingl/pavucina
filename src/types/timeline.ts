@@ -27,6 +27,7 @@ export type TimelineGridProps = {
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string) => void;
   onAddChild: (parentId: string) => void;
+  onCreate: () => void;
 };
 
 export type TaskInspectorProps = {

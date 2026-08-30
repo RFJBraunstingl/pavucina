@@ -7,6 +7,7 @@ import type {
   GraphNode,
   Relationship,
   RelationshipType,
+  RootNode,
   TaskNode,
 } from "@/types/graph";
 
@@ -25,6 +26,43 @@ export function isUuid(value: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+export function ensureRootNode(graph: Graph): Graph {
+  const root = graph.nodes.find(
+    (node): node is RootNode => node.type === "root",
+  );
+  const parentedTaskIds = new Set(
+    graph.relationships
+      .filter((relationship) => relationship.type === "child")
+      .map((relationship) => relationship.targetId),
+  );
+  const topLevelTasks = graph.nodes.filter(
+    (node): node is TaskNode =>
+      node.type === "task" && !parentedTaskIds.has(node.id),
+  );
+  if (root && !topLevelTasks.length) return graph;
+
+  const nextRoot =
+    root ??
+    ({
+      id: crypto.randomUUID(),
+      type: "root",
+      properties: {},
+    } satisfies RootNode);
+  return {
+    ...graph,
+    nodes: root ? graph.nodes : [nextRoot, ...graph.nodes],
+    relationships: [
+      ...graph.relationships,
+      ...topLevelTasks.map((task) => ({
+        id: crypto.randomUUID(),
+        type: "child" as const,
+        sourceId: nextRoot.id,
+        targetId: task.id,
+      })),
+    ],
+  };
 }
 
 export function isGraph(value: unknown): value is Graph {
@@ -71,9 +109,18 @@ export function isGraph(value: unknown): value is Graph {
       isIsoDate(properties.value)
     ) {
       nodes.set(rawNode.id, rawNode as DateNode);
+    } else if (
+      rawNode.type === "root" &&
+      Object.keys(properties).length === 0
+    ) {
+      nodes.set(rawNode.id, rawNode as RootNode);
     } else {
       return false;
     }
+  }
+
+  if ([...nodes.values()].filter((node) => node.type === "root").length > 1) {
+    return false;
   }
 
   const relationshipIds = new Set<string>();
@@ -97,15 +144,27 @@ export function isGraph(value: unknown): value is Graph {
     const relationship = rawRelationship as Relationship;
     const source = nodes.get(relationship.sourceId);
     const target = nodes.get(relationship.targetId);
-    if (!source || source.type !== "task" || !target) return false;
+    if (!source || !target) return false;
 
     if (relationship.type === "child") {
-      if (target.type !== "task" || parents.has(target.id)) return false;
+      if (
+        (source.type !== "task" && source.type !== "root") ||
+        target.type !== "task" ||
+        parents.has(target.id)
+      ) {
+        return false;
+      }
       parents.add(target.id);
       children.set(source.id, [...(children.get(source.id) ?? []), target.id]);
     } else {
       const key = `${source.id}:${relationship.type}`;
-      if (target.type !== "date" || dateRelationships.has(key)) return false;
+      if (
+        source.type !== "task" ||
+        target.type !== "date" ||
+        dateRelationships.has(key)
+      ) {
+        return false;
+      }
       dateRelationships.add(key);
     }
 

@@ -1,4 +1,4 @@
-import { isGraph } from "./graph-service";
+import { ensureRootNode, isGraph } from "./graph-service";
 import type { Graph } from "@/types/graph";
 
 export async function loadRemoteGraph(): Promise<Graph | null> {
@@ -8,7 +8,7 @@ export async function loadRemoteGraph(): Promise<Graph | null> {
 
   const value: unknown = await response.json();
   if (!isGraph(value)) throw new Error("The saved graph is invalid");
-  return value;
+  return ensureRootNode(value);
 }
 
 export async function saveRemoteGraph(graph: Graph) {

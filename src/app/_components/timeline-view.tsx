@@ -7,7 +7,12 @@ import { GraphLoading, GraphSyncError } from "./graph-state";
 import TaskInspector from "./task-inspector";
 import TimelineGrid from "./timeline-grid";
 import { useGraph } from "@/providers/graph-provider";
-import { addChildTask, deleteTask, renameTask } from "@/services/task-service";
+import {
+  addChildTask,
+  addTopLevelTask,
+  deleteTask,
+  renameTask,
+} from "@/services/task-service";
 import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
 import type { DateRelationshipType, TaskNode } from "@/types/graph";
@@ -43,6 +48,14 @@ export default function TimelineView() {
       current ? addChildTask(current, parentId, childId) : current,
     );
     setSelectedId(childId);
+  }
+
+  function addTask() {
+    const taskId = crypto.randomUUID();
+    setGraph((current) =>
+      current ? addTopLevelTask(current, taskId) : current,
+    );
+    setSelectedId(taskId);
   }
 
   function removeTask(taskId: string) {
@@ -96,6 +109,7 @@ export default function TimelineView() {
             onGraphChange={setGraph}
             onSelect={setSelectedId}
             onAddChild={addChild}
+            onCreate={addTask}
           />
         </section>
 

@@ -1,5 +1,5 @@
 import { createSeedGraph } from "@/data/seed-graph";
-import { isGraph } from "./graph-service.ts";
+import { ensureRootNode, isGraph } from "./graph-service.ts";
 import type { Graph } from "@/types/graph";
 
 const STORAGE_KEY = "pavucina.graph.v1";
@@ -10,7 +10,7 @@ export function loadGuestGraph(today: string) {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed: unknown = JSON.parse(stored);
-      if (isGraph(parsed)) return parsed;
+      if (isGraph(parsed)) return ensureRootNode(parsed);
     }
   } catch {
     // A bad browser value should not prevent the application from opening.

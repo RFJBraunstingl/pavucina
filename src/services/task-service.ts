@@ -3,6 +3,7 @@ import {
   removeUnusedDates,
   setTaskDate,
 } from "./task-schedule-service.ts";
+import { ensureRootNode } from "./graph-service.ts";
 import type { FlatTask, Graph, TaskNode } from "@/types/graph";
 
 export function renameTask(graph: Graph, taskId: string, value: string) {
@@ -80,7 +81,11 @@ export function flattenTasks(graph: Graph): FlatTask[] {
     result.push({ task, depth });
     for (const childId of children.get(id) ?? []) visit(childId, depth + 1);
   };
-  for (const task of tasks) if (!childIds.has(task.id)) visit(task.id, 0);
+  const root = graph.nodes.find((node) => node.type === "root");
+  const topLevelIds = root
+    ? children.get(root.id) ?? []
+    : tasks.filter((task) => !childIds.has(task.id)).map((task) => task.id);
+  for (const taskId of topLevelIds) visit(taskId, 0);
   return result;
 }
 
@@ -102,7 +107,8 @@ export function getTasksForDate(graph: Graph, date: string) {
 
 export function addChildTask(graph: Graph, parentId: string, childId: string) {
   const parent = graph.nodes.find(
-    (node): node is TaskNode => node.id === parentId && node.type === "task",
+    (node) =>
+      node.id === parentId && (node.type === "task" || node.type === "root"),
   );
   if (!parent) return graph;
 
@@ -128,4 +134,10 @@ export function addChildTask(graph: Graph, parentId: string, childId: string) {
     if (value) next = setTaskDate(next, childId, type, value);
   }
   return next;
+}
+
+export function addTopLevelTask(graph: Graph, taskId: string) {
+  const rootedGraph = ensureRootNode(graph);
+  const root = rootedGraph.nodes.find((node) => node.type === "root")!;
+  return addChildTask(rootedGraph, root.id, taskId);
 }
