@@ -46,7 +46,13 @@ export default function TodoView() {
                 task.id,
                 "plannedStartDate",
               )!;
-              const time = task.properties.plannedStartTime;
+              const endDate = getTaskDate(
+                  graph,
+                  task.id,
+                  "plannedEndDate"
+              )
+              const startTime = task.properties.plannedStartTime;
+              const endTime = task.properties.plannedEndTime;
               return (
                 <li className={`todo-item${task.properties.done ? " is-done" : ""}`} key={task.id}>
                   <label>
@@ -59,7 +65,10 @@ export default function TodoView() {
                       <strong>{task.properties.name}</strong>
                       <span>
                         <time dateTime={startDate}>{compactDateLabel(startDate)}</time>
-                        {time && <> · <time dateTime={time}>{time}</time></>}
+                        {startTime && <> · <time dateTime={startTime}>{startTime}</time></>}
+                        -
+                        {endDate && <time dateTime={endDate}>{compactDateLabel(endDate)}</time>}
+                        {endTime && <> · <time dateTime={endTime}>{endTime}</time></>}
                       </span>
                     </span>
                   </label>

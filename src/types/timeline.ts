@@ -50,6 +50,7 @@ export type TimelineTaskRowProps = FlatTask & {
   selected: boolean;
   onSelect: (taskId: string) => void;
   onAddChild: (parentId: string) => void;
+  onSchedule: (taskId: string, day: string) => void;
   onDragStart: (
     event: PointerEvent<HTMLButtonElement>,
     taskId: string,

@@ -14,6 +14,7 @@ export default function TimelineTaskRow({
   selected,
   onSelect,
   onAddChild,
+  onSchedule,
   onDragStart,
   onPointerMove,
   onPointerEnd,
@@ -25,6 +26,7 @@ export default function TimelineTaskRow({
   const endOffset = end ? daysBetween(rangeStart, end) : -1;
   const visibleStart = Math.max(0, startOffset);
   const visibleEnd = Math.min(days.length - 1, endOffset);
+  const unscheduled = !start && !end;
   const barVisible = Boolean(start && end && visibleStart <= visibleEnd);
 
   return (
@@ -50,14 +52,27 @@ export default function TimelineTaskRow({
         </button>
       </div>
 
-      {days.map((day, index) => (
-        <div
-          aria-hidden="true"
-          className={`day-cell ${isWeekend(day) ? "weekend" : ""} ${day === today ? "today" : ""}`}
-          style={{ gridColumn: index + 2 }}
-          key={day}
-        />
-      ))}
+      {days.map((day, index) => {
+        const className = `day-cell ${isWeekend(day) ? "weekend" : ""} ${day === today ? "today" : ""}`;
+        const style = { gridColumn: index + 2 };
+        return unscheduled ? (
+          <button
+            type="button"
+            aria-label={`Schedule ${task.properties.name} on ${day}`}
+            className={`${className} schedule-cell`}
+            style={style}
+            onClick={() => onSchedule(task.id, day)}
+            key={day}
+          />
+        ) : (
+          <div
+            aria-hidden="true"
+            className={className}
+            style={style}
+            key={day}
+          />
+        );
+      })}
 
       {barVisible && (
         <div

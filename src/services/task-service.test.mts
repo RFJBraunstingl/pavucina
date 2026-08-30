@@ -18,6 +18,7 @@ import {
   moveScheduledTask,
   resizeTask,
   setTaskDate,
+  setTaskDates,
 } from "./task-schedule-service.ts";
 import { ensureRootNode, isGraph, isUuid } from "./graph-service.ts";
 import { createSeedGraph } from "../data/seed-graph.ts";
@@ -183,12 +184,18 @@ test("the structural root anchors visible top-level tasks", () => {
 
   const empty = deleteTask(graph, flattenTasks(graph)[0].task.id);
   assert.deepEqual(empty.nodes, [root]);
-  const created = addTopLevelTask(empty, crypto.randomUUID());
+  const createdId = crypto.randomUUID();
+  const created = addTopLevelTask(empty, createdId);
   assert.deepEqual(
     flattenTasks(created).map(({ task, depth }) => [task.properties.name, depth]),
     [["New task", 0]],
   );
   assert.equal(isGraph(created), true);
+  const scheduled = setTaskDates(created, createdId, "2026-04-02", "2026-04-02");
+  assert.deepEqual(
+    [getTaskDate(scheduled, createdId, "plannedStartDate"), getTaskDate(scheduled, createdId, "plannedEndDate")],
+    ["2026-04-02", "2026-04-02"],
+  );
   const scheduledRoot = structuredClone(graph);
   scheduledRoot.relationships.push({
     id: crypto.randomUUID(),

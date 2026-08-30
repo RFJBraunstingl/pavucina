@@ -116,24 +116,6 @@
   opacity: 1;
 }
 
-.day-cell {
-  position: relative;
-  z-index: 1;
-  grid-row: 1;
-  border-right: 1px solid #edf0ed;
-  background: #fff;
-}
-
-.day-cell.today::after {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: rgb(22 122 84 / 35%);
-  content: "";
-}
-
 .task-bar {
   display: grid;
   position: relative;

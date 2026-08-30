@@ -12,6 +12,7 @@ import {
 import {
   moveTask,
   resizeTask,
+  setTaskDates,
 } from "@/services/task-schedule-service";
 import {
   dayLabel,
@@ -47,6 +48,11 @@ export default function TimelineGrid({
         ? moveTask(graph, taskId, amount)
         : resizeTask(graph, taskId, mode, amount),
     );
+  }
+
+  function scheduleTask(taskId: string, day: string) {
+    onGraphChange(setTaskDates(graph, taskId, day, day));
+    onSelect(taskId);
   }
 
   function beginDrag(
@@ -126,6 +132,7 @@ export default function TimelineGrid({
             selected={selectedId === task.id}
             onSelect={onSelect}
             onAddChild={onAddChild}
+            onSchedule={scheduleTask}
             onDragStart={beginDrag}
             onPointerMove={continueDrag}
             onPointerEnd={endDrag}
