@@ -34,6 +34,85 @@
   text-transform: none;
 }
 
+.delete-task {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #efc4bf;
+  border-radius: 9px;
+  background: #fff4f2;
+  color: #b42318;
+  cursor: pointer;
+  place-items: center;
+}
+
+.delete-task:hover {
+  background: #fee4e2;
+}
+
+.delete-task svg {
+  width: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.delete-dialog {
+  width: min(380px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgb(24 33 28 / 20%);
+  color: var(--ink);
+}
+
+.delete-dialog::backdrop {
+  background: rgb(24 33 28 / 45%);
+}
+
+.delete-dialog form {
+  padding: 24px;
+}
+
+.delete-dialog h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+
+.delete-dialog p {
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.delete-dialog-actions button {
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.delete-dialog-actions .confirm-delete {
+  border-color: #b42318;
+  background: #b42318;
+  color: #fff;
+}
+
 .inspector-help {
   display: flex;
   margin-top: 26px;

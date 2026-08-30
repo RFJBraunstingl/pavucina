@@ -1,16 +1,32 @@
+import { useRef } from "react";
+
 import { getTaskDate } from "@/services/task-schedule-service";
 import type { TaskInspectorProps } from "@/types/timeline";
 
 export default function TaskInspector({
   graph,
   selected,
+  onDelete,
   onNameChange,
   onDateChange,
 }: TaskInspectorProps) {
+  const deleteDialog = useRef<HTMLDialogElement>(null);
+
   return (
     <aside className="inspector" aria-labelledby="inspector-heading">
       {selected ? (
         <>
+          <button
+            type="button"
+            className="delete-task"
+            aria-label={`Delete ${selected.properties.name}`}
+            title="Delete task"
+            onClick={() => deleteDialog.current?.showModal()}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5" />
+            </svg>
+          </button>
           <p className="eyebrow">Selected task</p>
           <h2 id="inspector-heading">Edit details</h2>
           <label>
@@ -55,6 +71,29 @@ export default function TaskInspector({
             <span aria-hidden="true">↔</span>
             <p>Drag a bar to move it. Drag either edge to resize by whole days.</p>
           </div>
+          <dialog
+            ref={deleteDialog}
+            className="delete-dialog"
+            aria-labelledby="delete-dialog-heading"
+          >
+            <form method="dialog">
+              <h3 id="delete-dialog-heading">Delete task?</h3>
+              <p>
+                <strong>{selected.properties.name}</strong> and all of its child
+                tasks will be permanently deleted.
+              </p>
+              <div className="delete-dialog-actions">
+                <button type="submit" autoFocus>Cancel</button>
+                <button
+                  type="submit"
+                  className="confirm-delete"
+                  onClick={() => onDelete(selected.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </form>
+          </dialog>
         </>
       ) : (
         <div className="empty-inspector">

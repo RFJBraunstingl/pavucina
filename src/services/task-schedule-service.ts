@@ -40,7 +40,7 @@ export function getTaskTime(graph: Graph, taskId: string, type: TimeProperty) {
   return task?.properties[type];
 }
 
-function removeUnusedDates(graph: Graph): Graph {
+export function removeUnusedDates(graph: Graph): Graph {
   const usedDates = new Set(
     graph.relationships
       .filter((item) => DATE_RELATIONSHIPS.includes(item.type as DateRelationshipType))

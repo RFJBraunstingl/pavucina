@@ -32,6 +32,7 @@ export type TimelineGridProps = {
 export type TaskInspectorProps = {
   graph: Graph;
   selected?: TaskNode;
+  onDelete: (taskId: string) => void;
   onNameChange: (taskId: string, value: string) => void;
   onDateChange: (
     taskId: string,

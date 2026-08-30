@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   addChildTask,
+  deleteTask,
   flattenTasks,
   getTasksForDate,
   renameTask,
@@ -110,4 +111,52 @@ test("task graph operations preserve relationships and schedules", () => {
   });
   assert.equal(isGraph(cyclic), false);
 
+});
+
+test("deleting a task removes all descendants and orphaned dates", () => {
+  let graph = createSeedGraph("2026-03-29");
+  const taskId = (name: string) => {
+    const task = graph.nodes.find(
+      (node): node is TaskNode =>
+        node.type === "task" && node.properties.name === name,
+    );
+    assert.ok(task);
+    return task.id;
+  };
+  const prototypeId = taskId("Build prototype");
+  const frontendId = taskId("Timeline interactions");
+  const graphModelId = taskId("Graph data model");
+  const designId = taskId("Design timeline");
+  const grandchildId = crypto.randomUUID();
+  graph = addChildTask(graph, frontendId, grandchildId);
+
+  const deleted = deleteTask(graph, prototypeId);
+  const deletedIds = new Set([
+    prototypeId,
+    frontendId,
+    graphModelId,
+    grandchildId,
+  ]);
+  assert.equal(deleted.nodes.some((node) => deletedIds.has(node.id)), false);
+  assert.equal(
+    deleted.relationships.some(
+      (relationship) =>
+        deletedIds.has(relationship.sourceId) ||
+        deletedIds.has(relationship.targetId),
+    ),
+    false,
+  );
+  const usedDateIds = new Set(
+    deleted.relationships
+      .filter((relationship) => relationship.type !== "child")
+      .map((relationship) => relationship.targetId),
+  );
+  assert.equal(
+    deleted.nodes.every(
+      (node) => node.type !== "date" || usedDateIds.has(node.id),
+    ),
+    true,
+  );
+  assert.equal(getTaskDate(deleted, designId, "plannedEndDate"), "2026-03-30");
+  assert.equal(isGraph(deleted), true);
 });

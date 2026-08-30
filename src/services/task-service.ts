@@ -1,4 +1,8 @@
-import { getTaskDate, setTaskDate } from "./task-schedule-service.ts";
+import {
+  getTaskDate,
+  removeUnusedDates,
+  setTaskDate,
+} from "./task-schedule-service.ts";
 import type { FlatTask, Graph, TaskNode } from "@/types/graph";
 
 export function renameTask(graph: Graph, taskId: string, value: string) {
@@ -23,6 +27,36 @@ export function setTaskDone(graph: Graph, taskId: string, done: boolean) {
         : node,
     ),
   };
+}
+
+export function deleteTask(graph: Graph, taskId: string) {
+  const taskExists = graph.nodes.some(
+    (node) => node.id === taskId && node.type === "task",
+  );
+  if (!taskExists) return graph;
+
+  const deletedIds = new Set<string>();
+  const pendingIds = [taskId];
+  while (pendingIds.length) {
+    const id = pendingIds.pop()!;
+    if (deletedIds.has(id)) continue;
+    deletedIds.add(id);
+    for (const relationship of graph.relationships) {
+      if (relationship.type === "child" && relationship.sourceId === id) {
+        pendingIds.push(relationship.targetId);
+      }
+    }
+  }
+
+  return removeUnusedDates({
+    ...graph,
+    nodes: graph.nodes.filter((node) => !deletedIds.has(node.id)),
+    relationships: graph.relationships.filter(
+      (relationship) =>
+        !deletedIds.has(relationship.sourceId) &&
+        !deletedIds.has(relationship.targetId),
+    ),
+  });
 }
 
 export function flattenTasks(graph: Graph): FlatTask[] {
