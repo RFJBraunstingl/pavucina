@@ -41,6 +41,12 @@ export async function PUT(request: Request) {
   if (!isGraph(value)) {
     return Response.json({ error: "Invalid graph" }, { status: 400 });
   }
+  if (
+    request.headers.get("if-none-match") === "*" &&
+    (await loadLatestGraph(session.user.id))
+  ) {
+    return new Response(null, { status: 412 });
+  }
 
   const versionId = await saveGraphVersion(session.user.id, value);
   return Response.json({ versionId }, { status: 201 });

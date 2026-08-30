@@ -1,4 +1,4 @@
-import { ensureRootNode, isGraph } from "./graph-service";
+import { ensureRootNode, isGraph } from "./graph-service.ts";
 import type { Graph } from "@/types/graph";
 
 export async function loadRemoteGraph(): Promise<Graph | null> {
@@ -11,11 +11,16 @@ export async function loadRemoteGraph(): Promise<Graph | null> {
   return ensureRootNode(value);
 }
 
-export async function saveRemoteGraph(graph: Graph) {
+export async function saveRemoteGraph(graph: Graph, onlyIfMissing = false) {
   const response = await fetch("/api/graph", {
     method: "PUT",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(onlyIfMissing && { "if-none-match": "*" }),
+    },
     body: JSON.stringify(graph),
   });
+  if (response.status === 412) return false;
   if (!response.ok) throw new Error("Could not save your graph");
+  return true;
 }

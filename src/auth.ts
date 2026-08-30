@@ -16,8 +16,8 @@ export const { handlers, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
-      const id = user?.id ?? token.sub;
+    jwt({ token, user, profile }) {
+      const id = profile?.id ?? token.sub;
       return id ? { sub: id } : null;
     },
     session({ session, token }) {

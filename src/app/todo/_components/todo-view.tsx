@@ -66,7 +66,7 @@ export default function TodoView() {
                       <span>
                         <time dateTime={startDate}>{compactDateLabel(startDate)}</time>
                         {startTime && <> · <time dateTime={startTime}>{startTime}</time></>}
-                        -
+                        {' - '}
                         {endDate && <time dateTime={endDate}>{compactDateLabel(endDate)}</time>}
                         {endTime && <> · <time dateTime={endTime}>{endTime}</time></>}
                       </span>

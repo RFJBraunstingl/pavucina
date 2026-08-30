@@ -193,7 +193,10 @@ test("the structural root anchors visible top-level tasks", () => {
   assert.equal(isGraph(created), true);
   const scheduled = setTaskDates(created, createdId, "2026-04-02", "2026-04-02");
   assert.deepEqual(
-    [getTaskDate(scheduled, createdId, "plannedStartDate"), getTaskDate(scheduled, createdId, "plannedEndDate")],
+    [
+      getTaskDate(scheduled, createdId, "plannedStartDate"),
+      getTaskDate(scheduled, createdId, "plannedEndDate"),
+    ],
     ["2026-04-02", "2026-04-02"],
   );
   const scheduledRoot = structuredClone(graph);

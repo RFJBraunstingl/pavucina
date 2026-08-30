@@ -61,7 +61,10 @@ function useGraphState() {
         if (!next) {
           if (cancelled) return;
           next = loadGuestGraph(today)!;
-          await saveRemoteGraph(next);
+          if (!(await saveRemoteGraph(next, true))) {
+            next = await loadRemoteGraph();
+            if (!next) throw new Error("Could not load your saved graph");
+          }
         }
         if (cancelled) return;
         loadedScope.current = scope;
