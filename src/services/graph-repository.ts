@@ -13,7 +13,7 @@ import type {
 const indexPromises = new Map<string, Promise<string>>();
 
 function collectionNames(githubId: string) {
-  if (!/^\d+$/.test(githubId)) throw new Error("Invalid GitHub user ID");
+  if (!/^[0-9a-fA-F\-]+$/.test(githubId)) throw new Error("Invalid GitHub user ID");
   return {
     versions: `github_${githubId}_graph_versions`,
     nodes: `github_${githubId}_nodes`,
