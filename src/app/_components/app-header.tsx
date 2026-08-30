@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import type { AppHeaderProps } from "@/types/navigation";
@@ -11,7 +12,13 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
   return (
     <header className="app-header">
       <div className="brand">
-        <span className="brand-mark" aria-hidden="true" />
+        <Image
+          className="brand-logo"
+          src="/pavucina-logo.svg"
+          width={28}
+          height={28}
+          alt=""
+        />
         <span>Pavucina</span>
       </div>
       <div>

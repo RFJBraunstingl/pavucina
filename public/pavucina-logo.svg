@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Pavucina spiderweb task graph logo</title>
+  <circle cx="32" cy="32" r="30" fill="#eef6f1"/>
+  <g stroke="#6aab8e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 5 51 12 59 32 52 52 32 59 12 52 5 32 12 12Z"/>
+    <path d="M32 15 44 19 49 32 44 44 32 49 19 44 15 32 20 19Z"/>
+    <path d="M32 23 38 26 41 32 38 38 32 41 26 38 23 32 26 26Z"/>
+    <path d="M32 5v54M5 32h54M12 12l40 40M51 12 12 52"/>
+  </g>
+  <g fill="#fff" stroke="#167a54" stroke-width="2.2">
+    <circle cx="32" cy="5" r="3"/>
+    <circle cx="51" cy="12" r="3"/>
+    <circle cx="59" cy="32" r="3"/>
+    <circle cx="32" cy="59" r="3"/>
+    <circle cx="12" cy="52" r="3"/>
+    <circle cx="5" cy="32" r="3"/>
+  </g>
+  <rect x="18" y="27" width="28" height="10" rx="5" fill="#0d5f40"/>
+  <circle cx="24" cy="32" r="2.5" fill="#dcefe5"/>
+  <path d="M29 32h11" stroke="#dcefe5" stroke-width="2" stroke-linecap="round"/>
+</svg>
