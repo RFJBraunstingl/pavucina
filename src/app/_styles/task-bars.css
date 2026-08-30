@@ -56,16 +56,31 @@
 }
 
 .task-select .create-task-symbol {
-  display: grid;
+  position: relative;
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
   border: 1px solid #b9d9ca;
-  border-radius: 7px;
+  border-radius: 50%;
   background: #eef6f1;
   color: var(--green);
-  font-size: 18px;
-  place-items: center;
+}
+
+.create-task-symbol::before,
+.create-task-symbol::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.create-task-symbol::after {
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .create-task:hover .create-task-symbol {

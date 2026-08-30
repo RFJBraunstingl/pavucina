@@ -140,7 +140,7 @@ export default function TimelineGrid({
               className="task-select create-task"
               onClick={onCreate}
             >
-              <span className="create-task-symbol" aria-hidden="true">+</span>
+              <span className="create-task-symbol" aria-hidden="true" />
               <span>Create new top-level task</span>
             </button>
           </div>
