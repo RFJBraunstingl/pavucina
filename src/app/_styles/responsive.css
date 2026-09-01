@@ -16,10 +16,6 @@
 }
 
 @media (max-width: 680px) {
-  :root {
-    --task-column: 230px;
-  }
-
   .app-shell {
     padding: 22px 12px 32px;
   }
@@ -62,6 +58,33 @@
     padding: 16px;
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .timeline-scroll {
+    overflow-x: hidden;
+  }
+
+  .timeline-grid {
+    width: 100%;
+  }
+
+  .timeline-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .timeline-header {
+    min-height: 44px;
+  }
+
+  .task-column-heading,
+  .task-label {
+    border-right: 0;
+  }
+
+  .day-heading,
+  .day-cell,
+  .task-bar {
+    display: none;
   }
 
   .timeline-card,
