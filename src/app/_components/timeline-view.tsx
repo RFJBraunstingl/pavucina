@@ -21,6 +21,7 @@ export default function TimelineView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
   const [rangeStart, setRangeStart] = useState(() => addDays(today, -14));
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hideDone, setHideDone] = useState(true);
   const days = useMemo(() => makeDateRange(rangeStart), [rangeStart]);
   const selected = graph?.nodes.find(
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
@@ -75,7 +76,15 @@ export default function TimelineView() {
               <p className="eyebrow">Project plan</p>
               <h2 id="timeline-heading">{rangeLabel(days[0], days.at(-1)!)}</h2>
             </div>
-            <div className="range-controls" aria-label="Timeline range">
+            <div className="range-controls" aria-label="Timeline controls">
+              <label className="done-toggle">
+                <input
+                  type="checkbox"
+                  checked={hideDone}
+                  onChange={(event) => setHideDone(event.target.checked)}
+                />
+                Hide done
+              </label>
               <button
                 type="button"
                 aria-label="Previous four weeks"
@@ -106,6 +115,7 @@ export default function TimelineView() {
             today={today}
             rangeStart={rangeStart}
             selectedId={selectedId}
+            hideDone={hideDone}
             onGraphChange={setGraph}
             onSelect={setSelectedId}
             onAddChild={addChild}

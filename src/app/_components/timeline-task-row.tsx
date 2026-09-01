@@ -12,7 +12,10 @@ export default function TimelineTaskRow({
   rangeStart,
   today,
   selected,
+  hasChildren,
+  collapsed,
   onSelect,
+  onToggle,
   onAddChild,
   onSchedule,
   onDragStart,
@@ -38,6 +41,19 @@ export default function TimelineTaskRow({
         className="task-label"
         style={{ paddingLeft: `${18 + Math.min(depth, 8) * 20}px` }}
       >
+        {hasChildren ? (
+          <button
+            type="button"
+            className="task-toggle"
+            aria-expanded={!collapsed}
+            aria-label={`${collapsed ? "Expand" : "Collapse"} ${task.properties.name}`}
+            onClick={() => onToggle(task.id)}
+          >
+            <span aria-hidden="true">{collapsed ? "▸" : "▾"}</span>
+          </button>
+        ) : (
+          <span className="task-toggle" aria-hidden="true" />
+        )}
         <button type="button" className="task-select" onClick={() => onSelect(task.id)}>
           <span>{task.properties.name}</span>
         </button>

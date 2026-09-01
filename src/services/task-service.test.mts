@@ -6,7 +6,7 @@ import {
   addTopLevelTask,
   deleteTask,
   flattenTasks,
-  getTasksForDate,
+  getLeafTasksForDate,
   renameTask,
   setTaskDone,
 } from "./task-service.ts";
@@ -42,8 +42,10 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.equal(addDays("2026-03-29", 1), "2026-03-30");
   assert.equal(flattenTasks(graph)[1].depth, 1);
   assert.deepEqual(
-    getTasksForDate(graph, "2026-03-29").map((task) => task.properties.name),
-    ["Launch Pavucina", "Build prototype", "Timeline interactions", "Design timeline"],
+    getLeafTasksForDate(graph, "2026-03-29").map(
+      (task) => task.properties.name,
+    ),
+    ["Timeline interactions", "Design timeline"],
   );
   assert.equal(
     [...graph.nodes, ...graph.relationships].every((item) => isUuid(item.id)),
@@ -62,7 +64,7 @@ test("task graph operations preserve relationships and schedules", () => {
 
   graph = setTaskDone(graph, frontendId, true);
   assert.equal(
-    getTasksForDate(graph, "2026-03-29").find(
+    getLeafTasksForDate(graph, "2026-03-29").find(
       (task) => task.id === frontendId,
     )?.properties.done,
     true,
@@ -167,6 +169,28 @@ test("the structural root anchors visible top-level tasks", () => {
   const root = graph.nodes.find((node) => node.type === "root");
   assert.ok(root);
   assert.equal(flattenTasks(graph)[0].task.properties.name, "Launch Pavucina");
+  assert.equal(
+    flattenTasks(graph, new Set([flattenTasks(graph)[0].task.id])).length,
+    1,
+  );
+  const prototype = graph.nodes.find(
+    (node): node is TaskNode =>
+      node.type === "task" && node.properties.name === "Build prototype",
+  );
+  assert.ok(prototype);
+  assert.deepEqual(
+    flattenTasks(graph, new Set([prototype.id])).map(
+      ({ task }) => task.properties.name,
+    ),
+    [
+      "Launch Pavucina",
+      "Research workflows",
+      "Design timeline",
+      "Build prototype",
+      "Test the experience",
+      "Release preview",
+    ],
+  );
   assert.equal(deleteTask(graph, root.id), graph);
 
   const legacy = {

@@ -27,6 +27,26 @@
   box-shadow: inset 3px 0 var(--green);
 }
 
+.task-toggle {
+  display: grid;
+  width: 18px;
+  height: 24px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7d8981;
+  place-items: center;
+}
+
+button.task-toggle {
+  cursor: pointer;
+}
+
+button.task-toggle:hover {
+  color: var(--green);
+}
+
 .task-select {
   overflow: hidden;
   flex: 1;

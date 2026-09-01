@@ -1,9 +1,4 @@
-import {
-  type KeyboardEvent,
-  type PointerEvent,
-  useMemo,
-  useRef,
-} from "react";
+import { type KeyboardEvent, type PointerEvent, useMemo, useRef, useState } from "react";
 
 import TimelineTaskRow from "./timeline-task-row";
 import {
@@ -34,13 +29,44 @@ export default function TimelineGrid({
   today,
   rangeStart,
   selectedId,
+  hideDone,
   onGraphChange,
   onSelect,
   onAddChild,
   onCreate,
 }: TimelineGridProps) {
   const drag = useRef<DragState | null>(null);
-  const tasks = useMemo(() => flattenTasks(graph), [graph]);
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
+  const parentIds = new Set(
+    graph.relationships
+      .filter((relationship) => relationship.type === "child")
+      .map((relationship) => relationship.sourceId),
+  );
+  const tasks = useMemo(
+    () =>
+      flattenTasks(graph, collapsedIds).filter(
+        ({ task }) => !hideDone || !task.properties.done,
+      ),
+    [collapsedIds, graph, hideDone],
+  );
+
+  function toggleTask(taskId: string) {
+    setCollapsedIds((current) => {
+      const next = new Set(current);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }
+
+  function addChild(parentId: string) {
+    setCollapsedIds((current) => {
+      const next = new Set(current);
+      next.delete(parentId);
+      return next;
+    });
+    onAddChild(parentId);
+  }
 
   function changeTask(taskId: string, mode: DragMode, amount: number) {
     onGraphChange(
@@ -130,8 +156,11 @@ export default function TimelineGrid({
             rangeStart={rangeStart}
             today={today}
             selected={selectedId === task.id}
+            hasChildren={parentIds.has(task.id)}
+            collapsed={collapsedIds.has(task.id)}
             onSelect={onSelect}
-            onAddChild={onAddChild}
+            onToggle={toggleTask}
+            onAddChild={addChild}
             onSchedule={scheduleTask}
             onDragStart={beginDrag}
             onPointerMove={continueDrag}

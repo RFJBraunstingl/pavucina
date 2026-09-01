@@ -60,7 +60,10 @@ export function deleteTask(graph: Graph, taskId: string) {
   });
 }
 
-export function flattenTasks(graph: Graph): FlatTask[] {
+export function flattenTasks(
+  graph: Graph,
+  collapsedIds?: ReadonlySet<string>,
+): FlatTask[] {
   const tasks = graph.nodes.filter((node): node is TaskNode => node.type === "task");
   const children = new Map<string, string[]>();
   const childIds = new Set<string>();
@@ -79,6 +82,7 @@ export function flattenTasks(graph: Graph): FlatTask[] {
     const task = taskById.get(id);
     if (!task) return;
     result.push({ task, depth });
+    if (collapsedIds?.has(id)) return;
     for (const childId of children.get(id) ?? []) visit(childId, depth + 1);
   };
   const root = graph.nodes.find((node) => node.type === "root");

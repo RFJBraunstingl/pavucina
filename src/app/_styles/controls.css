@@ -60,6 +60,23 @@
   background: #f1f6f2;
 }
 
+.done-toggle {
+  display: flex;
+  padding: 0 10px;
+  border-right: 1px solid var(--line);
+  background: #fff;
+  color: var(--green-dark);
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.done-toggle input {
+  accent-color: var(--green);
+}
+
 .range-controls .today-button {
   min-width: 66px;
   color: var(--green-dark);
