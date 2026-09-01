@@ -19,6 +19,11 @@ export const metadata: Metadata = {
       type: "image/svg+xml",
       sizes: "any",
     },
+    apple: {
+      url: "/apple-touch-icon.png",
+      type: "image/png",
+      sizes: "180x180",
+    },
   },
 };
 
