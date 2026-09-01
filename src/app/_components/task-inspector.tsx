@@ -7,6 +7,7 @@ export default function TaskInspector({
   graph,
   selected,
   onDelete,
+  onDoneChange,
   onNameChange,
   onDateChange,
 }: TaskInspectorProps) {
@@ -71,6 +72,16 @@ export default function TaskInspector({
             <span aria-hidden="true">↔</span>
             <p>Drag a bar to move it. Drag either edge to resize by whole days.</p>
           </div>
+          <label className="task-done">
+            <input
+              type="checkbox"
+              checked={selected.properties.done ?? false}
+              onChange={(event) =>
+                onDoneChange(selected.id, event.target.checked)
+              }
+            />
+            Done
+          </label>
           <dialog
             ref={deleteDialog}
             className="delete-dialog"

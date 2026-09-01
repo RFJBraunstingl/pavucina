@@ -32,6 +32,7 @@ export default function TimelineGrid({
   hideDone,
   onGraphChange,
   onSelect,
+  onNameChange,
   onAddChild,
   onCreate,
 }: TimelineGridProps) {
@@ -159,6 +160,7 @@ export default function TimelineGrid({
             hasChildren={parentIds.has(task.id)}
             collapsed={collapsedIds.has(task.id)}
             onSelect={onSelect}
+            onNameChange={onNameChange}
             onToggle={toggleTask}
             onAddChild={addChild}
             onSchedule={scheduleTask}

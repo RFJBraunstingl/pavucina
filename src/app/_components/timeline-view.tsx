@@ -12,6 +12,7 @@ import {
   addTopLevelTask,
   deleteTask,
   renameTask,
+  setTaskDone,
 } from "@/services/task-service";
 import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
@@ -34,6 +35,12 @@ export default function TimelineView() {
   function updateName(taskId: string, value: string) {
     setGraph((current) =>
       current ? renameTask(current, taskId, value) : current,
+    );
+  }
+
+  function updateDone(taskId: string, done: boolean) {
+    setGraph((current) =>
+      current ? setTaskDone(current, taskId, done) : current,
     );
   }
 
@@ -118,6 +125,7 @@ export default function TimelineView() {
             hideDone={hideDone}
             onGraphChange={setGraph}
             onSelect={setSelectedId}
+            onNameChange={updateName}
             onAddChild={addChild}
             onCreate={addTask}
           />
@@ -127,6 +135,7 @@ export default function TimelineView() {
           graph={graph}
           selected={selected}
           onDelete={removeTask}
+          onDoneChange={updateDone}
           onNameChange={updateName}
           onDateChange={updateDate}
         />

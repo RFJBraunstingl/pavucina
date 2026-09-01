@@ -27,6 +27,7 @@ export type TimelineGridProps = {
   hideDone: boolean;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string) => void;
+  onNameChange: (taskId: string, value: string) => void;
   onAddChild: (parentId: string) => void;
   onCreate: () => void;
 };
@@ -35,6 +36,7 @@ export type TaskInspectorProps = {
   graph: Graph;
   selected?: TaskNode;
   onDelete: (taskId: string) => void;
+  onDoneChange: (taskId: string, done: boolean) => void;
   onNameChange: (taskId: string, value: string) => void;
   onDateChange: (
     taskId: string,
@@ -52,6 +54,7 @@ export type TimelineTaskRowProps = FlatTask & {
   hasChildren: boolean;
   collapsed: boolean;
   onSelect: (taskId: string) => void;
+  onNameChange: (taskId: string, value: string) => void;
   onToggle: (taskId: string) => void;
   onAddChild: (parentId: string) => void;
   onSchedule: (taskId: string, day: string) => void;

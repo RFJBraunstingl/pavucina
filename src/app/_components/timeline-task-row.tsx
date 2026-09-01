@@ -15,6 +15,7 @@ export default function TimelineTaskRow({
   hasChildren,
   collapsed,
   onSelect,
+  onNameChange,
   onToggle,
   onAddChild,
   onSchedule,
@@ -54,9 +55,24 @@ export default function TimelineTaskRow({
         ) : (
           <span className="task-toggle" aria-hidden="true" />
         )}
-        <button type="button" className="task-select" onClick={() => onSelect(task.id)}>
-          <span>{task.properties.name}</span>
-        </button>
+        <input
+          key={task.properties.name}
+          type="text"
+          className="task-name-input"
+          aria-label={`Task name: ${task.properties.name}`}
+          defaultValue={task.properties.name}
+          onFocus={() => onSelect(task.id)}
+          onBlur={(event) => {
+            if (event.currentTarget.value.trim()) {
+              onNameChange(task.id, event.currentTarget.value);
+            } else {
+              event.currentTarget.value = task.properties.name;
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.currentTarget.blur();
+          }}
+        />
         <button
           type="button"
           className="add-child"

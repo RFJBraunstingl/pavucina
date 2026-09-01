@@ -60,6 +60,28 @@ button.task-toggle:hover {
   white-space: nowrap;
 }
 
+.task-name-input {
+  min-width: 0;
+  flex: 1;
+  padding: 7px 5px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 620;
+}
+
+.task-name-input:hover {
+  border-color: var(--line);
+}
+
+.task-name-input:focus {
+  border-color: var(--green);
+  background: #fff;
+  outline: 2px solid rgb(22 122 84 / 18%);
+}
+
 .task-select span,
 .bar-body span {
   display: block;
@@ -108,7 +130,9 @@ button.task-toggle:hover {
 }
 
 .task-row[data-depth="1"] .task-select,
-.task-row[data-depth="2"] .task-select {
+.task-row[data-depth="2"] .task-select,
+.task-row[data-depth="1"] .task-name-input,
+.task-row[data-depth="2"] .task-name-input {
   color: #4f5c54;
   font-weight: 530;
 }
