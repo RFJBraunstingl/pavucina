@@ -3,7 +3,7 @@
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import { useGraph } from "@/providers/graph-provider";
-import { getTasksForDate, setTaskDone } from "@/services/task-service";
+import { getLeafTasksForDate, setTaskDone } from "@/services/task-service";
 import { getTaskDate } from "@/services/task-schedule-service";
 import { compactDateLabel } from "@/utils/date";
 
@@ -14,7 +14,7 @@ export default function TodoView() {
     return <GraphLoading label="Loading tasks…" error={syncError} onRetry={retry} />;
   }
 
-  const tasks = getTasksForDate(graph, today);
+  const tasks = getLeafTasksForDate(graph, today);
   const doneCount = tasks.filter((task) => task.properties.done).length;
 
   function updateDone(taskId: string, done: boolean) {

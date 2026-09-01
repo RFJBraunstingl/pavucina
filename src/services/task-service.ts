@@ -89,13 +89,20 @@ export function flattenTasks(graph: Graph): FlatTask[] {
   return result;
 }
 
-export function getTasksForDate(graph: Graph, date: string) {
+export function getLeafTasksForDate(graph: Graph, date: string) {
+  const parentIds = new Set(
+    graph.relationships
+      .filter((relationship) => relationship.type === "child")
+      .map((relationship) => relationship.sourceId),
+  );
   return flattenTasks(graph)
     .map(({ task }) => task)
     .filter((task) => {
       const start = getTaskDate(graph, task.id, "plannedStartDate");
       const end = getTaskDate(graph, task.id, "plannedEndDate") ?? start;
-      return Boolean(start && end && start <= date && date <= end);
+      return Boolean(
+        !parentIds.has(task.id) && start && end && start <= date && date <= end,
+      );
     })
     .sort(
       (left, right) =>
