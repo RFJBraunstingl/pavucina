@@ -14,6 +14,8 @@ export default function TimelineTaskRow({
   selected,
   hasChildren,
   collapsed,
+  ordering,
+  dropPlacement,
   onSelect,
   onNameChange,
   onToggle,
@@ -23,6 +25,11 @@ export default function TimelineTaskRow({
   onPointerMove,
   onPointerEnd,
   onArrow,
+  onOrderStart,
+  onOrderMove,
+  onOrderEnd,
+  onOrderCancel,
+  onOrderKey,
 }: TimelineTaskRowProps) {
   const start = getTaskDate(graph, task.id, "plannedStartDate");
   const end = getTaskDate(graph, task.id, "plannedEndDate");
@@ -35,13 +42,29 @@ export default function TimelineTaskRow({
 
   return (
     <div
-      className={`timeline-row task-row ${selected ? "selected" : ""}`}
+      className={`timeline-row task-row ${selected ? "selected" : ""} ${ordering ? "ordering" : ""} ${dropPlacement ? `drop-${dropPlacement}` : ""}`}
       data-depth={Math.min(depth, 2)}
+      data-task-id={task.id}
     >
       <div
         className="task-label"
         style={{ paddingLeft: `${18 + Math.min(depth, 8) * 20}px` }}
       >
+        <button
+          type="button"
+          className="task-order"
+          aria-label={`Reorder ${task.properties.name}`}
+          aria-describedby="task-order-help"
+          aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
+          title="Drag to reorder"
+          onPointerDown={(event) => onOrderStart(event, task.id)}
+          onPointerMove={onOrderMove}
+          onPointerUp={onOrderEnd}
+          onPointerCancel={onOrderCancel}
+          onKeyDown={(event) => onOrderKey(event, task.id)}
+        >
+          <span aria-hidden="true">⠿</span>
+        </button>
         {hasChildren ? (
           <button
             type="button"

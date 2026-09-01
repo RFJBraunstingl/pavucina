@@ -136,3 +136,58 @@
 .schedule-cell:focus-visible::before {
   opacity: 1;
 }
+
+.task-order {
+  display: grid;
+  width: 18px;
+  height: 24px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9aa49e;
+  cursor: grab;
+  line-height: 1;
+  place-items: center;
+  touch-action: none;
+}
+
+.task-order:hover,
+.task-order:focus-visible {
+  color: var(--green);
+}
+
+.task-order:active {
+  cursor: grabbing;
+}
+
+.task-row.ordering {
+  opacity: 0.55;
+}
+
+.task-row.drop-before::before,
+.task-row.drop-after::after {
+  position: absolute;
+  z-index: 15;
+  right: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--green);
+  content: "";
+  pointer-events: none;
+}
+
+.task-row.drop-before::before {
+  top: -2px;
+}
+
+.task-row.drop-after::after {
+  bottom: -2px;
+}
+
+.task-row.drop-inside .task-label {
+  background: #e1f2e8;
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}

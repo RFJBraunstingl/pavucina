@@ -28,6 +28,7 @@ export type DateNode = {
 export type GraphNode = RootNode | TaskNode | DateNode;
 export type DateRelationshipType = "plannedStartDate" | "plannedEndDate";
 export type RelationshipType = "child" | DateRelationshipType;
+export type TaskPlacement = "before" | "inside" | "after";
 
 export type Relationship = {
   id: string;

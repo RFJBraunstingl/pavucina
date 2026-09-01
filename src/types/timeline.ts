@@ -1,9 +1,10 @@
-import type { KeyboardEvent, PointerEvent } from "react";
+import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 
 import type {
   DateRelationshipType,
   FlatTask,
   Graph,
+  TaskPlacement,
   TaskNode,
 } from "./graph";
 
@@ -16,6 +17,34 @@ export type DragState = {
   originX: number;
   originGraph: Graph;
   lastAmount: number;
+};
+
+export type TaskOrderDragState = {
+  pointerId: number;
+  taskId: string;
+  originY: number;
+};
+
+export type TaskDropTarget = {
+  targetId: string;
+  indicatorId: string;
+  placement: TaskPlacement;
+};
+
+export type TaskDropPreview = TaskDropTarget & {
+  graph: Graph;
+};
+
+export type TimelineInteractionOptions = {
+  graph: Graph;
+  onGraphChange: (graph: Graph) => void;
+  onSelect: (taskId: string) => void;
+};
+
+export type TaskOrderOptions = TimelineInteractionOptions & {
+  tasks: FlatTask[];
+  scrollRef: RefObject<HTMLDivElement | null>;
+  onExpand: (taskId: string) => void;
 };
 
 export type TimelineGridProps = {
@@ -53,6 +82,8 @@ export type TimelineTaskRowProps = FlatTask & {
   selected: boolean;
   hasChildren: boolean;
   collapsed: boolean;
+  ordering: boolean;
+  dropPlacement?: TaskPlacement;
   onSelect: (taskId: string) => void;
   onNameChange: (taskId: string, value: string) => void;
   onToggle: (taskId: string) => void;
@@ -69,5 +100,16 @@ export type TimelineTaskRowProps = FlatTask & {
     event: KeyboardEvent<HTMLButtonElement>,
     taskId: string,
     mode: DragMode,
+  ) => void;
+  onOrderStart: (
+    event: PointerEvent<HTMLButtonElement>,
+    taskId: string,
+  ) => void;
+  onOrderMove: (event: PointerEvent<HTMLButtonElement>) => void;
+  onOrderEnd: (event: PointerEvent<HTMLButtonElement>) => void;
+  onOrderCancel: (event: PointerEvent<HTMLButtonElement>) => void;
+  onOrderKey: (
+    event: KeyboardEvent<HTMLButtonElement>,
+    taskId: string,
   ) => void;
 };

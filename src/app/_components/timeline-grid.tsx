@@ -1,27 +1,16 @@
-import { type KeyboardEvent, type PointerEvent, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import TimelineTaskRow from "./timeline-task-row";
-import {
-  flattenTasks,
-} from "@/services/task-service";
-import {
-  moveTask,
-  resizeTask,
-  setTaskDates,
-} from "@/services/task-schedule-service";
+import { useTaskOrder } from "./use-task-order";
+import { useTimelineSchedule } from "./use-timeline-schedule";
+import { flattenTasks } from "@/services/task-service";
 import {
   dayLabel,
   dayOfMonth,
   isWeekend,
   monthLabel,
 } from "@/utils/date";
-import type {
-  DragMode,
-  DragState,
-  TimelineGridProps,
-} from "@/types/timeline";
-
-const DAY_WIDTH = 48;
+import type { TimelineGridProps } from "@/types/timeline";
 
 export default function TimelineGrid({
   graph,
@@ -36,7 +25,7 @@ export default function TimelineGrid({
   onAddChild,
   onCreate,
 }: TimelineGridProps) {
-  const drag = useRef<DragState | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
   const parentIds = new Set(
     graph.relationships
@@ -50,6 +39,24 @@ export default function TimelineGrid({
       ),
     [collapsedIds, graph, hideDone],
   );
+  const schedule = useTimelineSchedule({ graph, onGraphChange, onSelect });
+  const order = useTaskOrder({
+    graph,
+    tasks,
+    scrollRef,
+    onGraphChange,
+    onSelect,
+    onExpand: expandTask,
+  });
+
+  function expandTask(taskId: string) {
+    setCollapsedIds((current) => {
+      if (!current.has(taskId)) return current;
+      const next = new Set(current);
+      next.delete(taskId);
+      return next;
+    });
+  }
 
   function toggleTask(taskId: string) {
     setCollapsedIds((current) => {
@@ -61,75 +68,19 @@ export default function TimelineGrid({
   }
 
   function addChild(parentId: string) {
-    setCollapsedIds((current) => {
-      const next = new Set(current);
-      next.delete(parentId);
-      return next;
-    });
+    expandTask(parentId);
     onAddChild(parentId);
   }
 
-  function changeTask(taskId: string, mode: DragMode, amount: number) {
-    onGraphChange(
-      mode === "move"
-        ? moveTask(graph, taskId, amount)
-        : resizeTask(graph, taskId, mode, amount),
-    );
-  }
-
-  function scheduleTask(taskId: string, day: string) {
-    onGraphChange(setTaskDates(graph, taskId, day, day));
-    onSelect(taskId);
-  }
-
-  function beginDrag(
-    event: PointerEvent<HTMLButtonElement>,
-    taskId: string,
-    mode: DragMode,
-  ) {
-    if (event.button !== 0) return;
-    event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    drag.current = {
-      pointerId: event.pointerId,
-      taskId,
-      mode,
-      originX: event.clientX,
-      originGraph: graph,
-      lastAmount: 0,
-    };
-    onSelect(taskId);
-  }
-
-  function continueDrag(event: PointerEvent<HTMLButtonElement>) {
-    const active = drag.current;
-    if (!active || active.pointerId !== event.pointerId) return;
-    const amount = Math.round((event.clientX - active.originX) / DAY_WIDTH);
-    if (amount === active.lastAmount) return;
-    drag.current = { ...active, lastAmount: amount };
-    onGraphChange(
-      active.mode === "move"
-        ? moveTask(active.originGraph, active.taskId, amount)
-        : resizeTask(active.originGraph, active.taskId, active.mode, amount),
-    );
-  }
-
-  function endDrag(event: PointerEvent<HTMLButtonElement>) {
-    if (drag.current?.pointerId === event.pointerId) drag.current = null;
-  }
-
-  function handleArrow(
-    event: KeyboardEvent<HTMLButtonElement>,
-    taskId: string,
-    mode: DragMode,
-  ) {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    event.preventDefault();
-    changeTask(taskId, mode, event.key === "ArrowLeft" ? -1 : 1);
-  }
-
   return (
-    <div className="timeline-scroll">
+    <div className="timeline-scroll" ref={scrollRef}>
+      <p id="task-order-help" className="sr-only">
+        Drag to reorder. Use up and down to reorder siblings, right to nest, and
+        left to promote.
+      </p>
+      <p className="sr-only" role="status" aria-live="polite">
+        {order.announcement}
+      </p>
       <div className="timeline-grid">
         <div className="timeline-header timeline-row">
           <div className="task-column-heading">Task</div>
@@ -159,15 +110,26 @@ export default function TimelineGrid({
             selected={selectedId === task.id}
             hasChildren={parentIds.has(task.id)}
             collapsed={collapsedIds.has(task.id)}
+            ordering={order.draggedId === task.id}
+            dropPlacement={
+              order.preview?.indicatorId === task.id
+                ? order.preview.placement
+                : undefined
+            }
             onSelect={onSelect}
             onNameChange={onNameChange}
             onToggle={toggleTask}
             onAddChild={addChild}
-            onSchedule={scheduleTask}
-            onDragStart={beginDrag}
-            onPointerMove={continueDrag}
-            onPointerEnd={endDrag}
-            onArrow={handleArrow}
+            onSchedule={schedule.scheduleTask}
+            onDragStart={schedule.beginDrag}
+            onPointerMove={schedule.continueDrag}
+            onPointerEnd={schedule.endDrag}
+            onArrow={schedule.handleArrow}
+            onOrderStart={order.beginOrder}
+            onOrderMove={order.continueOrder}
+            onOrderEnd={order.endOrder}
+            onOrderCancel={order.cancelOrder}
+            onOrderKey={order.handleOrderKey}
             key={task.id}
           />
         ))}
