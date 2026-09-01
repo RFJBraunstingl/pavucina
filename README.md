@@ -64,6 +64,9 @@ Authenticated graphs preserve every saved version. Each GitHub user has one
 The latest version is selected directly from the versions collection; there is no
 separate head, user, account, profile, or session collection.
 
+Authenticated timeline preferences are stored in one shared `preferences`
+collection with one document per user and a unique index on `userId`.
+
 ## GitHub login
 
 1. Copy `.env.example` to `.env.local` and replace the placeholder values.
@@ -76,7 +79,6 @@ Only the immutable numeric GitHub ID is kept as application identity. GitHub
 profile fields and provider tokens are not persisted.
 
 ## ToDo
-- support collapsing tasks
 - support re-odering of tasks in a given level
 - filter tasks by level
   - have one select field with all task levels and a second multi select with all tasks of that level

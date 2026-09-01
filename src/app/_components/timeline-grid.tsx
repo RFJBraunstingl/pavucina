@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 
 import TimelineTaskRow from "./timeline-task-row";
 import { useTaskOrder } from "./use-task-order";
@@ -19,14 +19,15 @@ export default function TimelineGrid({
   rangeStart,
   selectedId,
   hideDone,
+  collapsedIds,
   onGraphChange,
+  onCollapsedIdsChange,
   onSelect,
   onNameChange,
   onAddChild,
   onCreate,
 }: TimelineGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
   const parentIds = new Set(
     graph.relationships
       .filter((relationship) => relationship.type === "child")
@@ -50,21 +51,17 @@ export default function TimelineGrid({
   });
 
   function expandTask(taskId: string) {
-    setCollapsedIds((current) => {
-      if (!current.has(taskId)) return current;
-      const next = new Set(current);
-      next.delete(taskId);
-      return next;
-    });
+    if (!collapsedIds.has(taskId)) return;
+    const next = new Set(collapsedIds);
+    next.delete(taskId);
+    onCollapsedIdsChange(next);
   }
 
   function toggleTask(taskId: string) {
-    setCollapsedIds((current) => {
-      const next = new Set(current);
-      if (next.has(taskId)) next.delete(taskId);
-      else next.add(taskId);
-      return next;
-    });
+    const next = new Set(collapsedIds);
+    if (next.has(taskId)) next.delete(taskId);
+    else next.add(taskId);
+    onCollapsedIdsChange(next);
   }
 
   function addChild(parentId: string) {

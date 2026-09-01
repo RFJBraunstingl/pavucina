@@ -6,6 +6,7 @@ import AppHeader from "./app-header";
 import { GraphLoading, GraphSyncError } from "./graph-state";
 import TaskInspector from "./task-inspector";
 import TimelineGrid from "./timeline-grid";
+import { usePreferences } from "./use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import {
   addChildTask,
@@ -17,19 +18,42 @@ import {
 import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
 import type { DateRelationshipType, TaskNode } from "@/types/graph";
+import type { UserPreferences } from "@/types/preferences";
 
 export default function TimelineView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
+  const {
+    preferences,
+    setPreferences,
+    syncError: preferencesError,
+    retry: retryPreferences,
+  } = usePreferences();
   const [rangeStart, setRangeStart] = useState(() => addDays(today, -14));
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [hideDone, setHideDone] = useState(true);
   const days = useMemo(() => makeDateRange(rangeStart), [rangeStart]);
+  const collapsedIds = useMemo(
+    () => new Set(preferences?.collapsedTaskIds),
+    [preferences?.collapsedTaskIds],
+  );
   const selected = graph?.nodes.find(
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
   );
 
   if (!hydrated || !graph) {
     return <GraphLoading label="Loading timeline…" error={syncError} onRetry={retry} />;
+  }
+  if (!preferences) {
+    return (
+      <GraphLoading
+        label="Loading preferences…"
+        error={preferencesError}
+        onRetry={retryPreferences}
+      />
+    );
+  }
+
+  function updatePreferences(changes: Partial<UserPreferences>) {
+    setPreferences((current) => current ? { ...current, ...changes } : current);
   }
 
   function updateName(taskId: string, value: string) {
@@ -75,6 +99,7 @@ export default function TimelineView() {
     <main className="app-shell">
       <AppHeader active="timeline" title="Timeline" />
       <GraphSyncError error={syncError} onRetry={retry} />
+      <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
 
       <div className="workspace">
         <section className="timeline-card" aria-labelledby="timeline-heading">
@@ -87,8 +112,10 @@ export default function TimelineView() {
               <label className="done-toggle">
                 <input
                   type="checkbox"
-                  checked={hideDone}
-                  onChange={(event) => setHideDone(event.target.checked)}
+                  checked={preferences.hideDone}
+                  onChange={(event) =>
+                    updatePreferences({ hideDone: event.target.checked })
+                  }
                 />
                 Hide done
               </label>
@@ -122,8 +149,12 @@ export default function TimelineView() {
             today={today}
             rangeStart={rangeStart}
             selectedId={selectedId}
-            hideDone={hideDone}
+            hideDone={preferences.hideDone}
+            collapsedIds={collapsedIds}
             onGraphChange={setGraph}
+            onCollapsedIdsChange={(ids) =>
+              updatePreferences({ collapsedTaskIds: [...ids] })
+            }
             onSelect={setSelectedId}
             onNameChange={updateName}
             onAddChild={addChild}
