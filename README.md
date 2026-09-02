@@ -1,4 +1,7 @@
 # Pavucina
+
+Checkout the app here: [https://pavucina.com](https://pavucina.com)
+
 Pavucina is a task management application where tasks are stored hierarchically in a knowledge graph.
 The knowledge graph is a directed acyclic graph where nodes represent tasks and edges represent dependencies between task
 as well as other relationships such as assignments to people, deadlines, etc.
@@ -79,7 +82,6 @@ Only the immutable numeric GitHub ID is kept as application identity. GitHub
 profile fields and provider tokens are not persisted.
 
 ## ToDo
-- support re-odering of tasks in a given level
 - filter tasks by level
   - have one select field with all task levels and a second multi select with all tasks of that level
   - when the level changes, the filter is cleared and the multi select is populated with all tasks of that level
@@ -87,3 +89,13 @@ profile fields and provider tokens are not persisted.
 - implement configurability of task schema
 - implement reasoning usecase
 - implement ML usecase
+
+## Why build this?
+I thought it's interesting and I want to submit this as my project to the Knowledge Graph lecture at TU Vienna.
+
+## Why the name?
+Pavucina means "spiderweb" in Slovak - I don't speak the language myself, so I hope I don't use it completely wrong :)
+If you imagine the task graph which organises the task data you can think of it as a spiderweb - a complex network of 
+interconnected tasks with a root in the middle and branching out in all directions. 
+
+It's meant to be an homage to my wife - her Grandmother is from Slovakia and Pavucina is one of the few words she picked up as a kid.
