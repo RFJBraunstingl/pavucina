@@ -22,7 +22,7 @@ import {
 } from "./task-schedule-service.ts";
 import { ensureRootNode, isGraph, isUuid } from "./graph-service.ts";
 import { createSeedGraph } from "../data/seed-graph.ts";
-import { calendarItem } from "../utils/calendar.ts";
+import { calendarItem, resizeTimeRange } from "../utils/calendar.ts";
 import { addDays, makeDateRange } from "../utils/date.ts";
 import type { TaskNode } from "../types/graph.ts";
 
@@ -103,7 +103,28 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.equal(
     calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "12:00", "2026-04-06")
       ?.top,
-    192,
+    384,
+  );
+  assert.equal(
+    calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "13:00", "2026-04-06")
+      ?.height,
+    128,
+  );
+  assert.deepEqual(
+    [
+      resizeTimeRange("11:00", "12:00", "start", 15),
+      resizeTimeRange("11:00", "12:00", "start", 90),
+      resizeTimeRange("11:00", "12:00", "end", -90),
+      resizeTimeRange("05:00", "06:00", "start", -15),
+      resizeTimeRange("22:00", "23:00", "end", 15),
+    ],
+    [
+      ["11:15", "12:00"],
+      ["11:45", "12:00"],
+      ["11:00", "11:15"],
+      ["05:00", "06:00"],
+      ["22:00", "23:00"],
+    ],
   );
 
   const cyclic = structuredClone(graph);

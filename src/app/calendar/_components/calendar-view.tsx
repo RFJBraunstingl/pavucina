@@ -33,7 +33,9 @@ export default function CalendarView() {
             <button type="button" aria-label="Next week" onClick={() => setWeekStart((day) => addDays(day, 7))}>→</button>
           </div>
         </div>
-        <p className="calendar-hint">Drag tasks between days and times. Arrow keys move the focused task.</p>
+        <p className="calendar-hint">
+          Drag tasks between days and times. Drag either edge to change its time.
+        </p>
         <CalendarGrid graph={graph} days={days} today={today} onGraphChange={setGraph} />
       </section>
     </main>

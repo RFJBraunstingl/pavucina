@@ -3,7 +3,7 @@ import type { CalendarEventProps } from "@/types/calendar";
 
 export default function CalendarEvent({
   item,
-  onPointerDown,
+  onDragStart,
   onPointerMove,
   onPointerEnd,
   onKeyDown,
@@ -14,8 +14,7 @@ export default function CalendarEvent({
     startDate === endDate ? endTime : `${compactDateLabel(endDate)} ${endTime}`;
 
   return (
-    <button
-      type="button"
+    <div
       className="calendar-event"
       style={{
         top,
@@ -23,16 +22,41 @@ export default function CalendarEvent({
         left: `calc(${dayIndex * (100 / 7)}% + 4px)`,
         width: `calc(${100 / 7}% - 8px)`,
       }}
-      aria-label={`Move ${task.properties.name}`}
-      title={`${task.properties.name}: ${startDate} ${startTime} to ${endDate} ${endTime}`}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerEnd}
-      onPointerCancel={onPointerEnd}
-      onKeyDown={onKeyDown}
     >
-      <strong>{task.properties.name}</strong>
-      <span>{startTime} – {endLabel}</span>
-    </button>
+      <button
+        type="button"
+        className="calendar-resize-handle start"
+        aria-label={`Change start time of ${task.properties.name}`}
+        onPointerDown={(event) => onDragStart(event, "start")}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onKeyDown={(event) => onKeyDown(event, "start")}
+      />
+      <button
+        type="button"
+        className="calendar-event-body"
+        aria-label={`Move ${task.properties.name}`}
+        title={`${task.properties.name}: ${startDate} ${startTime} to ${endDate} ${endTime}`}
+        onPointerDown={(event) => onDragStart(event, "move")}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onKeyDown={(event) => onKeyDown(event, "move")}
+      >
+        <strong>{task.properties.name}</strong>
+        <span>{startTime} – {endLabel}</span>
+      </button>
+      <button
+        type="button"
+        className="calendar-resize-handle end"
+        aria-label={`Change end time of ${task.properties.name}`}
+        onPointerDown={(event) => onDragStart(event, "end")}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onKeyDown={(event) => onKeyDown(event, "end")}
+      />
+    </div>
   );
 }
