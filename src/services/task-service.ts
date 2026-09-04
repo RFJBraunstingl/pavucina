@@ -1,6 +1,7 @@
 import { getTaskDate, removeUnusedDates } from "./task-schedule-service.ts";
 import { ensureRootNode } from "./graph-service.ts";
-import type { FlatTask, Graph, TaskNode } from "@/types/graph";
+import { isTime } from "../utils/time.ts";
+import type { FlatTask, Graph, TaskNode, TimeProperty } from "@/types/graph";
 
 export function renameTask(graph: Graph, taskId: string, value: string) {
   const name = value.trim();
@@ -21,6 +22,26 @@ export function setTaskDone(graph: Graph, taskId: string, done: boolean) {
     nodes: graph.nodes.map((node) =>
       node.id === taskId && node.type === "task"
         ? { ...node, properties: { ...node.properties, done } }
+        : node,
+    ),
+  };
+}
+
+export function setTaskTime(
+  graph: Graph,
+  taskId: string,
+  type: TimeProperty,
+  value: string,
+) {
+  if (value && !isTime(value)) throw new Error(`Invalid time: ${value}`);
+  return {
+    ...graph,
+    nodes: graph.nodes.map((node) =>
+      node.id === taskId && node.type === "task"
+        ? {
+            ...node,
+            properties: { ...node.properties, [type]: value || undefined },
+          }
         : node,
     ),
   };

@@ -33,6 +33,7 @@ export type CalendarGridProps = {
   graph: Graph;
   days: string[];
   today: string;
+  hideDone: boolean;
   onGraphChange: (graph: Graph) => void;
 };
 

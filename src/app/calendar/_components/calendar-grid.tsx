@@ -20,26 +20,29 @@ export default function CalendarGrid({
   graph,
   days,
   today,
+  hideDone,
   onGraphChange,
 }: CalendarGridProps) {
   const body = useRef<HTMLDivElement>(null);
   const items = useMemo(
     () =>
-      flattenTasks(graph).flatMap(({ task }) => {
-        const startDate = getTaskDate(graph, task.id, "plannedStartDate");
-        const endDate = getTaskDate(graph, task.id, "plannedEndDate");
-        if (!startDate || !endDate) return [];
-        const item = calendarItem(
-          task,
-          startDate,
-          endDate,
-          getTaskTime(graph, task.id, "plannedStartTime") ?? "09:00",
-          getTaskTime(graph, task.id, "plannedEndTime") ?? "10:00",
-          days[0],
-        );
-        return item ? [item] : [];
-      }),
-    [days, graph],
+      flattenTasks(graph)
+        .filter(({ task }) => !hideDone || !task.properties.done)
+        .flatMap(({ task }) => {
+          const startDate = getTaskDate(graph, task.id, "plannedStartDate");
+          const endDate = getTaskDate(graph, task.id, "plannedEndDate");
+          if (!startDate || !endDate) return [];
+          const item = calendarItem(
+            task,
+            startDate,
+            endDate,
+            getTaskTime(graph, task.id, "plannedStartTime") ?? "09:00",
+            getTaskTime(graph, task.id, "plannedEndTime") ?? "10:00",
+            days[0],
+          );
+          return item ? [item] : [];
+        }),
+    [days, graph, hideDone],
   );
   const schedule = useCalendarSchedule({
     graph,

@@ -6,6 +6,7 @@ import type {
   Graph,
   TaskPlacement,
   TaskNode,
+  TimeProperty,
 } from "./graph";
 
 export type DragMode = "move" | "start" | "end";
@@ -74,6 +75,7 @@ export type TaskInspectorProps = {
     type: DateRelationshipType,
     value: string,
   ) => void;
+  onTimeChange: (taskId: string, type: TimeProperty, value: string) => void;
 };
 
 export type TimelineTaskRowProps = FlatTask & {

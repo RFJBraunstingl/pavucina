@@ -10,6 +10,7 @@ export default function TaskInspector({
   onDoneChange,
   onNameChange,
   onDateChange,
+  onTimeChange,
 }: TaskInspectorProps) {
   const deleteDialog = useRef<HTMLDialogElement>(null);
 
@@ -65,6 +66,26 @@ export default function TaskInspector({
               value={getTaskDate(graph, selected.id, "plannedEndDate") ?? ""}
               onChange={(event) =>
                 onDateChange(selected.id, "plannedEndDate", event.target.value)
+              }
+            />
+          </label>
+          <label>
+            Start time
+            <input
+              type="time"
+              value={selected.properties.plannedStartTime ?? ""}
+              onChange={(event) =>
+                onTimeChange(selected.id, "plannedStartTime", event.target.value)
+              }
+            />
+          </label>
+          <label>
+            End time
+            <input
+              type="time"
+              value={selected.properties.plannedEndTime ?? ""}
+              onChange={(event) =>
+                onTimeChange(selected.id, "plannedEndTime", event.target.value)
               }
             />
           </label>

@@ -14,10 +14,11 @@ import {
   deleteTask,
   renameTask,
   setTaskDone,
+  setTaskTime,
 } from "@/services/task-service";
 import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
-import type { DateRelationshipType, TaskNode } from "@/types/graph";
+import type { DateRelationshipType, TaskNode, TimeProperty } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
 export default function TimelineView() {
@@ -71,6 +72,12 @@ export default function TimelineView() {
   function updateDate(taskId: string, type: DateRelationshipType, value: string) {
     setGraph((current) =>
       current ? updateTaskDate(current, taskId, type, value) : current,
+    );
+  }
+
+  function updateTime(taskId: string, type: TimeProperty, value: string) {
+    setGraph((current) =>
+      current ? setTaskTime(current, taskId, type, value) : current,
     );
   }
 
@@ -169,6 +176,7 @@ export default function TimelineView() {
           onDoneChange={updateDone}
           onNameChange={updateName}
           onDateChange={updateDate}
+          onTimeChange={updateTime}
         />
       </div>
     </main>
