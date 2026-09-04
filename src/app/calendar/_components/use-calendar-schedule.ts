@@ -24,6 +24,7 @@ export function useCalendarSchedule({
   days,
   bodyRef,
   onGraphChange,
+  onSelect,
 }: CalendarInteractionOptions) {
   const drag = useRef<CalendarDragState | null>(null);
 
@@ -35,6 +36,7 @@ export function useCalendarSchedule({
     if (event.button !== 0) return;
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
+    onSelect(item.task.id);
     drag.current = {
       pointerId: event.pointerId,
       taskId: item.task.id,

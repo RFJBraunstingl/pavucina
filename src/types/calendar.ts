@@ -34,7 +34,9 @@ export type CalendarGridProps = {
   days: string[];
   today: string;
   hideDone: boolean;
+  selectedId: string | null;
   onGraphChange: (graph: Graph) => void;
+  onSelect: (taskId: string) => void;
 };
 
 export type CalendarInteractionOptions = {
@@ -42,10 +44,13 @@ export type CalendarInteractionOptions = {
   days: string[];
   bodyRef: RefObject<HTMLDivElement | null>;
   onGraphChange: (graph: Graph) => void;
+  onSelect: (taskId: string) => void;
 };
 
 export type CalendarEventProps = {
   item: CalendarItem;
+  selected: boolean;
+  onSelect: () => void;
   onDragStart: (
     event: PointerEvent<HTMLButtonElement>,
     mode: CalendarDragMode,

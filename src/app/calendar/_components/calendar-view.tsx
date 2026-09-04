@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import CalendarGrid from "./calendar-grid";
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
+import TaskInspector from "../../_components/task-inspector";
 import { usePreferences } from "../../_components/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { addDays, makeDateRange, rangeLabel, startOfWeek } from "@/utils/date";
@@ -19,6 +20,7 @@ export default function CalendarView() {
     retry: retryPreferences,
   } = usePreferences();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const days = useMemo(() => makeDateRange(weekStart, 7), [weekStart]);
 
   if (!hydrated || !graph) {
@@ -43,39 +45,49 @@ export default function CalendarView() {
       <AppHeader active="calendar" title="Calendar" />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
-      <section className="calendar-card" aria-labelledby="calendar-heading">
-        <div className="timeline-toolbar">
-          <div>
-            <p className="eyebrow">Weekly schedule</p>
-            <h2 id="calendar-heading">{rangeLabel(days[0], days[6])}</h2>
+      <div className="workspace">
+        <section className="calendar-card" aria-labelledby="calendar-heading">
+          <div className="timeline-toolbar">
+            <div>
+              <p className="eyebrow">Weekly schedule</p>
+              <h2 id="calendar-heading">{rangeLabel(days[0], days[6])}</h2>
+            </div>
+            <div className="range-controls" aria-label="Calendar range">
+              <label className="done-toggle">
+                <input
+                  type="checkbox"
+                  checked={preferences.hideDone}
+                  onChange={(event) =>
+                    updatePreferences({ hideDone: event.target.checked })
+                  }
+                />
+                Hide done
+              </label>
+              <button type="button" aria-label="Previous week" onClick={() => setWeekStart((day) => addDays(day, -7))}>←</button>
+              <button type="button" className="today-button" onClick={() => setWeekStart(startOfWeek(today))}>Today</button>
+              <button type="button" aria-label="Next week" onClick={() => setWeekStart((day) => addDays(day, 7))}>→</button>
+            </div>
           </div>
-          <div className="range-controls" aria-label="Calendar range">
-            <label className="done-toggle">
-              <input
-                type="checkbox"
-                checked={preferences.hideDone}
-                onChange={(event) =>
-                  updatePreferences({ hideDone: event.target.checked })
-                }
-              />
-              Hide done
-            </label>
-            <button type="button" aria-label="Previous week" onClick={() => setWeekStart((day) => addDays(day, -7))}>←</button>
-            <button type="button" className="today-button" onClick={() => setWeekStart(startOfWeek(today))}>Today</button>
-            <button type="button" aria-label="Next week" onClick={() => setWeekStart((day) => addDays(day, 7))}>→</button>
-          </div>
-        </div>
-        <p className="calendar-hint">
-          Drag tasks between days and times. Drag either edge to change its time.
-        </p>
-        <CalendarGrid
-          graph={graph}
-          days={days}
-          today={today}
-          hideDone={preferences.hideDone}
-          onGraphChange={setGraph}
+          <p className="calendar-hint">
+            Drag tasks between days and times. Drag either edge to change its time.
+          </p>
+          <CalendarGrid
+            graph={graph}
+            days={days}
+            today={today}
+            hideDone={preferences.hideDone}
+            selectedId={selectedId}
+            onGraphChange={setGraph}
+            onSelect={setSelectedId}
+          />
+        </section>
+
+        <TaskInspector
+          selectedId={selectedId}
+          helpText="Drag an event to move it. Drag either edge to resize its time."
+          onDeleted={() => setSelectedId(null)}
         />
-      </section>
+      </div>
     </main>
   );
 }

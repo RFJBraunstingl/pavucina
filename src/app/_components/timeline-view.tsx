@@ -11,16 +11,10 @@ import { useGraph } from "@/providers/graph-provider";
 import {
   addChildTask,
   addTopLevelTask,
-  deleteTask,
   renameTask,
-  setTaskDescription,
-  setTaskDone,
-  setTaskTime,
 } from "@/services/task-service";
-import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
 import { DEFAULT_TASK_COLUMN_WIDTH } from "@/utils/task-column";
-import type { DateRelationshipType, TaskNode, TimeProperty } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
 export default function TimelineView() {
@@ -38,10 +32,6 @@ export default function TimelineView() {
     () => new Set(preferences?.collapsedTaskIds),
     [preferences?.collapsedTaskIds],
   );
-  const selected = graph?.nodes.find(
-    (node): node is TaskNode => node.id === selectedId && node.type === "task",
-  );
-
   if (!hydrated || !graph) {
     return <GraphLoading label="Loading timeline…" error={syncError} onRetry={retry} />;
   }
@@ -65,30 +55,6 @@ export default function TimelineView() {
     );
   }
 
-  function updateDone(taskId: string, done: boolean) {
-    setGraph((current) =>
-      current ? setTaskDone(current, taskId, done) : current,
-    );
-  }
-
-  function updateDescription(taskId: string, value: string) {
-    setGraph((current) =>
-      current ? setTaskDescription(current, taskId, value) : current,
-    );
-  }
-
-  function updateDate(taskId: string, type: DateRelationshipType, value: string) {
-    setGraph((current) =>
-      current ? updateTaskDate(current, taskId, type, value) : current,
-    );
-  }
-
-  function updateTime(taskId: string, type: TimeProperty, value: string) {
-    setGraph((current) =>
-      current ? setTaskTime(current, taskId, type, value) : current,
-    );
-  }
-
   function addChild(parentId: string) {
     const childId = crypto.randomUUID();
     setGraph((current) =>
@@ -103,11 +69,6 @@ export default function TimelineView() {
       current ? addTopLevelTask(current, taskId) : current,
     );
     setSelectedId(taskId);
-  }
-
-  function removeTask(taskId: string) {
-    setGraph((current) => (current ? deleteTask(current, taskId) : current));
-    setSelectedId(null);
   }
 
   return (
@@ -184,14 +145,8 @@ export default function TimelineView() {
         </section>
 
         <TaskInspector
-          graph={graph}
-          selected={selected}
-          onDelete={removeTask}
-          onDoneChange={updateDone}
-          onDescriptionChange={updateDescription}
-          onNameChange={updateName}
-          onDateChange={updateDate}
-          onTimeChange={updateTime}
+          selectedId={selectedId}
+          onDeleted={() => setSelectedId(null)}
         />
       </div>
     </main>

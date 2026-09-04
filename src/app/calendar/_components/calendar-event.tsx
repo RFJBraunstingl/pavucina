@@ -3,6 +3,8 @@ import type { CalendarEventProps } from "@/types/calendar";
 
 export default function CalendarEvent({
   item,
+  selected,
+  onSelect,
   onDragStart,
   onPointerMove,
   onPointerEnd,
@@ -15,7 +17,8 @@ export default function CalendarEvent({
 
   return (
     <div
-      className="calendar-event"
+      className={`calendar-event ${selected ? "selected" : ""}`}
+      onFocus={onSelect}
       style={{
         top,
         height,

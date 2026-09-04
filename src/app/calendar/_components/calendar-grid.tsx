@@ -21,7 +21,9 @@ export default function CalendarGrid({
   days,
   today,
   hideDone,
+  selectedId,
   onGraphChange,
+  onSelect,
 }: CalendarGridProps) {
   const body = useRef<HTMLDivElement>(null);
   const items = useMemo(
@@ -49,6 +51,7 @@ export default function CalendarGrid({
     days,
     bodyRef: body,
     onGraphChange,
+    onSelect,
   });
 
   return (
@@ -79,6 +82,8 @@ export default function CalendarGrid({
             {items.map((item) => (
               <CalendarEvent
                 item={item}
+                selected={selectedId === item.task.id}
+                onSelect={() => onSelect(item.task.id)}
                 key={item.task.id}
                 onDragStart={(event, mode) =>
                   schedule.beginDrag(event, item, mode)

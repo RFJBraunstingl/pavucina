@@ -1,19 +1,67 @@
 import { useRef } from "react";
 
-import { getTaskDate } from "@/services/task-schedule-service";
+import { useGraph } from "@/providers/graph-provider";
+import {
+  deleteTask,
+  renameTask,
+  setTaskDescription,
+  setTaskDone,
+  setTaskTime,
+} from "@/services/task-service";
+import {
+  getTaskDate,
+  updateTaskDate,
+} from "@/services/task-schedule-service";
+import type { DateRelationshipType, TaskNode, TimeProperty } from "@/types/graph";
 import type { TaskInspectorProps } from "@/types/timeline";
 
 export default function TaskInspector({
-  graph,
-  selected,
-  onDelete,
-  onDoneChange,
-  onDescriptionChange,
-  onNameChange,
-  onDateChange,
-  onTimeChange,
+  selectedId,
+  helpText = "Drag a bar to move it. Drag either edge to resize by whole days.",
+  onDeleted,
 }: TaskInspectorProps) {
+  const { graph, setGraph } = useGraph();
   const deleteDialog = useRef<HTMLDialogElement>(null);
+  const selected = graph?.nodes.find(
+    (node): node is TaskNode => node.id === selectedId && node.type === "task",
+  );
+
+  if (!graph) return null;
+
+  function updateName(taskId: string, value: string) {
+    setGraph((current) =>
+      current ? renameTask(current, taskId, value) : current,
+    );
+  }
+
+  function updateDone(taskId: string, done: boolean) {
+    setGraph((current) =>
+      current ? setTaskDone(current, taskId, done) : current,
+    );
+  }
+
+  function updateDescription(taskId: string, value: string) {
+    setGraph((current) =>
+      current ? setTaskDescription(current, taskId, value) : current,
+    );
+  }
+
+  function updateDate(taskId: string, type: DateRelationshipType, value: string) {
+    setGraph((current) =>
+      current ? updateTaskDate(current, taskId, type, value) : current,
+    );
+  }
+
+  function updateTime(taskId: string, type: TimeProperty, value: string) {
+    setGraph((current) =>
+      current ? setTaskTime(current, taskId, type, value) : current,
+    );
+  }
+
+  function removeTask(taskId: string) {
+    setGraph((current) => (current ? deleteTask(current, taskId) : current));
+    onDeleted();
+  }
 
   return (
     <aside className="inspector" aria-labelledby="inspector-heading">
@@ -40,7 +88,7 @@ export default function TaskInspector({
               defaultValue={selected.properties.name}
               onBlur={(event) => {
                 if (event.currentTarget.value.trim()) {
-                  onNameChange(selected.id, event.currentTarget.value);
+                  updateName(selected.id, event.currentTarget.value);
                 } else {
                   event.currentTarget.value = selected.properties.name;
                 }
@@ -56,7 +104,7 @@ export default function TaskInspector({
               rows={5}
               value={selected.properties.description ?? ""}
               onChange={(event) =>
-                onDescriptionChange(selected.id, event.currentTarget.value)
+                updateDescription(selected.id, event.currentTarget.value)
               }
             />
           </label>
@@ -66,7 +114,7 @@ export default function TaskInspector({
               type="date"
               value={getTaskDate(graph, selected.id, "plannedStartDate") ?? ""}
               onChange={(event) =>
-                onDateChange(selected.id, "plannedStartDate", event.target.value)
+                updateDate(selected.id, "plannedStartDate", event.target.value)
               }
             />
           </label>
@@ -76,7 +124,7 @@ export default function TaskInspector({
               type="date"
               value={getTaskDate(graph, selected.id, "plannedEndDate") ?? ""}
               onChange={(event) =>
-                onDateChange(selected.id, "plannedEndDate", event.target.value)
+                updateDate(selected.id, "plannedEndDate", event.target.value)
               }
             />
           </label>
@@ -86,7 +134,7 @@ export default function TaskInspector({
               type="time"
               value={selected.properties.plannedStartTime ?? ""}
               onChange={(event) =>
-                onTimeChange(selected.id, "plannedStartTime", event.target.value)
+                updateTime(selected.id, "plannedStartTime", event.target.value)
               }
             />
           </label>
@@ -96,20 +144,20 @@ export default function TaskInspector({
               type="time"
               value={selected.properties.plannedEndTime ?? ""}
               onChange={(event) =>
-                onTimeChange(selected.id, "plannedEndTime", event.target.value)
+                updateTime(selected.id, "plannedEndTime", event.target.value)
               }
             />
           </label>
           <div className="inspector-help">
             <span aria-hidden="true">↔</span>
-            <p>Drag a bar to move it. Drag either edge to resize by whole days.</p>
+            <p>{helpText}</p>
           </div>
           <label className="task-done">
             <input
               type="checkbox"
               checked={selected.properties.done ?? false}
               onChange={(event) =>
-                onDoneChange(selected.id, event.target.checked)
+                updateDone(selected.id, event.target.checked)
               }
             />
             Done
@@ -130,7 +178,7 @@ export default function TaskInspector({
                 <button
                   type="submit"
                   className="confirm-delete"
-                  onClick={() => onDelete(selected.id)}
+                  onClick={() => removeTask(selected.id)}
                 >
                   Delete
                 </button>

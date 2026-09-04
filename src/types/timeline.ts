@@ -1,12 +1,9 @@
 import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 
 import type {
-  DateRelationshipType,
   FlatTask,
   Graph,
   TaskPlacement,
-  TaskNode,
-  TimeProperty,
 } from "./graph";
 
 export type DragMode = "move" | "start" | "end";
@@ -73,18 +70,9 @@ export type TimelineGridProps = {
 };
 
 export type TaskInspectorProps = {
-  graph: Graph;
-  selected?: TaskNode;
-  onDelete: (taskId: string) => void;
-  onDoneChange: (taskId: string, done: boolean) => void;
-  onDescriptionChange: (taskId: string, value: string) => void;
-  onNameChange: (taskId: string, value: string) => void;
-  onDateChange: (
-    taskId: string,
-    type: DateRelationshipType,
-    value: string,
-  ) => void;
-  onTimeChange: (taskId: string, type: TimeProperty, value: string) => void;
+  selectedId: string | null;
+  helpText?: string;
+  onDeleted: () => void;
 };
 
 export type TimelineTaskRowProps = FlatTask & {

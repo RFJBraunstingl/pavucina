@@ -1,4 +1,5 @@
 .calendar-card {
+  width: 100%;
   max-width: 1680px;
   margin: 0 auto;
 }
@@ -120,6 +121,11 @@
   background: #dcefe5;
   box-shadow: 0 4px 12px rgb(13 95 64 / 12%);
   color: var(--green-dark);
+}
+
+.calendar-event.selected {
+  outline: 2px solid var(--green-dark);
+  outline-offset: 2px;
 }
 
 .calendar-event-body {
