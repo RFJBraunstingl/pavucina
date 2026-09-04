@@ -6,20 +6,27 @@ import {
   useState,
 } from "react";
 
+import {
+  MAX_TASK_COLUMN_WIDTH,
+  MIN_TASK_COLUMN_WIDTH,
+  resizedTaskColumnWidth,
+} from "@/utils/task-column";
 import type { TaskColumnResizeDragState } from "@/types/timeline";
 
-const DEFAULT_WIDTH = 286;
-const MIN_WIDTH = 200;
-const MAX_WIDTH = 640;
 const KEYBOARD_STEP = 16;
 
-export function resizedTaskColumnWidth(width: number, change: number) {
-  return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width + change));
-}
-
-export function useTaskColumnResize() {
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
+export function useTaskColumnResize(
+  initialWidth: number,
+  onWidthChange: (width: number) => void,
+) {
+  const [width, setWidth] = useState(initialWidth);
+  const widthRef = useRef(initialWidth);
   const drag = useRef<TaskColumnResizeDragState | null>(null);
+
+  function updateWidth(value: number) {
+    widthRef.current = value;
+    setWidth(value);
+  }
 
   function beginResize(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
@@ -27,14 +34,14 @@ export function useTaskColumnResize() {
     drag.current = {
       pointerId: event.pointerId,
       originX: event.clientX,
-      originWidth: width,
+      originWidth: widthRef.current,
     };
   }
 
   function continueResize(event: PointerEvent<HTMLDivElement>) {
     const active = drag.current;
     if (!active || active.pointerId !== event.pointerId) return;
-    setWidth(
+    updateWidth(
       resizedTaskColumnWidth(
         active.originWidth,
         event.clientX - active.originX,
@@ -43,24 +50,26 @@ export function useTaskColumnResize() {
   }
 
   function endResize(event: PointerEvent<HTMLDivElement>) {
-    if (drag.current?.pointerId === event.pointerId) drag.current = null;
+    if (drag.current?.pointerId !== event.pointerId) return;
+    drag.current = null;
+    onWidthChange(widthRef.current);
   }
 
   function resizeWithKeyboard(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     event.preventDefault();
-    setWidth((current) =>
-      resizedTaskColumnWidth(
-        current,
-        event.key === "ArrowLeft" ? -KEYBOARD_STEP : KEYBOARD_STEP,
-      ),
+    const next = resizedTaskColumnWidth(
+      widthRef.current,
+      event.key === "ArrowLeft" ? -KEYBOARD_STEP : KEYBOARD_STEP,
     );
+    updateWidth(next);
+    onWidthChange(next);
   }
 
   return {
     width,
-    minWidth: MIN_WIDTH,
-    maxWidth: MAX_WIDTH,
+    minWidth: MIN_TASK_COLUMN_WIDTH,
+    maxWidth: MAX_TASK_COLUMN_WIDTH,
     style: { "--task-column": `${width}px` } as CSSProperties,
     beginResize,
     continueResize,

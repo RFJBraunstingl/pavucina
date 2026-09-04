@@ -8,9 +8,11 @@ import {
 } from "./remote-preferences-store.ts";
 
 const taskId = "00000000-0000-4000-8000-000000000001";
-const preferences = { collapsedTaskIds: [taskId], hideDone: false };
+const legacyPreferences = { collapsedTaskIds: [taskId], hideDone: false };
+const preferences = { ...legacyPreferences, taskColumnWidth: 320 };
 
-test("user preferences require unique task UUIDs and a hide-done flag", () => {
+test("user preferences validate task IDs, visibility, and column width", () => {
+  assert.equal(isUserPreferences(legacyPreferences), true);
   assert.equal(isUserPreferences(preferences), true);
   assert.equal(
     isUserPreferences({ collapsedTaskIds: [taskId, taskId], hideDone: false }),
@@ -18,6 +20,11 @@ test("user preferences require unique task UUIDs and a hide-done flag", () => {
   );
   assert.equal(isUserPreferences({ collapsedTaskIds: ["task"], hideDone: false }), false);
   assert.equal(isUserPreferences({ collapsedTaskIds: [], hideDone: "yes" }), false);
+  assert.equal(
+    isUserPreferences({ ...legacyPreferences, taskColumnWidth: 100 }),
+    false,
+  );
+  assert.equal(isUserPreferences({ ...preferences, unknown: true }), false);
 });
 
 test("remote preferences load and save the complete preference object", async () => {

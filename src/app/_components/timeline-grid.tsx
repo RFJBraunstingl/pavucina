@@ -20,16 +20,21 @@ export default function TimelineGrid({
   rangeStart,
   selectedId,
   hideDone,
+  taskColumnWidth,
   collapsedIds,
   onGraphChange,
   onCollapsedIdsChange,
+  onTaskColumnWidthChange,
   onSelect,
   onNameChange,
   onAddChild,
   onCreate,
 }: TimelineGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const taskColumn = useTaskColumnResize();
+  const taskColumn = useTaskColumnResize(
+    taskColumnWidth,
+    onTaskColumnWidthChange,
+  );
   const parentIds = new Set(
     graph.relationships
       .filter((relationship) => relationship.type === "child")

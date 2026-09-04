@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { resizedTaskColumnWidth } from "../app/_components/use-task-column-resize.ts";
+import { resizedTaskColumnWidth } from "../utils/task-column.ts";
 
 test("task column resizing stays within desktop limits", () => {
   assert.deepEqual(

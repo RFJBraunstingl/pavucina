@@ -19,6 +19,7 @@ import {
 } from "@/services/task-service";
 import { updateTaskDate } from "@/services/task-schedule-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
+import { DEFAULT_TASK_COLUMN_WIDTH } from "@/utils/task-column";
 import type { DateRelationshipType, TaskNode, TimeProperty } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
@@ -164,10 +165,16 @@ export default function TimelineView() {
             rangeStart={rangeStart}
             selectedId={selectedId}
             hideDone={preferences.hideDone}
+            taskColumnWidth={
+              preferences.taskColumnWidth ?? DEFAULT_TASK_COLUMN_WIDTH
+            }
             collapsedIds={collapsedIds}
             onGraphChange={setGraph}
             onCollapsedIdsChange={(ids) =>
               updatePreferences({ collapsedTaskIds: [...ids] })
+            }
+            onTaskColumnWidthChange={(taskColumnWidth) =>
+              updatePreferences({ taskColumnWidth })
             }
             onSelect={setSelectedId}
             onNameChange={updateName}
