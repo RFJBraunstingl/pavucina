@@ -20,10 +20,9 @@
   text-transform: uppercase;
 }
 
-.inspector input {
+.inspector input,
+.inspector textarea {
   width: 100%;
-  height: 42px;
-  padding: 0 11px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: #fbfcfb;
@@ -32,6 +31,18 @@
   font-weight: 520;
   letter-spacing: normal;
   text-transform: none;
+}
+
+.inspector input {
+  height: 42px;
+  padding: 0 11px;
+}
+
+.inspector textarea {
+  min-height: 112px;
+  padding: 10px 11px;
+  line-height: 1.45;
+  resize: vertical;
 }
 
 .inspector .task-done {

@@ -89,6 +89,9 @@ export function isGraph(value: unknown): value is Graph {
     const properties = rawNode.properties;
     const validDone =
       properties.done === undefined || typeof properties.done === "boolean";
+    const validDescription =
+      properties.description === undefined ||
+      typeof properties.description === "string";
 
     const validTimes = ["plannedStartTime", "plannedEndTime"].every((key) => {
       const time = properties[key];
@@ -100,6 +103,7 @@ export function isGraph(value: unknown): value is Graph {
       rawNode.type === "task" &&
       typeof properties.name === "string" &&
       properties.name.trim() &&
+      validDescription &&
       validDone
     ) {
       nodes.set(rawNode.id, rawNode as TaskNode);

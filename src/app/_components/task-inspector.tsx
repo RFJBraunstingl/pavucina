@@ -8,6 +8,7 @@ export default function TaskInspector({
   selected,
   onDelete,
   onDoneChange,
+  onDescriptionChange,
   onNameChange,
   onDateChange,
   onTimeChange,
@@ -47,6 +48,16 @@ export default function TaskInspector({
               onKeyDown={(event) => {
                 if (event.key === "Enter") event.currentTarget.blur();
               }}
+            />
+          </label>
+          <label>
+            Description
+            <textarea
+              rows={5}
+              value={selected.properties.description ?? ""}
+              onChange={(event) =>
+                onDescriptionChange(selected.id, event.currentTarget.value)
+              }
             />
           </label>
           <label>
@@ -131,7 +142,7 @@ export default function TaskInspector({
         <div className="empty-inspector">
           <span aria-hidden="true">↗</span>
           <h2 id="inspector-heading">Select a task</h2>
-          <p>Choose a row or timeline bar to edit its name and planned dates.</p>
+          <p>Choose a row or timeline bar to edit its details.</p>
         </div>
       )}
     </aside>

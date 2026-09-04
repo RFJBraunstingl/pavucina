@@ -16,6 +16,27 @@ export function renameTask(graph: Graph, taskId: string, value: string) {
   };
 }
 
+export function setTaskDescription(
+  graph: Graph,
+  taskId: string,
+  description: string,
+) {
+  return {
+    ...graph,
+    nodes: graph.nodes.map((node) =>
+      node.id === taskId && node.type === "task"
+        ? {
+            ...node,
+            properties: {
+              ...node.properties,
+              description: description || undefined,
+            },
+          }
+        : node,
+    ),
+  };
+}
+
 export function setTaskDone(graph: Graph, taskId: string, done: boolean) {
   return {
     ...graph,

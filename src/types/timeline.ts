@@ -69,6 +69,7 @@ export type TaskInspectorProps = {
   selected?: TaskNode;
   onDelete: (taskId: string) => void;
   onDoneChange: (taskId: string, done: boolean) => void;
+  onDescriptionChange: (taskId: string, value: string) => void;
   onNameChange: (taskId: string, value: string) => void;
   onDateChange: (
     taskId: string,

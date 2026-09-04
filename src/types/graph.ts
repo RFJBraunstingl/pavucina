@@ -2,6 +2,7 @@ export type TimeProperty = "plannedStartTime" | "plannedEndTime";
 
 export type TaskProperties = {
   name: string;
+  description?: string;
   plannedStartTime?: string;
   plannedEndTime?: string;
   done?: boolean;
