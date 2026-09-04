@@ -75,6 +75,7 @@
 
 .delete-dialog {
   width: min(380px, calc(100vw - 32px));
+  margin: auto;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 14px;
