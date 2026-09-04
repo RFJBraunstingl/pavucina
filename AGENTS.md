@@ -9,7 +9,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 <!-- END:nextjs-agent-rules -->
 
 # Coding guidelines
-- always produce well-structured, readable, and maintainable code
+- always produce code that is well-structured, readable by humans, and maintainable by humans
 - always keep files as small as possible while keeping cohesion high (code files should ideally not exceed 100 lines and should never exceed around 200 lines)
-- always keep model files (objects, classes, types in separate files)
-- always extract util methods in some other file to keep the implementation files easy to read and maintain
+- always keep model files (objects, classes, types) in separate files
+- always extract util methods in some other file to keep the implementation files short and easy to read
+- always use meaningful names for variables, functions, and classes
+- always use consistent formatting and indentation
+- never use deprecated APIs or features
+- never split a single function or class into it's own file if there are similar files - cohesion is important

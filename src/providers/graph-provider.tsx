@@ -32,8 +32,8 @@ function useGraphState() {
   const loadedScope = useRef<string | null>(null);
   const lastSaved = useRef<string | null>(null);
   const saveQueue = useRef(Promise.resolve());
-  const githubId = session?.user.id;
-  const scope = status === "authenticated" ? `github:${githubId}` : "guest";
+  const userId = session?.user.id;
+  const scope = status === "authenticated" ? `user:${userId}` : "guest";
 
   useEffect(() => {
     if (!hydrated || status === "loading") return;
@@ -82,7 +82,7 @@ function useGraphState() {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, status, githubId, scope, today, loadAttempt]);
+  }, [hydrated, status, userId, scope, today, loadAttempt]);
 
   useEffect(() => {
     if (!hydrated || !graph || loadedScope.current !== scope) return;

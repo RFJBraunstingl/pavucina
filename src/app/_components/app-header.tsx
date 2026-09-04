@@ -1,14 +1,10 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { signIn, signOut, useSession } from "next-auth/react";
 
+import AuthControls from "./auth-controls";
 import type { AppHeaderProps } from "@/types/navigation";
 
 export default function AppHeader({ active, title }: AppHeaderProps) {
-  const { status } = useSession();
-
   return (
     <header className="app-header">
       <div className="brand">
@@ -40,22 +36,7 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
             ToDo
           </Link>
         </nav>
-        <div className="auth-controls">
-          {status === "authenticated" ? (
-            <>
-              <span>Signed in</span>
-              <button type="button" onClick={() => void signOut()}>Sign out</button>
-            </>
-          ) : (
-            <button
-              type="button"
-              disabled={status === "loading"}
-              onClick={() => void signIn("github")}
-            >
-              Sign in with GitHub
-            </button>
-          )}
-        </div>
+        <AuthControls />
       </div>
     </header>
   );

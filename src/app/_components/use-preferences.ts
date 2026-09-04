@@ -20,7 +20,7 @@ export function usePreferences() {
   const lastSaved = useRef<string | null>(null);
   const saveQueue = useRef(Promise.resolve());
   const userId = session?.user.id;
-  const scope = status === "authenticated" ? `github:${userId}` : "guest";
+  const scope = status === "authenticated" ? `user:${userId}` : "guest";
 
   useEffect(() => {
     if (status === "loading") return;

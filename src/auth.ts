@@ -1,5 +1,10 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
+
+import { createUserId } from "@/services/user-identity";
+
+const discardProviderTokens = () => ({});
 
 export const { handlers, auth } = NextAuth({
   session: { strategy: "jwt" },
@@ -10,14 +15,20 @@ export const { handlers, auth } = NextAuth({
       profile(profile) {
         return { id: String(profile.id) };
       },
-      account() {
-        return {};
+      account: discardProviderTokens,
+    }),
+    Google({
+      profile(profile) {
+        return { id: profile.sub };
       },
+      account: discardProviderTokens,
     }),
   ],
   callbacks: {
-    jwt({ token, user, profile }) {
-      const id = profile?.id ?? token.sub;
+    jwt({ token, account }) {
+      const id = account
+        ? createUserId(account.provider, account.providerAccountId)
+        : token.sub;
       return id ? { sub: id } : null;
     },
     session({ session, token }) {

@@ -62,24 +62,28 @@ as well as other relationships such as assignments to people, deadlines, etc.
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes
 
-Authenticated graphs preserve every saved version. Each GitHub user has one
-`github_<id>_graph_versions` collection and one `github_<id>_nodes` collection.
+Authenticated graphs preserve every saved version. Each provider account has one
+`<provider>_<id>_graph_versions` collection and one `<provider>_<id>_nodes`
+collection.
 The latest version is selected directly from the versions collection; there is no
 separate head, user, account, profile, or session collection.
 
 Authenticated timeline preferences are stored in one shared `preferences`
 collection with one document per user and a unique index on `userId`.
 
-## GitHub login
+## OAuth login
 
 1. Copy `.env.example` to `.env.local` and replace the placeholder values.
 2. Create a GitHub OAuth App with callback URL
    `http://localhost:3000/api/auth/callback/github`.
-3. Start MongoDB with `docker compose up -d`.
-4. Start Pavucina with `npm run dev`.
+3. Create Google OAuth credentials with authorized redirect URI
+   `http://localhost:3000/api/auth/callback/google`.
+4. Start MongoDB with `docker compose up -d`.
+5. Start Pavucina with `npm run dev`.
 
-Only the immutable numeric GitHub ID is kept as application identity. GitHub
-profile fields and provider tokens are not persisted.
+Only the provider name and immutable provider account ID are kept as application
+identity. Profile fields and provider tokens are not persisted. GitHub and Google
+accounts use separate workspaces.
 
 ## ToDo
 - filter tasks by level

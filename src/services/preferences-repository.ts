@@ -5,6 +5,7 @@ import {
   DEFAULT_USER_PREFERENCES,
   isUserPreferences,
 } from "./preferences-service.ts";
+import { preferenceStorageUserId } from "./user-identity.ts";
 import type {
   UserPreferences,
   UserPreferencesDocument,
@@ -26,7 +27,10 @@ async function preferencesCollection() {
 }
 
 export async function loadPreferences(userId: string) {
-  const document = await (await preferencesCollection()).findOne({ userId });
+  const storageUserId = preferenceStorageUserId(userId);
+  const document = await (await preferencesCollection()).findOne({
+    userId: storageUserId,
+  });
   if (!document) return DEFAULT_USER_PREFERENCES;
   if (!isUserPreferences(document.preferences)) {
     throw new Error("Stored user preferences are invalid");
@@ -38,8 +42,9 @@ export async function savePreferences(
   userId: string,
   preferences: UserPreferences,
 ) {
+  const storageUserId = preferenceStorageUserId(userId);
   await (await preferencesCollection()).updateOne(
-    { userId },
+    { userId: storageUserId },
     { $set: { preferences } },
     { upsert: true },
   );

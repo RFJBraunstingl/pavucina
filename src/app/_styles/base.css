@@ -151,6 +151,53 @@ h1 {
   opacity: 0.55;
 }
 
+.auth-dialog {
+  width: min(380px, calc(100vw - 32px));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 20px 60px rgb(24 33 28 / 20%);
+  color: var(--ink);
+  white-space: normal;
+}
+
+.auth-dialog::backdrop {
+  background: rgb(24 33 28 / 45%);
+}
+
+.auth-dialog form {
+  display: grid;
+  padding: 24px;
+}
+
+.auth-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.auth-dialog p {
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth-methods {
+  display: grid;
+  gap: 9px;
+}
+
+.auth-methods button {
+  width: 100%;
+  padding: 11px 14px;
+}
+
+.auth-dialog .auth-dialog-close {
+  justify-self: end;
+  margin-top: 12px;
+}
+
 .sync-error {
   max-width: 1680px;
   margin: -10px auto 18px;

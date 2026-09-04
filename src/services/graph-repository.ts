@@ -4,6 +4,7 @@ import { ObjectId, type Collection } from "mongodb";
 
 import { createNodeRevisionPlan } from "./graph-version-service";
 import { getMongoDatabase } from "./mongodb";
+import { graphCollectionPrefix } from "./user-identity";
 import type { Graph } from "@/types/graph";
 import type {
   GraphVersionDocument,
@@ -12,17 +13,17 @@ import type {
 
 const indexPromises = new Map<string, Promise<string>>();
 
-function collectionNames(githubId: string) {
-  if (!/^[0-9a-fA-F\-]+$/.test(githubId)) throw new Error("Invalid GitHub user ID");
+function collectionNames(userId: string) {
+  const prefix = graphCollectionPrefix(userId);
   return {
-    versions: `github_${githubId}_graph_versions`,
-    nodes: `github_${githubId}_nodes`,
+    versions: `${prefix}_graph_versions`,
+    nodes: `${prefix}_nodes`,
   };
 }
 
-async function collections(githubId: string) {
+async function collections(userId: string) {
   const database = await getMongoDatabase();
-  const names = collectionNames(githubId);
+  const names = collectionNames(userId);
   const versions = database.collection<GraphVersionDocument>(names.versions);
   const nodes = database.collection<NodeRevisionDocument>(names.nodes);
   let index = indexPromises.get(names.versions);
@@ -52,8 +53,8 @@ async function revisionMap(
   return new Map(revisions.map((revision) => [revision._id, revision]));
 }
 
-export async function loadLatestGraph(githubId: string): Promise<Graph | null> {
-  const { versions, nodes } = await collections(githubId);
+export async function loadLatestGraph(userId: string): Promise<Graph | null> {
+  const { versions, nodes } = await collections(userId);
   const version = await latestVersion(versions);
   if (!version) return null;
 
@@ -65,8 +66,8 @@ export async function loadLatestGraph(githubId: string): Promise<Graph | null> {
   };
 }
 
-export async function saveGraphVersion(githubId: string, graph: Graph) {
-  const { versions, nodes } = await collections(githubId);
+export async function saveGraphVersion(userId: string, graph: Graph) {
+  const { versions, nodes } = await collections(userId);
   const previousVersion = await latestVersion(versions);
   const previousRevisions = previousVersion
     ? await revisionMap(nodes, previousVersion.nodeRevisionIds)
