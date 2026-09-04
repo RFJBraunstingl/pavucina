@@ -72,8 +72,15 @@ test("task graph operations preserve relationships and schedules", () => {
 
   const childId = crypto.randomUUID();
   graph = addChildTask(graph, projectId, childId);
-  assert.equal(getTaskDate(graph, childId, "plannedStartDate"), "2026-03-20");
+  assert.deepEqual(
+    [
+      getTaskDate(graph, childId, "plannedStartDate"),
+      getTaskDate(graph, childId, "plannedEndDate"),
+    ],
+    [undefined, undefined],
+  );
 
+  graph = setTaskDates(graph, childId, "2026-03-20", "2026-04-10");
   graph = moveTask(graph, childId, 2);
   assert.equal(getTaskDate(graph, childId, "plannedStartDate"), "2026-03-22");
   assert.equal(getTaskDate(graph, childId, "plannedEndDate"), "2026-04-12");

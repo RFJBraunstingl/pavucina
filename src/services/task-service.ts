@@ -1,8 +1,4 @@
-import {
-  getTaskDate,
-  removeUnusedDates,
-  setTaskDate,
-} from "./task-schedule-service.ts";
+import { getTaskDate, removeUnusedDates } from "./task-schedule-service.ts";
 import { ensureRootNode } from "./graph-service.ts";
 import type { FlatTask, Graph, TaskNode } from "@/types/graph";
 
@@ -116,14 +112,18 @@ export function getLeafTasksForDate(graph: Graph, date: string) {
     );
 }
 
-export function addChildTask(graph: Graph, parentId: string, childId: string) {
+export function addChildTask(
+  graph: Graph,
+  parentId: string,
+  childId: string,
+): Graph {
   const parent = graph.nodes.find(
     (node) =>
       node.id === parentId && (node.type === "task" || node.type === "root"),
   );
   if (!parent) return graph;
 
-  let next: Graph = {
+  return {
     ...graph,
     nodes: [
       ...graph.nodes,
@@ -139,12 +139,6 @@ export function addChildTask(graph: Graph, parentId: string, childId: string) {
       },
     ],
   };
-
-  for (const type of ["plannedStartDate", "plannedEndDate"] as const) {
-    const value = getTaskDate(graph, parentId, type);
-    if (value) next = setTaskDate(next, childId, type, value);
-  }
-  return next;
 }
 
 export function addTopLevelTask(graph: Graph, taskId: string) {
