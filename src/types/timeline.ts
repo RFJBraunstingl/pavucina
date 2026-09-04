@@ -20,6 +20,12 @@ export type DragState = {
   lastAmount: number;
 };
 
+export type TaskColumnResizeDragState = {
+  pointerId: number;
+  originX: number;
+  originWidth: number;
+};
+
 export type TaskOrderDragState = {
   pointerId: number;
   taskId: string;

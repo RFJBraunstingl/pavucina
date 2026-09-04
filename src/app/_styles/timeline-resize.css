@@ -1,0 +1,38 @@
+.task-column-resize {
+  display: none;
+}
+
+@media (min-width: 681px) {
+  .task-column-resize {
+    display: block;
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: -6px;
+    bottom: 0;
+    width: 12px;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  .task-column-resize::after {
+    position: absolute;
+    top: 12px;
+    right: 5px;
+    bottom: 12px;
+    width: 2px;
+    border-radius: 2px;
+    background: transparent;
+    content: "";
+  }
+
+  .task-column-resize:hover::after,
+  .task-column-resize:focus-visible::after {
+    background: var(--green);
+  }
+
+  .task-column-resize:focus-visible {
+    outline: 2px solid rgb(22 122 84 / 35%);
+    outline-offset: -3px;
+  }
+}

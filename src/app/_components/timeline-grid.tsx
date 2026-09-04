@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 
 import TimelineTaskRow from "./timeline-task-row";
 import { useTaskOrder } from "./use-task-order";
+import { useTaskColumnResize } from "./use-task-column-resize";
 import { useTimelineSchedule } from "./use-timeline-schedule";
 import { flattenTasks } from "@/services/task-service";
 import {
@@ -28,6 +29,7 @@ export default function TimelineGrid({
   onCreate,
 }: TimelineGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const taskColumn = useTaskColumnResize();
   const parentIds = new Set(
     graph.relationships
       .filter((relationship) => relationship.type === "child")
@@ -78,9 +80,26 @@ export default function TimelineGrid({
       <p className="sr-only" role="status" aria-live="polite">
         {order.announcement}
       </p>
-      <div className="timeline-grid">
+      <div className="timeline-grid" style={taskColumn.style}>
         <div className="timeline-header timeline-row">
-          <div className="task-column-heading">Task</div>
+          <div className="task-column-heading">
+            Task
+            <div
+              className="task-column-resize"
+              role="separator"
+              aria-label="Resize task name column"
+              aria-orientation="vertical"
+              aria-valuemin={taskColumn.minWidth}
+              aria-valuemax={taskColumn.maxWidth}
+              aria-valuenow={taskColumn.width}
+              tabIndex={0}
+              onPointerDown={taskColumn.beginResize}
+              onPointerMove={taskColumn.continueResize}
+              onPointerUp={taskColumn.endResize}
+              onPointerCancel={taskColumn.endResize}
+              onKeyDown={taskColumn.resizeWithKeyboard}
+            />
+          </div>
           {days.map((day, index) => (
             <div
               className={`day-heading ${isWeekend(day) ? "weekend" : ""} ${day === today ? "today" : ""}`}
