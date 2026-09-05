@@ -24,13 +24,13 @@ test("tasks can be reordered and reparented without breaking the graph", () => {
   const frontendId = taskId("Timeline interactions");
   const relationshipIds = graph.relationships.map(({ id }) => id);
 
-  graph = placeTask(graph, designId, researchId, "before");
+  graph = placeTask(graph, designId, researchId, "before", "all");
   assert.deepEqual(
     flattenTasks(graph).slice(0, 3).map(({ task }) => task.properties.name),
     ["Launch Pavucina", "Design timeline", "Research workflows"],
   );
 
-  graph = placeTask(graph, prototypeId, designId, "inside");
+  graph = placeTask(graph, prototypeId, designId, "inside", "all");
   assert.deepEqual(
     flattenTasks(graph)
       .filter(({ task }) => [prototypeId, frontendId].includes(task.id))
@@ -41,7 +41,7 @@ test("tasks can be reordered and reparented without breaking the graph", () => {
     ],
   );
 
-  graph = placeTask(graph, prototypeId, researchId, "after");
+  graph = placeTask(graph, prototypeId, researchId, "after", "all");
   assert.equal(
     graph.relationships.find(
       (relationship) =>
@@ -52,7 +52,7 @@ test("tasks can be reordered and reparented without breaking the graph", () => {
 
   const topLevelId = crypto.randomUUID();
   graph = addTopLevelTask(graph, topLevelId);
-  graph = placeTask(graph, topLevelId, projectId, "before");
+  graph = placeTask(graph, topLevelId, projectId, "before", "all");
   assert.equal(flattenTasks(graph)[0].task.id, topLevelId);
   assert.equal(placeTask(graph, projectId, frontendId, "inside"), graph);
   const currentIds = graph.relationships.map(({ id }) => id);

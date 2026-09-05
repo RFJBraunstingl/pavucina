@@ -3,8 +3,10 @@ import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 import type {
   FlatTask,
   Graph,
+  TaskNode,
   TaskPlacement,
 } from "./graph";
+import type { ScheduleMode } from "./preferences";
 
 export type DragMode = "move" | "start" | "end";
 
@@ -41,6 +43,7 @@ export type TaskDropPreview = TaskDropTarget & {
 
 export type TimelineInteractionOptions = {
   graph: Graph;
+  scheduleMode: ScheduleMode;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string) => void;
 };
@@ -53,6 +56,7 @@ export type TaskOrderOptions = TimelineInteractionOptions & {
 
 export type TimelineGridProps = {
   graph: Graph;
+  scheduleMode: ScheduleMode;
   days: string[];
   today: string;
   rangeStart: string;
@@ -71,8 +75,15 @@ export type TimelineGridProps = {
 
 export type TaskInspectorProps = {
   selectedId: string | null;
+  scheduleMode: ScheduleMode;
   helpText?: string;
   onDeleted: () => void;
+};
+
+export type TaskScheduleFieldsProps = {
+  task: TaskNode;
+  scheduleMode: ScheduleMode;
+  helpText: string;
 };
 
 export type TimelineTaskRowProps = FlatTask & {
@@ -82,6 +93,7 @@ export type TimelineTaskRowProps = FlatTask & {
   today: string;
   selected: boolean;
   hasChildren: boolean;
+  schedulingDisabled: boolean;
   collapsed: boolean;
   ordering: boolean;
   dropPlacement?: TaskPlacement;

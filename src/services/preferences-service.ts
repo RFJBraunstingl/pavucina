@@ -9,19 +9,33 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   collapsedTaskIds: [],
   hideDone: true,
   taskColumnWidth: DEFAULT_TASK_COLUMN_WIDTH,
+  scheduleMode: "leaf",
 };
+
+export function resolvedScheduleMode(preferences: UserPreferences) {
+  return preferences.scheduleMode ?? "leaf";
+}
 
 export function isUserPreferences(value: unknown): value is UserPreferences {
   if (typeof value !== "object" || value === null) return false;
   const preferences = value as Record<string, unknown>;
   if (
     Object.keys(preferences).some(
-      (key) => !["collapsedTaskIds", "hideDone", "taskColumnWidth"].includes(key),
+      (key) =>
+        ![
+          "collapsedTaskIds",
+          "hideDone",
+          "taskColumnWidth",
+          "scheduleMode",
+        ].includes(key),
     ) ||
     typeof preferences.hideDone !== "boolean" ||
     !Array.isArray(preferences.collapsedTaskIds) ||
     (preferences.taskColumnWidth !== undefined &&
-      !isTaskColumnWidth(preferences.taskColumnWidth))
+      !isTaskColumnWidth(preferences.taskColumnWidth)) ||
+    (preferences.scheduleMode !== undefined &&
+      preferences.scheduleMode !== "leaf" &&
+      preferences.scheduleMode !== "all")
   ) {
     return false;
   }

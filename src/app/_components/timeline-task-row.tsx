@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { getTaskDate } from "@/services/task-schedule-service";
+import { getEffectiveTaskDate } from "@/services/task-schedule-mode-service";
 import { daysBetween, isWeekend } from "@/utils/date";
 import type { TimelineTaskRowProps } from "@/types/timeline";
 
@@ -13,6 +13,7 @@ export default function TimelineTaskRow({
   today,
   selected,
   hasChildren,
+  schedulingDisabled,
   collapsed,
   ordering,
   dropPlacement,
@@ -31,8 +32,22 @@ export default function TimelineTaskRow({
   onOrderCancel,
   onOrderKey,
 }: TimelineTaskRowProps) {
-  const start = getTaskDate(graph, task.id, "plannedStartDate");
-  const end = getTaskDate(graph, task.id, "plannedEndDate");
+  const scheduleMode = schedulingDisabled ? "leaf" : "all";
+  const start = getEffectiveTaskDate(
+    graph,
+    task.id,
+    "plannedStartDate",
+    scheduleMode,
+  );
+  const end = getEffectiveTaskDate(
+    graph,
+    task.id,
+    "plannedEndDate",
+    scheduleMode,
+  );
+  const scheduleHint = schedulingDisabled
+    ? "Leaf node scheduling is enabled."
+    : undefined;
   const startOffset = start ? daysBetween(rangeStart, start) : 0;
   const endOffset = end ? daysBetween(rangeStart, end) : -1;
   const visibleStart = Math.max(0, startOffset);
@@ -117,6 +132,8 @@ export default function TimelineTaskRow({
             className={`${className} schedule-cell`}
             style={style}
             onClick={() => onSchedule(task.id, day)}
+            disabled={schedulingDisabled}
+            title={scheduleHint}
             key={day}
           />
         ) : (
@@ -143,6 +160,8 @@ export default function TimelineTaskRow({
               type="button"
               className="resize-handle start"
               aria-label={`Resize start of ${task.properties.name}`}
+              disabled={schedulingDisabled}
+              title={scheduleHint}
               onPointerDown={(event) => onDragStart(event, task.id, "start")}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerEnd}
@@ -154,7 +173,10 @@ export default function TimelineTaskRow({
             type="button"
             className="bar-body"
             aria-label={`Move ${task.properties.name}`}
-            title={`${task.properties.name}: ${start} to ${end}`}
+            disabled={schedulingDisabled}
+            title={
+              scheduleHint ?? `${task.properties.name}: ${start} to ${end}`
+            }
             onPointerDown={(event) => onDragStart(event, task.id, "move")}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerEnd}
@@ -168,6 +190,8 @@ export default function TimelineTaskRow({
               type="button"
               className="resize-handle end"
               aria-label={`Resize end of ${task.properties.name}`}
+              disabled={schedulingDisabled}
+              title={scheduleHint}
               onPointerDown={(event) => onDragStart(event, task.id, "end")}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerEnd}

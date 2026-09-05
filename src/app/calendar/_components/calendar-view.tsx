@@ -9,6 +9,7 @@ import TaskInspector from "../../_components/task-inspector";
 import { usePreferences } from "../../_components/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { addDays, makeDateRange, rangeLabel, startOfWeek } from "@/utils/date";
+import { resolvedScheduleMode } from "@/services/preferences-service";
 import type { UserPreferences } from "@/types/preferences";
 
 export default function CalendarView() {
@@ -35,6 +36,7 @@ export default function CalendarView() {
       />
     );
   }
+  const scheduleMode = resolvedScheduleMode(preferences);
 
   function updatePreferences(changes: Partial<UserPreferences>) {
     setPreferences((current) => current ? { ...current, ...changes } : current);
@@ -73,6 +75,7 @@ export default function CalendarView() {
           </p>
           <CalendarGrid
             graph={graph}
+            scheduleMode={scheduleMode}
             days={days}
             today={today}
             hideDone={preferences.hideDone}
@@ -84,6 +87,7 @@ export default function CalendarView() {
 
         <TaskInspector
           selectedId={selectedId}
+          scheduleMode={scheduleMode}
           helpText="Drag an event to move it. Drag either edge to resize its time."
           onDeleted={() => setSelectedId(null)}
         />

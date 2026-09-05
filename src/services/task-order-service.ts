@@ -1,4 +1,6 @@
 import type { Graph, Relationship, TaskPlacement } from "@/types/graph";
+import type { ScheduleMode } from "@/types/preferences";
+import { clearTaskSchedule } from "./task-schedule-mode-service.ts";
 
 function childRelationship(graph: Graph, taskId: string) {
   return graph.relationships.find(
@@ -50,6 +52,7 @@ export function placeTask(
   taskId: string,
   targetId: string,
   placement: TaskPlacement,
+  scheduleMode: ScheduleMode = "leaf",
 ) {
   if (taskId === targetId) return graph;
   const moving = childRelationship(graph, taskId);
@@ -65,7 +68,13 @@ export function placeTask(
     return graph;
   }
 
-  const relationships = graph.relationships.filter(({ id }) => id !== moving.id);
+  const nextGraph =
+    placement === "inside" && scheduleMode === "leaf"
+      ? clearTaskSchedule(graph, targetId)
+      : graph;
+  const relationships = nextGraph.relationships.filter(
+    ({ id }) => id !== moving.id,
+  );
   const next = { ...moving, sourceId: parentId };
   if (placement === "inside") {
     const lastChildIndex = relationships.findLastIndex(
@@ -79,5 +88,5 @@ export function placeTask(
     const targetIndex = relationships.findIndex(({ id }) => id === target.id);
     relationships.splice(targetIndex + (placement === "after" ? 1 : 0), 0, next);
   }
-  return { ...graph, relationships };
+  return { ...nextGraph, relationships };
 }

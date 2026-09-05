@@ -1,6 +1,7 @@
 import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 
 import type { Graph, TaskNode } from "./graph";
+import type { ScheduleMode } from "./preferences";
 
 export type CalendarItem = {
   task: TaskNode;
@@ -31,6 +32,7 @@ export type CalendarDragState = {
 
 export type CalendarGridProps = {
   graph: Graph;
+  scheduleMode: ScheduleMode;
   days: string[];
   today: string;
   hideDone: boolean;
@@ -41,6 +43,7 @@ export type CalendarGridProps = {
 
 export type CalendarInteractionOptions = {
   graph: Graph;
+  scheduleMode: ScheduleMode;
   days: string[];
   bodyRef: RefObject<HTMLDivElement | null>;
   onGraphChange: (graph: Graph) => void;

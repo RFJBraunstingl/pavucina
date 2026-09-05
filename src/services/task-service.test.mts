@@ -19,6 +19,7 @@ import {
   resizeTask,
   setTaskDate,
   setTaskDates,
+  setTaskTimes,
 } from "./task-schedule-service.ts";
 import { ensureRootNode, isGraph, isUuid } from "./graph-service.ts";
 import { createSeedGraph } from "../data/seed-graph.ts";
@@ -98,6 +99,12 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.equal(sharedDates.length, 1);
   assert.equal(isGraph(graph), true);
 
+  graph = setTaskTimes(
+    setTaskDates(graph, projectId, "2026-03-20", "2026-04-10"),
+    projectId,
+    "08:30",
+    "09:30",
+  );
   graph = moveScheduledTask(graph, projectId, "2026-04-06", "11:00");
   assert.equal(getTaskDate(graph, projectId, "plannedStartDate"), "2026-04-06");
   assert.equal(getTaskDate(graph, projectId, "plannedEndDate"), "2026-04-27");

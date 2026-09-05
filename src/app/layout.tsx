@@ -9,6 +9,7 @@ import "./_styles/task-bars.css";
 import "./_styles/inspector.css";
 import "./_styles/calendar.css";
 import "./_styles/todo.css";
+import "./_styles/preferences.css";
 import "./_styles/responsive.css";
 
 export const metadata: Metadata = {

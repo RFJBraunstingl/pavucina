@@ -1,7 +1,12 @@
-import { getTaskDate, removeUnusedDates } from "./task-schedule-service.ts";
+import {
+  getTaskDate,
+  removeUnusedDates,
+} from "./task-schedule-service.ts";
+import { clearTaskSchedule } from "./task-schedule-mode-service.ts";
 import { ensureRootNode } from "./graph-service.ts";
 import { isTime } from "../utils/time.ts";
 import type { FlatTask, Graph, TaskNode, TimeProperty } from "@/types/graph";
+import type { ScheduleMode } from "@/types/preferences";
 
 export function renameTask(graph: Graph, taskId: string, value: string) {
   const name = value.trim();
@@ -167,21 +172,26 @@ export function addChildTask(
   graph: Graph,
   parentId: string,
   childId: string,
+  scheduleMode: ScheduleMode = "leaf",
 ): Graph {
   const parent = graph.nodes.find(
     (node) =>
       node.id === parentId && (node.type === "task" || node.type === "root"),
   );
   if (!parent) return graph;
+  const nextGraph =
+    scheduleMode === "leaf" && parent.type === "task"
+      ? clearTaskSchedule(graph, parentId)
+      : graph;
 
   return {
-    ...graph,
+    ...nextGraph,
     nodes: [
-      ...graph.nodes,
+      ...nextGraph.nodes,
       { id: childId, type: "task", properties: { name: "New task" } },
     ],
     relationships: [
-      ...graph.relationships,
+      ...nextGraph.relationships,
       {
         id: crypto.randomUUID(),
         type: "child",

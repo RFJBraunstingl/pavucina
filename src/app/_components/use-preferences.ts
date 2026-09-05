@@ -1,16 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useSession } from "next-auth/react";
 
-import { DEFAULT_USER_PREFERENCES } from "@/services/preferences-service";
+import {
+  loadGuestPreferences,
+  saveGuestPreferences,
+} from "@/services/local-preferences-store";
 import {
   loadRemotePreferences,
   saveRemotePreferences,
 } from "@/services/remote-preferences-store";
 import type { UserPreferences } from "@/types/preferences";
 
-export function usePreferences() {
+function usePreferencesState() {
   const { data: session, status } = useSession();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -35,9 +46,10 @@ export function usePreferences() {
       setSyncError(null);
 
       if (status === "unauthenticated") {
+        const next = loadGuestPreferences();
         loadedScope.current = "guest";
-        lastSaved.current = JSON.stringify(DEFAULT_USER_PREFERENCES);
-        setPreferences(DEFAULT_USER_PREFERENCES);
+        lastSaved.current = JSON.stringify(next);
+        setPreferences(next);
         return;
       }
 
@@ -62,15 +74,17 @@ export function usePreferences() {
   }, [status, userId, scope, loadAttempt]);
 
   useEffect(() => {
-    if (
-      !preferences ||
-      status !== "authenticated" ||
-      loadedScope.current !== scope
-    ) {
+    if (!preferences || loadedScope.current !== scope) {
       return;
     }
     const serialized = JSON.stringify(preferences);
     if (serialized === lastSaved.current) return;
+    if (status === "unauthenticated") {
+      saveGuestPreferences(preferences);
+      lastSaved.current = serialized;
+      return;
+    }
+    if (status !== "authenticated") return;
     const saveScope = scope;
     saveQueue.current = saveQueue.current
       .catch(() => undefined)
@@ -96,4 +110,24 @@ export function usePreferences() {
   }
 
   return { preferences, setPreferences, syncError, retry };
+}
+
+const PreferencesContext = createContext<ReturnType<
+  typeof usePreferencesState
+> | null>(null);
+
+export function PreferencesProvider({ children }: { children: ReactNode }) {
+  return createElement(
+    PreferencesContext.Provider,
+    { value: usePreferencesState() },
+    children,
+  );
+}
+
+export function usePreferences() {
+  const value = useContext(PreferencesContext);
+  if (!value) {
+    throw new Error("usePreferences must be used inside PreferencesProvider");
+  }
+  return value;
 }

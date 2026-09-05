@@ -1,22 +1,19 @@
 import { useRef } from "react";
 
 import { useGraph } from "@/providers/graph-provider";
+import TaskScheduleFields from "./task-schedule-fields";
 import {
   deleteTask,
   renameTask,
   setTaskDescription,
   setTaskDone,
-  setTaskTime,
 } from "@/services/task-service";
-import {
-  getTaskDate,
-  updateTaskDate,
-} from "@/services/task-schedule-service";
-import type { DateRelationshipType, TaskNode, TimeProperty } from "@/types/graph";
+import type { TaskNode } from "@/types/graph";
 import type { TaskInspectorProps } from "@/types/timeline";
 
 export default function TaskInspector({
   selectedId,
+  scheduleMode,
   helpText = "Drag a bar to move it. Drag either edge to resize by whole days.",
   onDeleted,
 }: TaskInspectorProps) {
@@ -25,7 +22,6 @@ export default function TaskInspector({
   const selected = graph?.nodes.find(
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
   );
-
   if (!graph) return null;
 
   function updateName(taskId: string, value: string) {
@@ -43,18 +39,6 @@ export default function TaskInspector({
   function updateDescription(taskId: string, value: string) {
     setGraph((current) =>
       current ? setTaskDescription(current, taskId, value) : current,
-    );
-  }
-
-  function updateDate(taskId: string, type: DateRelationshipType, value: string) {
-    setGraph((current) =>
-      current ? updateTaskDate(current, taskId, type, value) : current,
-    );
-  }
-
-  function updateTime(taskId: string, type: TimeProperty, value: string) {
-    setGraph((current) =>
-      current ? setTaskTime(current, taskId, type, value) : current,
     );
   }
 
@@ -108,50 +92,11 @@ export default function TaskInspector({
               }
             />
           </label>
-          <label>
-            Planned start
-            <input
-              type="date"
-              value={getTaskDate(graph, selected.id, "plannedStartDate") ?? ""}
-              onChange={(event) =>
-                updateDate(selected.id, "plannedStartDate", event.target.value)
-              }
-            />
-          </label>
-          <label>
-            Planned end
-            <input
-              type="date"
-              value={getTaskDate(graph, selected.id, "plannedEndDate") ?? ""}
-              onChange={(event) =>
-                updateDate(selected.id, "plannedEndDate", event.target.value)
-              }
-            />
-          </label>
-          <label>
-            Start time
-            <input
-              type="time"
-              value={selected.properties.plannedStartTime ?? ""}
-              onChange={(event) =>
-                updateTime(selected.id, "plannedStartTime", event.target.value)
-              }
-            />
-          </label>
-          <label>
-            End time
-            <input
-              type="time"
-              value={selected.properties.plannedEndTime ?? ""}
-              onChange={(event) =>
-                updateTime(selected.id, "plannedEndTime", event.target.value)
-              }
-            />
-          </label>
-          <div className="inspector-help">
-            <span aria-hidden="true">↔</span>
-            <p>{helpText}</p>
-          </div>
+          <TaskScheduleFields
+            task={selected}
+            scheduleMode={scheduleMode}
+            helpText={helpText}
+          />
           <label className="task-done">
             <input
               type="checkbox"

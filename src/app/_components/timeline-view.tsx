@@ -16,6 +16,7 @@ import {
 } from "@/services/task-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
 import { DEFAULT_TASK_COLUMN_WIDTH } from "@/utils/task-column";
+import { resolvedScheduleMode } from "@/services/preferences-service";
 import type { UserPreferences } from "@/types/preferences";
 
 export default function TimelineView() {
@@ -45,6 +46,7 @@ export default function TimelineView() {
       />
     );
   }
+  const scheduleMode = resolvedScheduleMode(preferences);
 
   function updatePreferences(changes: Partial<UserPreferences>) {
     setPreferences((current) => current ? { ...current, ...changes } : current);
@@ -59,7 +61,9 @@ export default function TimelineView() {
   function addChild(parentId: string) {
     const childId = crypto.randomUUID();
     setGraph((current) =>
-      current ? addChildTask(current, parentId, childId) : current,
+      current
+        ? addChildTask(current, parentId, childId, scheduleMode)
+        : current,
     );
     setSelectedId(childId);
   }
@@ -135,6 +139,7 @@ export default function TimelineView() {
 
           <TimelineGrid
             graph={graph}
+            scheduleMode={scheduleMode}
             days={days}
             today={today}
             rangeStart={rangeStart}
@@ -160,6 +165,7 @@ export default function TimelineView() {
 
         <TaskInspector
           selectedId={selectedId}
+          scheduleMode={scheduleMode}
           onDeleted={() => setSelectedId(null)}
         />
       </div>

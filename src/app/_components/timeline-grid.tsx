@@ -15,6 +15,7 @@ import type { TimelineGridProps } from "@/types/timeline";
 
 export default function TimelineGrid({
   graph,
+  scheduleMode,
   days,
   today,
   rangeStart,
@@ -43,9 +44,15 @@ export default function TimelineGrid({
       ),
     [collapsedIds, graph, hideDone],
   );
-  const schedule = useTimelineSchedule({ graph, onGraphChange, onSelect });
+  const schedule = useTimelineSchedule({
+    graph,
+    scheduleMode,
+    onGraphChange,
+    onSelect,
+  });
   const order = useTaskOrder({
     graph,
+    scheduleMode,
     tasks,
     scrollRef,
     onGraphChange,
@@ -126,6 +133,9 @@ export default function TimelineGrid({
             today={today}
             selected={selectedId === task.id}
             hasChildren={parentIds.has(task.id)}
+            schedulingDisabled={
+              scheduleMode === "leaf" && parentIds.has(task.id)
+            }
             collapsed={collapsedIds.has(task.id)}
             ordering={order.draggedId === task.id}
             dropPlacement={

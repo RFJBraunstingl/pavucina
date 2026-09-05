@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
+import { isTaskSchedulable } from "@/services/task-schedule-mode-service";
 import {
   moveTask,
   resizeTask,
@@ -15,12 +16,14 @@ const DAY_WIDTH = 48;
 
 export function useTimelineSchedule({
   graph,
+  scheduleMode,
   onGraphChange,
   onSelect,
 }: TimelineInteractionOptions) {
   const drag = useRef<DragState | null>(null);
 
   function changeTask(taskId: string, mode: DragMode, amount: number) {
+    if (!isTaskSchedulable(graph, taskId, scheduleMode)) return;
     onGraphChange(
       mode === "move"
         ? moveTask(graph, taskId, amount)
@@ -29,6 +32,7 @@ export function useTimelineSchedule({
   }
 
   function scheduleTask(taskId: string, day: string) {
+    if (!isTaskSchedulable(graph, taskId, scheduleMode)) return;
     onGraphChange(setTaskDates(graph, taskId, day, day));
     onSelect(taskId);
   }
@@ -38,7 +42,12 @@ export function useTimelineSchedule({
     taskId: string,
     mode: DragMode,
   ) {
-    if (event.button !== 0) return;
+    if (
+      event.button !== 0 ||
+      !isTaskSchedulable(graph, taskId, scheduleMode)
+    ) {
+      return;
+    }
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {

@@ -21,6 +21,7 @@
   }
 
   .app-header {
+    position: relative;
     grid-template-columns: auto 1fr;
     margin-bottom: 18px;
   }

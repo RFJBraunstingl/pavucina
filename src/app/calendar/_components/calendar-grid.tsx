@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 
 import CalendarEvent from "./calendar-event";
 import { useCalendarSchedule } from "./use-calendar-schedule";
-import { flattenTasks } from "@/services/task-service";
+import { flattenTasks, getParentTaskIds } from "@/services/task-service";
 import {
   getTaskDate,
   getTaskTime,
@@ -18,6 +18,7 @@ import type { CalendarGridProps } from "@/types/calendar";
 
 export default function CalendarGrid({
   graph,
+  scheduleMode,
   days,
   today,
   hideDone,
@@ -26,10 +27,15 @@ export default function CalendarGrid({
   onSelect,
 }: CalendarGridProps) {
   const body = useRef<HTMLDivElement>(null);
+  const parentIds = useMemo(() => getParentTaskIds(graph), [graph]);
   const items = useMemo(
     () =>
       flattenTasks(graph)
-        .filter(({ task }) => !hideDone || !task.properties.done)
+        .filter(
+          ({ task }) =>
+            (scheduleMode === "all" || !parentIds.has(task.id)) &&
+            (!hideDone || !task.properties.done),
+        )
         .flatMap(({ task }) => {
           const startDate = getTaskDate(graph, task.id, "plannedStartDate");
           const endDate = getTaskDate(graph, task.id, "plannedEndDate");
@@ -44,10 +50,11 @@ export default function CalendarGrid({
           );
           return item ? [item] : [];
         }),
-    [days, graph, hideDone],
+    [days, graph, hideDone, parentIds, scheduleMode],
   );
   const schedule = useCalendarSchedule({
     graph,
+    scheduleMode,
     days,
     bodyRef: body,
     onGraphChange,

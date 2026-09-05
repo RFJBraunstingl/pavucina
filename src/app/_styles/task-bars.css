@@ -199,6 +199,12 @@ button.task-toggle:hover {
   cursor: grabbing;
 }
 
+.bar-body:disabled,
+.resize-handle:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 .resize-handle {
   z-index: 2;
   grid-row: 1;

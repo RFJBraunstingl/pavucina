@@ -71,6 +71,7 @@ function taskName(graph: Graph, taskId: string) {
 
 export function useTaskOrder({
   graph,
+  scheduleMode,
   tasks,
   scrollRef,
   onGraphChange,
@@ -102,7 +103,7 @@ export function useTaskOrder({
   }
 
   function applyOrder(taskId: string, targetId: string, placement: TaskPlacement) {
-    const next = placeTask(graph, taskId, targetId, placement);
+    const next = placeTask(graph, taskId, targetId, placement, scheduleMode);
     if (next === graph) return;
     onGraphChange(next);
     onSelect(taskId);
@@ -140,7 +141,13 @@ export function useTaskOrder({
     if (current?.targetId === target.targetId && current.placement === target.placement) {
       return;
     }
-    const next = placeTask(graph, active.taskId, target.targetId, target.placement);
+    const next = placeTask(
+      graph,
+      active.taskId,
+      target.targetId,
+      target.placement,
+      scheduleMode,
+    );
     setPreview(next === graph ? null : { ...target, graph: next });
   }
 

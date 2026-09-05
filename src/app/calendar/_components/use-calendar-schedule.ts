@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
+import { isTaskSchedulable } from "@/services/task-schedule-mode-service";
 import {
   moveScheduledTask,
   setTaskTimes,
@@ -21,6 +22,7 @@ import type {
 
 export function useCalendarSchedule({
   graph,
+  scheduleMode,
   days,
   bodyRef,
   onGraphChange,
@@ -33,7 +35,12 @@ export function useCalendarSchedule({
     item: CalendarItem,
     mode: CalendarDragMode,
   ) {
-    if (event.button !== 0) return;
+    if (
+      event.button !== 0 ||
+      !isTaskSchedulable(graph, item.task.id, scheduleMode)
+    ) {
+      return;
+    }
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     onSelect(item.task.id);
@@ -115,6 +122,7 @@ export function useCalendarSchedule({
     item: CalendarItem,
     mode: CalendarDragMode,
   ) {
+    if (!isTaskSchedulable(graph, item.task.id, scheduleMode)) return;
     if (mode !== "move") {
       if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
       event.preventDefault();
