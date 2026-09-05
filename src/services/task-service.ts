@@ -131,6 +131,15 @@ export function flattenTasks(
   return result;
 }
 
+export function getParentTaskIds(graph: Graph) {
+  const rootId = graph.nodes.find((node) => node.type === "root")?.id;
+  return new Set(
+    graph.relationships
+      .filter(({ type, sourceId }) => type === "child" && sourceId !== rootId)
+      .map(({ sourceId }) => sourceId),
+  );
+}
+
 export function getLeafTasksForDate(graph: Graph, date: string) {
   const parentIds = new Set(
     graph.relationships

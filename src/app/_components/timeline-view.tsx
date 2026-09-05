@@ -11,6 +11,7 @@ import { useGraph } from "@/providers/graph-provider";
 import {
   addChildTask,
   addTopLevelTask,
+  getParentTaskIds,
   renameTask,
 } from "@/services/task-service";
 import { addDays, makeDateRange, rangeLabel } from "@/utils/date";
@@ -71,6 +72,15 @@ export default function TimelineView() {
     setSelectedId(taskId);
   }
 
+  function collapseAll() {
+    if (!graph) return;
+    updatePreferences({ collapsedTaskIds: [...getParentTaskIds(graph)] });
+  }
+
+  function expandAll() {
+    updatePreferences({ collapsedTaskIds: [] });
+  }
+
   return (
     <main className="app-shell">
       <AppHeader active="timeline" title="Timeline" />
@@ -83,8 +93,12 @@ export default function TimelineView() {
             <div>
               <p className="eyebrow">Project plan</p>
               <h2 id="timeline-heading">{rangeLabel(days[0], days.at(-1)!)}</h2>
+              <div className="tree-actions" aria-label="Task hierarchy">
+                <button type="button" onClick={collapseAll}>Collapse all</button>
+                <button type="button" onClick={expandAll}>Expand all</button>
+              </div>
             </div>
-            <div className="range-controls" aria-label="Timeline controls">
+            <div className="range-controls" aria-label="Timeline range">
               <label className="done-toggle">
                 <input
                   type="checkbox"

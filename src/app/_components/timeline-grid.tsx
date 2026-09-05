@@ -4,7 +4,7 @@ import TimelineTaskRow from "./timeline-task-row";
 import { useTaskOrder } from "./use-task-order";
 import { useTaskColumnResize } from "./use-task-column-resize";
 import { useTimelineSchedule } from "./use-timeline-schedule";
-import { flattenTasks } from "@/services/task-service";
+import { flattenTasks, getParentTaskIds } from "@/services/task-service";
 import {
   dayLabel,
   dayOfMonth,
@@ -35,11 +35,7 @@ export default function TimelineGrid({
     taskColumnWidth,
     onTaskColumnWidthChange,
   );
-  const parentIds = new Set(
-    graph.relationships
-      .filter((relationship) => relationship.type === "child")
-      .map((relationship) => relationship.sourceId),
-  );
+  const parentIds = getParentTaskIds(graph);
   const tasks = useMemo(
     () =>
       flattenTasks(graph, collapsedIds).filter(
