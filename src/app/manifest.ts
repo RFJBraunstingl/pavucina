@@ -21,6 +21,11 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
       {
+        src: "/pavucina-icon-1024.png",
+        sizes: "1024x1024",
+        type: "image/png",
+      },
+      {
         src: "/pavucina-logo.svg",
         sizes: "any",
         type: "image/svg+xml",
