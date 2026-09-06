@@ -8,6 +8,7 @@ import type { UserPreferences } from "@/types/preferences";
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   collapsedTaskIds: [],
   hideDone: true,
+  showFullTaskPath: false,
   taskColumnWidth: DEFAULT_TASK_COLUMN_WIDTH,
   scheduleMode: "leaf",
 };
@@ -25,11 +26,14 @@ export function isUserPreferences(value: unknown): value is UserPreferences {
         ![
           "collapsedTaskIds",
           "hideDone",
+          "showFullTaskPath",
           "taskColumnWidth",
           "scheduleMode",
         ].includes(key),
     ) ||
     typeof preferences.hideDone !== "boolean" ||
+    (preferences.showFullTaskPath !== undefined &&
+      typeof preferences.showFullTaskPath !== "boolean") ||
     !Array.isArray(preferences.collapsedTaskIds) ||
     (preferences.taskColumnWidth !== undefined &&
       !isTaskColumnWidth(preferences.taskColumnWidth)) ||

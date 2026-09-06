@@ -18,6 +18,7 @@ const taskId = "00000000-0000-4000-8000-000000000001";
 const legacyPreferences = { collapsedTaskIds: [taskId], hideDone: false };
 const preferences = {
   ...legacyPreferences,
+  showFullTaskPath: true,
   taskColumnWidth: 320,
   scheduleMode: "all" as const,
 };
@@ -32,6 +33,10 @@ test("user preferences validate task IDs, visibility, and column width", () => {
   );
   assert.equal(isUserPreferences({ collapsedTaskIds: ["task"], hideDone: false }), false);
   assert.equal(isUserPreferences({ collapsedTaskIds: [], hideDone: "yes" }), false);
+  assert.equal(
+    isUserPreferences({ ...legacyPreferences, showFullTaskPath: "yes" }),
+    false,
+  );
   assert.equal(
     isUserPreferences({ ...legacyPreferences, taskColumnWidth: 100 }),
     false,
@@ -61,7 +66,9 @@ test("guest preferences persist locally and resolve legacy defaults", () => {
       "pavucina.preferences.v1",
       JSON.stringify(legacyPreferences),
     );
-    assert.equal(resolvedScheduleMode(loadGuestPreferences()), "leaf");
+    const loaded = loadGuestPreferences();
+    assert.equal(resolvedScheduleMode(loaded), "leaf");
+    assert.equal(loaded.showFullTaskPath, false);
   } finally {
     if (descriptor) Object.defineProperty(globalThis, "localStorage", descriptor);
     else Reflect.deleteProperty(globalThis, "localStorage");
