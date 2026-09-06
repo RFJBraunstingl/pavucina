@@ -14,6 +14,7 @@ import type { TaskInspectorProps } from "@/types/timeline";
 export default function TaskInspector({
   selectedId,
   scheduleMode,
+  scheduleDate,
   helpText = "Drag a bar to move it. Drag either edge to resize by whole days.",
   onDeleted,
 }: TaskInspectorProps) {
@@ -95,6 +96,7 @@ export default function TaskInspector({
           <TaskScheduleFields
             task={selected}
             scheduleMode={scheduleMode}
+            scheduleDate={scheduleDate}
             helpText={helpText}
           />
           <label className="task-done">

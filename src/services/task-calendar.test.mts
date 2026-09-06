@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { scheduleTaskOnDay } from "./task-day-schedule-service.ts";
+import {
+  getDaySchedule,
+  scheduleTaskForDay,
+  scheduleTaskOnDay,
+} from "./task-day-schedule-service.ts";
 import {
   getTaskDate,
   getTaskTime,
@@ -9,6 +13,7 @@ import {
   setTaskTimes,
 } from "./task-schedule-service.ts";
 import { calendarItem, layoutCalendarItems } from "../utils/calendar.ts";
+import { DAY_HEIGHT, droppedTimeRange } from "../utils/day-schedule.ts";
 import type { Graph, TaskNode } from "../types/graph.ts";
 
 const DAY = "2026-09-07";
@@ -86,4 +91,65 @@ test("calendar layout gives overlapping events separate lanes", () => {
     laidOut.map(({ laneIndex, laneCount }) => [laneIndex, laneCount]),
     [[0, 2], [1, 2], [0, 2], [0, 1], [0, 1]],
   );
+});
+
+test("daily scheduling separates ranged tasks and collapses scheduled dates", () => {
+  const task = {
+    id: "ranged",
+    type: "task",
+    properties: {
+      name: "Ranged task",
+      plannedStartTime: "13:00",
+      plannedEndTime: "14:30",
+    },
+  } as const;
+  let graph = setTaskDates(
+    graphWithTasks(task),
+    task.id,
+    "2026-09-06",
+    "2026-09-08",
+  );
+
+  assert.deepEqual(
+    getDaySchedule(graph, DAY, "all", false).unscheduled.map(({ task }) => task.id),
+    [task.id],
+  );
+  graph = scheduleTaskForDay(graph, task.id, DAY, "13:00", "14:30");
+  assert.deepEqual(
+    [
+      getTaskDate(graph, task.id, "plannedStartDate"),
+      getTaskDate(graph, task.id, "plannedEndDate"),
+      getDaySchedule(graph, DAY, "all", false).events[0]?.task.id,
+    ],
+    [DAY, DAY, task.id],
+  );
+  assert.deepEqual(droppedTimeRange(DAY_HEIGHT, DAY_HEIGHT, 60), ["22:45", "23:45"]);
+  assert.throws(() => scheduleTaskForDay(graph, task.id, DAY, "15:00", "14:00"));
+});
+
+test("daily scheduling honors task hierarchy and completed-task filtering", () => {
+  const parent = {
+    id: "parent",
+    type: "task",
+    properties: { name: "Parent", plannedStartTime: "09:00", plannedEndTime: "10:00" },
+  } as const;
+  const child = {
+    id: "child",
+    type: "task",
+    properties: { name: "Child", plannedStartTime: "10:00", plannedEndTime: "11:00", done: true },
+  } as const;
+  let graph = graphWithTasks(parent, child);
+  graph.relationships.push({ id: "child-edge", type: "child", sourceId: parent.id, targetId: child.id });
+  graph = setTaskDates(graph, parent.id, DAY, DAY);
+  graph = setTaskDates(graph, child.id, DAY, DAY);
+
+  assert.deepEqual(
+    getDaySchedule(graph, DAY, "leaf", false).events.map(({ task }) => task.id),
+    [child.id],
+  );
+  assert.deepEqual(
+    getDaySchedule(graph, DAY, "all", false).events.map(({ task }) => task.id),
+    [parent.id, child.id],
+  );
+  assert.equal(getDaySchedule(graph, DAY, "leaf", true).events.length, 0);
 });

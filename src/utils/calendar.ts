@@ -69,20 +69,22 @@ export function resizeTimeRange(
   endTime: string,
   edge: CalendarResizeEdge,
   amount: number,
+  minimum = CALENDAR_START,
+  maximum = CALENDAR_END,
 ) {
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
   return edge === "start"
     ? [
         minutesToTime(
-          Math.max(CALENDAR_START, Math.min(start + amount, end - CALENDAR_RESIZE_STEP)),
+          Math.max(minimum, Math.min(start + amount, end - CALENDAR_RESIZE_STEP)),
         ),
         endTime,
       ] as const
     : [
         startTime,
         minutesToTime(
-          Math.min(CALENDAR_END, Math.max(end + amount, start + CALENDAR_RESIZE_STEP)),
+          Math.min(maximum, Math.max(end + amount, start + CALENDAR_RESIZE_STEP)),
         ),
       ] as const;
 }

@@ -3,14 +3,23 @@ import {
   getEffectiveTaskDate,
   isTaskSchedulable,
 } from "@/services/task-schedule-mode-service";
-import { updateTaskDate } from "@/services/task-schedule-service";
+import {
+  scheduleTaskForDay,
+  taskDuration,
+} from "@/services/task-day-schedule-service";
+import {
+  getTaskDate,
+  updateTaskDate,
+} from "@/services/task-schedule-service";
 import { setTaskTime } from "@/services/task-service";
+import { compactDateLabel } from "@/utils/date";
 import type { DateRelationshipType, TimeProperty } from "@/types/graph";
 import type { TaskScheduleFieldsProps } from "@/types/timeline";
 
 export default function TaskScheduleFields({
   task,
   scheduleMode,
+  scheduleDate,
   helpText,
 }: TaskScheduleFieldsProps) {
   const { graph, setGraph } = useGraph();
@@ -18,6 +27,10 @@ export default function TaskScheduleFields({
   const disabled = !isTaskSchedulable(graph, task.id, scheduleMode);
   const hint = disabled ? "Leaf node scheduling is enabled." : undefined;
   const description = disabled ? "leaf-schedule-help" : undefined;
+  const scheduledForDay = scheduleDate &&
+    getTaskDate(graph, task.id, "plannedStartDate") === scheduleDate &&
+    getTaskDate(graph, task.id, "plannedEndDate") === scheduleDate;
+  const duration = taskDuration(task);
 
   function updateDate(type: DateRelationshipType, value: string) {
     setGraph((current) =>
@@ -28,6 +41,16 @@ export default function TaskScheduleFields({
   function updateTime(type: TimeProperty, value: string) {
     setGraph((current) =>
       current ? setTaskTime(current, task.id, type, value) : current,
+    );
+  }
+
+  function scheduleForDay() {
+    const startTime = task.properties.plannedStartTime;
+    const endTime = task.properties.plannedEndTime;
+    if (!scheduleDate || !startTime || !endTime) return;
+    setGraph((current) => current
+      ? scheduleTaskForDay(current, task.id, scheduleDate, startTime, endTime)
+      : current,
     );
   }
 
@@ -65,6 +88,22 @@ export default function TaskScheduleFields({
           />
         </label>
       ))}
+      {scheduleDate && !scheduledForDay && !disabled && (
+        <button
+          type="button"
+          className="schedule-task"
+          disabled={!duration}
+          aria-describedby={!duration ? "schedule-task-help" : undefined}
+          onClick={scheduleForDay}
+        >
+          Schedule for {compactDateLabel(scheduleDate)}
+        </button>
+      )}
+      {scheduleDate && !scheduledForDay && !disabled && !duration && (
+        <p id="schedule-task-help" className="schedule-task-help">
+          Enter a start time and a later end time to schedule this task.
+        </p>
+      )}
       <div className="inspector-help">
         <span aria-hidden="true">↔</span>
         <p>

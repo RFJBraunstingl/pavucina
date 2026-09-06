@@ -4,6 +4,7 @@ import type { CalendarEventProps } from "@/types/calendar";
 export default function CalendarEvent({
   item,
   selected,
+  dayCount = 7,
   onSelect,
   onDragStart,
   onPointerMove,
@@ -22,7 +23,7 @@ export default function CalendarEvent({
     top,
     height,
   } = item;
-  const laneWidth = 100 / (7 * laneCount);
+  const laneWidth = 100 / (dayCount * laneCount);
   const endLabel =
     startDate === endDate ? endTime : `${compactDateLabel(endDate)} ${endTime}`;
 
@@ -33,7 +34,7 @@ export default function CalendarEvent({
       style={{
         top,
         height,
-        left: `calc(${dayIndex * (100 / 7) + laneIndex * laneWidth}% + 4px)`,
+        left: `calc(${dayIndex * (100 / dayCount) + laneIndex * laneWidth}% + 4px)`,
         width: `calc(${laneWidth}% - 8px)`,
       }}
     >

@@ -48,6 +48,9 @@ export type CalendarInteractionOptions = {
   scheduleMode: ScheduleMode;
   days: string[];
   bodyRef: RefObject<HTMLDivElement | null>;
+  startMinute?: number;
+  endMinute?: number;
+  moveTask?: (graph: Graph, taskId: string, date: string, time: string) => Graph;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string) => void;
 };
@@ -55,6 +58,7 @@ export type CalendarInteractionOptions = {
 export type CalendarEventProps = {
   item: CalendarItem;
   selected: boolean;
+  dayCount?: number;
   onSelect: () => void;
   onDragStart: (
     event: PointerEvent<HTMLButtonElement>,

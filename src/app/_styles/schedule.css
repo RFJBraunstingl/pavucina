@@ -1,0 +1,131 @@
+.schedule-tray {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.schedule-tray-heading {
+  display: flex;
+  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.schedule-tray-heading h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.schedule-tray-heading > span {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #e7f2eb;
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 800;
+  place-items: center;
+}
+
+.schedule-tray-days {
+  display: grid;
+  grid-template-columns: repeat(var(--schedule-days), minmax(0, 1fr));
+  gap: 10px;
+}
+
+.schedule-tray-day {
+  display: flex;
+  overflow-y: auto;
+  max-height: 190px;
+  padding: 2px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-tray-day h4 {
+  position: sticky;
+  z-index: 1;
+  top: -2px;
+  margin: 0;
+  padding: 3px 0;
+  background: #fbfcfb;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.schedule-tray-task {
+  display: flex;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  cursor: grab;
+  flex-direction: column;
+  text-align: left;
+  touch-action: pan-x;
+}
+
+.schedule-tray-task.selected {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgb(22 122 84 / 12%);
+}
+
+.schedule-tray-task strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-tray-task span,
+.schedule-tray-empty {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.schedule-task {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--green);
+  color: white;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.schedule-task:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.schedule-task-help {
+  margin: -7px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.schedule-day .calendar-week {
+  min-width: 360px;
+}
+
+.schedule-day .calendar-days-header {
+  grid-template-columns: 72px repeat(var(--schedule-days), minmax(240px, 1fr));
+}
+
+.schedule-day .calendar-body {
+  grid-template-columns: 72px minmax(240px, 1fr);
+}
+
+.schedule-day .calendar-days {
+  grid-template-columns: repeat(var(--schedule-days), 1fr);
+}
+
+.schedule-day .calendar-day {
+  background: white;
+}

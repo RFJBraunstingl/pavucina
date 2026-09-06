@@ -76,6 +76,7 @@ export type TimelineGridProps = {
 export type TaskInspectorProps = {
   selectedId: string | null;
   scheduleMode: ScheduleMode;
+  scheduleDate?: string;
   helpText?: string;
   onDeleted: () => void;
 };
@@ -83,6 +84,7 @@ export type TaskInspectorProps = {
 export type TaskScheduleFieldsProps = {
   task: TaskNode;
   scheduleMode: ScheduleMode;
+  scheduleDate?: string;
   helpText: string;
 };
 

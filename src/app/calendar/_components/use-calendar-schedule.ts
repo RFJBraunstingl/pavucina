@@ -25,6 +25,9 @@ export function useCalendarSchedule({
   scheduleMode,
   days,
   bodyRef,
+  startMinute = CALENDAR_START,
+  endMinute = CALENDAR_END,
+  moveTask = moveScheduledTask,
   onGraphChange,
   onSelect,
 }: CalendarInteractionOptions) {
@@ -74,6 +77,8 @@ export function useCalendarSchedule({
         active.endTime,
         active.mode,
         amount,
+        startMinute,
+        endMinute,
       );
       const target = times.join(":");
       if (target === active.lastTarget) return;
@@ -83,19 +88,19 @@ export function useCalendarSchedule({
     }
 
     if (!bodyRef.current) return;
-    const dayWidth = bodyRef.current.getBoundingClientRect().width / 7;
+    const dayWidth = bodyRef.current.getBoundingClientRect().width / days.length;
     const dayIndex = Math.max(
       0,
       Math.min(
-        6,
+        days.length - 1,
         active.startDayIndex +
           Math.round((event.clientX - active.originX) / dayWidth),
       ),
     );
     const minutes = Math.max(
-      CALENDAR_START,
+      startMinute,
       Math.min(
-        CALENDAR_END - 30,
+        endMinute - 30,
         timeToMinutes(active.startTime) +
           Math.round(offsetY / (HOUR_HEIGHT / 2)) * 30,
       ),
@@ -104,7 +109,7 @@ export function useCalendarSchedule({
     if (target === active.lastTarget) return;
     drag.current = { ...active, lastTarget: target };
     onGraphChange(
-      moveScheduledTask(
+      moveTask(
         active.originGraph,
         active.taskId,
         days[dayIndex],
@@ -131,6 +136,8 @@ export function useCalendarSchedule({
         item.endTime,
         mode,
         event.key === "ArrowUp" ? -CALENDAR_RESIZE_STEP : CALENDAR_RESIZE_STEP,
+        startMinute,
+        endMinute,
       );
       onGraphChange(setTaskTimes(graph, item.task.id, ...times));
       return;
@@ -150,14 +157,14 @@ export function useCalendarSchedule({
     const vertical =
       event.key === "ArrowUp" ? -30 : event.key === "ArrowDown" ? 30 : 0;
     const minutes = Math.max(
-      CALENDAR_START,
+      startMinute,
       Math.min(
-        CALENDAR_END - 30,
+        endMinute - 30,
         timeToMinutes(item.startTime) + vertical,
       ),
     );
     onGraphChange(
-      moveScheduledTask(
+      moveTask(
         graph,
         item.task.id,
         targetDate,
