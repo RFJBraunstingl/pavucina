@@ -10,8 +10,19 @@ export default function CalendarEvent({
   onPointerEnd,
   onKeyDown,
 }: CalendarEventProps) {
-  const { task, startDate, endDate, startTime, endTime, dayIndex, top, height } =
-    item;
+  const {
+    task,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    dayIndex,
+    laneIndex,
+    laneCount,
+    top,
+    height,
+  } = item;
+  const laneWidth = 100 / (7 * laneCount);
   const endLabel =
     startDate === endDate ? endTime : `${compactDateLabel(endDate)} ${endTime}`;
 
@@ -22,8 +33,8 @@ export default function CalendarEvent({
       style={{
         top,
         height,
-        left: `calc(${dayIndex * (100 / 7)}% + 4px)`,
-        width: `calc(${100 / 7}% - 8px)`,
+        left: `calc(${dayIndex * (100 / 7) + laneIndex * laneWidth}% + 4px)`,
+        width: `calc(${laneWidth}% - 8px)`,
       }}
     >
       <button

@@ -14,6 +14,56 @@ export const HOUR_LABELS = Array.from(
   (_, index) => `${String(index + CALENDAR_START / 60).padStart(2, "0")}:00`,
 );
 
+function itemEnd(item: CalendarItem) {
+  return Math.max(
+    timeToMinutes(item.startTime) + CALENDAR_RESIZE_STEP,
+    timeToMinutes(item.endTime),
+  );
+}
+
+export function layoutCalendarItems(items: CalendarItem[]) {
+  const positioned = new Map<string, CalendarItem>();
+
+  for (const dayIndex of new Set(items.map((item) => item.dayIndex))) {
+    const sorted = items
+      .filter((item) => item.dayIndex === dayIndex)
+      .sort(
+        (left, right) =>
+          timeToMinutes(left.startTime) - timeToMinutes(right.startTime) ||
+          itemEnd(right) - itemEnd(left) ||
+          left.task.id.localeCompare(right.task.id),
+      );
+    let group: Array<[CalendarItem, number]> = [];
+    let groupEnd = -1;
+    let laneEnds: number[] = [];
+    const finishGroup = () => {
+      for (const [item, laneIndex] of group) {
+        positioned.set(item.task.id, {
+          ...item,
+          laneIndex,
+          laneCount: laneEnds.length,
+        });
+      }
+      group = [];
+      groupEnd = -1;
+      laneEnds = [];
+    };
+
+    for (const item of sorted) {
+      const start = timeToMinutes(item.startTime);
+      const end = itemEnd(item);
+      if (group.length && start >= groupEnd) finishGroup();
+      let laneIndex = laneEnds.findIndex((laneEnd) => laneEnd <= start);
+      if (laneIndex < 0) laneIndex = laneEnds.length;
+      laneEnds[laneIndex] = end;
+      group.push([item, laneIndex]);
+      groupEnd = Math.max(groupEnd, end);
+    }
+    if (group.length) finishGroup();
+  }
+  return items.map((item) => positioned.get(item.task.id) ?? item);
+}
+
 export function resizeTimeRange(
   startTime: string,
   endTime: string,
@@ -61,6 +111,8 @@ export function calendarItem(
     startTime,
     endTime,
     dayIndex,
+    laneIndex: 0,
+    laneCount: 1,
     top: ((start - CALENDAR_START) / 60) * HOUR_HEIGHT,
     height: Math.min(
       Math.max(34, (duration / 60) * HOUR_HEIGHT),

@@ -10,6 +10,8 @@ export type CalendarItem = {
   startTime: string;
   endTime: string;
   dayIndex: number;
+  laneIndex: number;
+  laneCount: number;
   top: number;
   height: number;
 };

@@ -1,10 +1,10 @@
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
+import { scheduleTaskOnDay } from "@/services/task-day-schedule-service";
 import { isTaskSchedulable } from "@/services/task-schedule-mode-service";
 import {
   moveTask,
   resizeTask,
-  setTaskDates,
 } from "@/services/task-schedule-service";
 import type {
   DragMode,
@@ -33,7 +33,7 @@ export function useTimelineSchedule({
 
   function scheduleTask(taskId: string, day: string) {
     if (!isTaskSchedulable(graph, taskId, scheduleMode)) return;
-    onGraphChange(setTaskDates(graph, taskId, day, day));
+    onGraphChange(scheduleTaskOnDay(graph, taskId, day));
     onSelect(taskId);
   }
 

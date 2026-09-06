@@ -12,6 +12,7 @@ import {
   CALENDAR_HEIGHT,
   HOUR_HEIGHT,
   HOUR_LABELS,
+  layoutCalendarItems,
 } from "@/utils/calendar";
 import { dayLabel, dayOfMonth } from "@/utils/date";
 import type { CalendarGridProps } from "@/types/calendar";
@@ -30,26 +31,28 @@ export default function CalendarGrid({
   const parentIds = useMemo(() => getParentTaskIds(graph), [graph]);
   const items = useMemo(
     () =>
-      flattenTasks(graph)
-        .filter(
-          ({ task }) =>
-            (scheduleMode === "all" || !parentIds.has(task.id)) &&
-            (!hideDone || !task.properties.done),
-        )
-        .flatMap(({ task }) => {
-          const startDate = getTaskDate(graph, task.id, "plannedStartDate");
-          const endDate = getTaskDate(graph, task.id, "plannedEndDate");
-          if (!startDate || !endDate) return [];
-          const item = calendarItem(
-            task,
-            startDate,
-            endDate,
-            getTaskTime(graph, task.id, "plannedStartTime") ?? "09:00",
-            getTaskTime(graph, task.id, "plannedEndTime") ?? "10:00",
-            days[0],
-          );
-          return item ? [item] : [];
-        }),
+      layoutCalendarItems(
+        flattenTasks(graph)
+          .filter(
+            ({ task }) =>
+              (scheduleMode === "all" || !parentIds.has(task.id)) &&
+              (!hideDone || !task.properties.done),
+          )
+          .flatMap(({ task }) => {
+            const startDate = getTaskDate(graph, task.id, "plannedStartDate");
+            const endDate = getTaskDate(graph, task.id, "plannedEndDate");
+            if (!startDate || !endDate) return [];
+            const item = calendarItem(
+              task,
+              startDate,
+              endDate,
+              getTaskTime(graph, task.id, "plannedStartTime") ?? "09:00",
+              getTaskTime(graph, task.id, "plannedEndTime") ?? "10:00",
+              days[0],
+            );
+            return item ? [item] : [];
+          }),
+      ),
     [days, graph, hideDone, parentIds, scheduleMode],
   );
   const schedule = useCalendarSchedule({
