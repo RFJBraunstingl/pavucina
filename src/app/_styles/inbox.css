@@ -1,0 +1,155 @@
+.inbox-workspace {
+  display: grid;
+  max-width: 1680px;
+  margin: 0 auto;
+  grid-template-columns: minmax(190px, 0.65fr) minmax(300px, 1fr) minmax(390px, 1.35fr);
+  gap: 18px;
+}
+
+.inbox-panel {
+  min-width: 0;
+  min-height: 520px;
+  max-height: calc(100vh - 165px);
+  overflow: hidden;
+  border: 1px solid rgb(24 33 28 / 10%);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 12px 38px rgb(24 33 28 / 7%);
+}
+
+.inbox-panel-heading {
+  min-height: 88px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.inbox-panel-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.025em;
+}
+
+.source-intro,
+.scratchpad-empty {
+  margin: 0;
+  padding: 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.source-list,
+.scratchpad-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source-list {
+  padding: 0 14px;
+}
+
+.source-list li {
+  display: flex;
+  min-height: 54px;
+  padding: 0 10px;
+  border-top: 1px solid var(--line);
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.source-list small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.scratchpad-panel,
+.inbox-task-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-panel-heading {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 1fr auto;
+}
+
+.task-panel-heading .tree-actions {
+  grid-column: 1 / -1;
+}
+
+.task-panel-heading .done-toggle {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.inbox-task-tree {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.inbox-task-tree .timeline-scroll {
+  max-height: calc(100vh - 254px);
+}
+
+.inbox-task-tree .timeline-grid {
+  width: 100%;
+}
+
+.inbox-task-tree .timeline-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.inbox-task-tree .task-column-heading,
+.inbox-task-tree .task-label {
+  border-right: 0;
+}
+
+.inbox-task-tree .task-column-resize {
+  display: none;
+}
+
+.move-task-dialog label {
+  display: grid;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.move-task-dialog select {
+  min-width: 0;
+  width: 100%;
+  height: 42px;
+  margin-bottom: 22px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  color: var(--ink);
+}
+
+@media (max-width: 680px) {
+  .inbox-workspace {
+    display: block;
+  }
+
+  .inbox-panel {
+    min-height: calc(100vh - 210px);
+    max-height: none;
+    border-radius: 14px;
+  }
+
+  .source-panel,
+  .inbox-task-panel,
+  .desktop-transfer {
+    display: none;
+  }
+}

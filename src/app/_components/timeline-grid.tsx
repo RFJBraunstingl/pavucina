@@ -23,6 +23,7 @@ export default function TimelineGrid({
   hideDone,
   taskColumnWidth,
   collapsedIds,
+  externalDropTargetId,
   onGraphChange,
   onCollapsedIdsChange,
   onTaskColumnWidthChange,
@@ -139,9 +140,11 @@ export default function TimelineGrid({
             collapsed={collapsedIds.has(task.id)}
             ordering={order.draggedId === task.id}
             dropPlacement={
-              order.preview?.indicatorId === task.id
-                ? order.preview.placement
-                : undefined
+              externalDropTargetId === task.id
+                ? "inside"
+                : order.preview?.indicatorId === task.id
+                  ? order.preview.placement
+                  : undefined
             }
             onSelect={onSelect}
             onNameChange={onNameChange}

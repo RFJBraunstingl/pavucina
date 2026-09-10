@@ -23,6 +23,12 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
       </div>
       <div className="header-actions">
         <nav className="app-nav" aria-label="Views">
+          <Link
+            href="/inbox"
+            aria-current={active === "inbox" ? "page" : undefined}
+          >
+            Inbox
+          </Link>
           <Link href="/" aria-current={active === "timeline" ? "page" : undefined}>
             Timeline
           </Link>

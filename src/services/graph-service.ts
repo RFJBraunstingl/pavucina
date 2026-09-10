@@ -1,5 +1,7 @@
 import { getTaskDate } from "./task-schedule-service.ts";
+import { isInboxNodes } from "./inbox-validation-service.ts";
 import { daysBetween, isIsoDate } from "../utils/date.ts";
+import { isUuid } from "../utils/id.ts";
 import { isTime } from "../utils/time.ts";
 import type {
   DateNode,
@@ -17,12 +19,7 @@ const RELATIONSHIP_TYPES: RelationshipType[] = [
   "plannedEndDate",
 ];
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-export function isUuid(value: string) {
-  return UUID_PATTERN.test(value);
-}
+export { isUuid } from "../utils/id.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -122,6 +119,8 @@ export function isGraph(value: unknown): value is Graph {
       return false;
     }
   }
+
+  if (!isInboxNodes(value.inboxNodes, new Set(nodes.keys()))) return false;
 
   if ([...nodes.values()].filter((node) => node.type === "root").length > 1) {
     return false;

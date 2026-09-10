@@ -5,7 +5,12 @@ import { isUserPreferences } from "./preferences-service.ts";
 import type { Graph } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
-const FILE_NAMES = ["nodes.json", "edges.json", "settings.json"] as const;
+const REQUIRED_FILE_NAMES = [
+  "nodes.json",
+  "edges.json",
+  "settings.json",
+] as const;
+const FILE_NAMES = [...REQUIRED_FILE_NAMES, "inbox.json"] as const;
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -25,6 +30,7 @@ export function createBackupArchive(
   return zipSync({
     "nodes.json": encodeJson(graph.nodes),
     "edges.json": encodeJson(graph.relationships),
+    "inbox.json": encodeJson(graph.inboxNodes ?? []),
     "settings.json": encodeJson(preferences),
   });
 }
@@ -55,23 +61,27 @@ export function readBackupArchive(archive: Uint8Array) {
     invalidBackup("could not read ZIP file");
   }
 
-  if (FILE_NAMES.some((name) => !files[name])) {
-    invalidBackup(`expected ${FILE_NAMES.join(", ")}`);
+  if (REQUIRED_FILE_NAMES.some((name) => !files[name])) {
+    invalidBackup(`expected ${REQUIRED_FILE_NAMES.join(", ")}`);
   }
 
   let nodes: unknown;
   let relationships: unknown;
+  let inboxNodes: unknown = [];
   let preferences: unknown;
   try {
     nodes = JSON.parse(decoder.decode(files["nodes.json"]));
     relationships = JSON.parse(decoder.decode(files["edges.json"]));
+    if (files["inbox.json"]) {
+      inboxNodes = JSON.parse(decoder.decode(files["inbox.json"]));
+    }
     preferences = JSON.parse(decoder.decode(files["settings.json"]));
   } catch {
     invalidBackup("JSON content could not be read");
   }
 
-  const graph: unknown = { version: 1, nodes, relationships };
-  if (!isGraph(graph)) invalidBackup("nodes or edges are invalid");
+  const graph: unknown = { version: 1, nodes, relationships, inboxNodes };
+  if (!isGraph(graph)) invalidBackup("nodes, inbox, or edges are invalid");
   if (!isUserPreferences(preferences)) invalidBackup("settings are invalid");
   return { graph, preferences };
 }

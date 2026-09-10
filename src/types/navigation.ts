@@ -1,4 +1,10 @@
 export type AppHeaderProps = {
-  active: "timeline" | "calendar" | "schedule" | "todo" | "preferences";
+  active:
+    | "timeline"
+    | "inbox"
+    | "calendar"
+    | "schedule"
+    | "todo"
+    | "preferences";
   title: string;
 };

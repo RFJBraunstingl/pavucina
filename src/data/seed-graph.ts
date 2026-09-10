@@ -41,6 +41,7 @@ export function createSeedGraph(today: string): Graph {
 
   let graph: Graph = {
     version: 1,
+    inboxNodes: [],
     nodes: taskData.map(([key, name, plannedStartTime, plannedEndTime]) => ({
       id: taskIds.get(key)!,
       type: "task",

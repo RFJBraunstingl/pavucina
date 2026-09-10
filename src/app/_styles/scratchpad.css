@@ -1,0 +1,99 @@
+.scratchpad-form {
+  display: flex;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  gap: 8px;
+}
+
+.scratchpad-form input,
+.scratchpad-list input {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  color: var(--ink);
+}
+
+.scratchpad-form input {
+  width: auto;
+  height: 40px;
+  flex: 1;
+  padding: 0 11px;
+  font-size: 13px;
+}
+
+.scratchpad-form button,
+.inbox-move,
+.inbox-delete {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scratchpad-form button {
+  padding: 0 14px;
+  color: var(--green-dark);
+}
+
+.scratchpad-list {
+  overflow-y: auto;
+}
+
+.scratchpad-list li {
+  display: grid;
+  min-height: 58px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #edf0ed;
+  align-items: center;
+  grid-template-columns: 20px minmax(0, 1fr) auto 30px;
+  gap: 7px;
+}
+
+.scratchpad-list li.is-dragging {
+  opacity: 0.55;
+}
+
+.scratchpad-list input {
+  width: 100%;
+  padding: 7px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 620;
+}
+
+.scratchpad-list input:hover,
+.scratchpad-list input:focus {
+  border-color: var(--line);
+  background: #fff;
+}
+
+.inbox-drag-handle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9aa49e;
+  cursor: grab;
+  touch-action: none;
+}
+
+.inbox-move {
+  padding: 6px 8px;
+  color: var(--green-dark);
+}
+
+.inbox-delete {
+  width: 30px;
+  height: 30px;
+  color: #b42318;
+  font-size: 18px;
+}
+
+@media (max-width: 680px) {
+  .scratchpad-list li {
+    grid-template-columns: minmax(0, 1fr) 30px;
+  }
+}

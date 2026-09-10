@@ -64,6 +64,7 @@ export type TimelineGridProps = {
   hideDone: boolean;
   taskColumnWidth: number;
   collapsedIds: ReadonlySet<string>;
+  externalDropTargetId?: string | null;
   onGraphChange: (graph: Graph) => void;
   onCollapsedIdsChange: (ids: Set<string>) => void;
   onTaskColumnWidthChange: (width: number) => void;

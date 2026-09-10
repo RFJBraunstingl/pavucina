@@ -1,6 +1,6 @@
 import type { ObjectId } from "mongodb";
 
-import type { GraphNode, Relationship } from "./graph";
+import type { GraphNode, Relationship, TaskNode } from "./graph";
 
 export type NodeRevisionDocument = {
   _id: string;
@@ -13,4 +13,5 @@ export type GraphVersionDocument = {
   graphSchemaVersion: 1;
   nodeRevisionIds: string[];
   relationships: Relationship[];
+  inboxNodes?: TaskNode[];
 };

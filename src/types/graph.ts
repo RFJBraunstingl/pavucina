@@ -42,6 +42,7 @@ export type Graph = {
   version: 1;
   nodes: GraphNode[];
   relationships: Relationship[];
+  inboxNodes?: TaskNode[];
 };
 
 export type FlatTask = { task: TaskNode; depth: number };

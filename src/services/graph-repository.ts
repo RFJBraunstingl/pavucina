@@ -63,6 +63,7 @@ export async function loadLatestGraph(userId: string): Promise<Graph | null> {
     version: version.graphSchemaVersion,
     nodes: version.nodeRevisionIds.map((id) => revisions.get(id)!.node),
     relationships: version.relationships,
+    inboxNodes: version.inboxNodes ?? [],
   };
 }
 
@@ -85,6 +86,7 @@ export async function saveGraphVersion(userId: string, graph: Graph) {
     graphSchemaVersion: graph.version,
     nodeRevisionIds,
     relationships: graph.relationships,
+    inboxNodes: graph.inboxNodes ?? [],
   });
   return versionId.toHexString();
 }
