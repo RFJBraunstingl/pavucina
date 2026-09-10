@@ -2,8 +2,10 @@ import { auth } from "@/auth";
 import { isGraph } from "@/services/graph-service";
 import {
   loadLatestGraph,
+  restoreGraphVersion,
   saveGraphVersion,
 } from "@/services/graph-repository";
+import type { Graph } from "@/types/graph";
 
 const MAX_GRAPH_BYTES = 1024 * 1024;
 
@@ -17,9 +19,7 @@ export async function GET() {
   return graph ? Response.json(graph) : new Response(null, { status: 404 });
 }
 
-export async function PUT(request: Request) {
-  const session = await auth();
-  if (!session?.user.id) return new Response(null, { status: 401 });
+async function readGraph(request: Request): Promise<Graph | Response> {
   if (!request.headers.get("content-type")?.startsWith("application/json")) {
     return Response.json({ error: "Expected JSON" }, { status: 415 });
   }
@@ -41,6 +41,14 @@ export async function PUT(request: Request) {
   if (!isGraph(value)) {
     return Response.json({ error: "Invalid graph" }, { status: 400 });
   }
+  return value;
+}
+
+export async function PUT(request: Request) {
+  const session = await auth();
+  if (!session?.user.id) return new Response(null, { status: 401 });
+  const graph = await readGraph(request);
+  if (graph instanceof Response) return graph;
   if (
     request.headers.get("if-none-match") === "*" &&
     (await loadLatestGraph(session.user.id))
@@ -48,6 +56,15 @@ export async function PUT(request: Request) {
     return new Response(null, { status: 412 });
   }
 
-  const versionId = await saveGraphVersion(session.user.id, value);
+  const versionId = await saveGraphVersion(session.user.id, graph);
+  return Response.json({ versionId }, { status: 201 });
+}
+
+export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user.id) return new Response(null, { status: 401 });
+  const graph = await readGraph(request);
+  if (graph instanceof Response) return graph;
+  const versionId = await restoreGraphVersion(session.user.id, graph);
   return Response.json({ versionId }, { status: 201 });
 }

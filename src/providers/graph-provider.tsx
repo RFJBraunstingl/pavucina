@@ -14,6 +14,7 @@ import { useSession } from "next-auth/react";
 import { loadGuestGraph, saveGuestGraph } from "@/services/local-graph-store";
 import {
   loadRemoteGraph,
+  restoreRemoteGraph,
   saveRemoteGraph,
 } from "@/services/remote-graph-store";
 import { todayIso } from "@/utils/date";
@@ -32,6 +33,7 @@ function useGraphState() {
   const loadedScope = useRef<string | null>(null);
   const lastSaved = useRef<string | null>(null);
   const saveQueue = useRef(Promise.resolve());
+  const saveGeneration = useRef(0);
   const userId = session?.user.id;
   const scope = status === "authenticated" ? `user:${userId}` : "guest";
 
@@ -96,14 +98,21 @@ function useGraphState() {
     }
     if (status !== "authenticated") return;
 
+    const generation = saveGeneration.current;
     const timeout = window.setTimeout(() => {
       saveQueue.current = saveQueue.current
         .catch(() => undefined)
         .then(async () => {
-          if (loadedScope.current !== scope) return;
+          if (
+            loadedScope.current !== scope ||
+            saveGeneration.current !== generation
+          ) return;
           try {
             await saveRemoteGraph(graph);
-            if (loadedScope.current !== scope) return;
+            if (
+              loadedScope.current !== scope ||
+              saveGeneration.current !== generation
+            ) return;
             lastSaved.current = serialized;
             setSyncError(null);
           } catch (error: unknown) {
@@ -125,7 +134,47 @@ function useGraphState() {
     }
   }
 
-  return { graph, setGraph, today, hydrated, syncError, retry };
+  async function restoreGraph(next: Graph) {
+    const serialized = JSON.stringify(next);
+    const restoreScope = scope;
+    const generation = ++saveGeneration.current;
+    try {
+      if (status === "unauthenticated") {
+        if (!saveGuestGraph(next)) {
+          throw new Error("Could not restore your graph");
+        }
+      } else if (status === "authenticated") {
+        const operation = saveQueue.current
+          .catch(() => undefined)
+          .then(async () => {
+            if (loadedScope.current !== restoreScope) {
+              throw new Error("Your account changed during restore");
+            }
+            await restoreRemoteGraph(next);
+          });
+        saveQueue.current = operation.catch(() => undefined);
+        await operation;
+      } else {
+        throw new Error("Your data is still loading");
+      }
+      if (loadedScope.current !== restoreScope) {
+        throw new Error("Your account changed during restore");
+      }
+      lastSaved.current = serialized;
+      setGraph(next);
+      setSyncError(null);
+    } catch (error) {
+      if (saveGeneration.current === generation) {
+        setSaveAttempt((attempt) => attempt + 1);
+      }
+      const message =
+        error instanceof Error ? error.message : "Could not restore your graph";
+      setSyncError(message);
+      throw new Error(message);
+    }
+  }
+
+  return { graph, setGraph, restoreGraph, today, hydrated, syncError, retry };
 }
 
 const GraphContext = createContext<ReturnType<typeof useGraphState> | null>(null);

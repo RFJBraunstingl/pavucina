@@ -2,7 +2,8 @@ import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 
-import { createUserId } from "@/services/user-identity";
+import { resolveUserId } from "@/services/user-identity";
+import { isUuid } from "@/utils/id";
 
 const discardProviderTokens = () => ({});
 
@@ -25,10 +26,12 @@ export const { handlers, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, account }) {
+    async jwt({ token, account }) {
       const id = account
-        ? createUserId(account.provider, account.providerAccountId)
-        : token.sub;
+        ? await resolveUserId(account.provider, account.providerAccountId)
+        : typeof token.sub === "string" && isUuid(token.sub)
+          ? token.sub
+          : null;
       return id ? { sub: id } : null;
     },
     session({ session, token }) {

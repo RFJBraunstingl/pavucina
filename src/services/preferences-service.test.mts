@@ -60,7 +60,7 @@ test("guest preferences persist locally and resolve legacy defaults", () => {
   });
 
   try {
-    saveGuestPreferences(preferences);
+    assert.equal(saveGuestPreferences(preferences), true);
     assert.deepEqual(loadGuestPreferences(), preferences);
     values.set(
       "pavucina.preferences.v1",

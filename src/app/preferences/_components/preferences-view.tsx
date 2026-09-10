@@ -12,10 +12,12 @@ import { clearParentTaskSchedules } from "@/services/task-schedule-mode-service"
 import type { ScheduleMode } from "@/types/preferences";
 
 export default function PreferencesView() {
-  const { graph, setGraph, hydrated, syncError, retry } = useGraph();
+  const { graph, setGraph, restoreGraph, hydrated, syncError, retry } =
+    useGraph();
   const {
     preferences,
     setPreferences,
+    restorePreferences,
     syncError: preferencesError,
     retry: retryPreferences,
   } = usePreferences();
@@ -93,9 +95,14 @@ export default function PreferencesView() {
       <BackupRestore
         graph={graph}
         preferences={preferences}
-        onRestore={(nextGraph, nextPreferences) => {
-          setGraph(nextGraph);
-          setPreferences(nextPreferences);
+        onRestore={async (nextGraph, nextPreferences) => {
+          await restoreGraph(nextGraph);
+          try {
+            await restorePreferences(nextPreferences);
+            return true;
+          } catch {
+            return false;
+          }
         }}
       />
       <dialog

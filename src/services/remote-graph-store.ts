@@ -24,3 +24,12 @@ export async function saveRemoteGraph(graph: Graph, onlyIfMissing = false) {
   if (!response.ok) throw new Error("Could not save your graph");
   return true;
 }
+
+export async function restoreRemoteGraph(graph: Graph) {
+  const response = await fetch("/api/graph", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(graph),
+  });
+  if (!response.ok) throw new Error("Could not restore your graph");
+}

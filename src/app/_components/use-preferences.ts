@@ -109,7 +109,51 @@ function usePreferencesState() {
     else setLoadAttempt((attempt) => attempt + 1);
   }
 
-  return { preferences, setPreferences, syncError, retry };
+  async function restorePreferences(next: UserPreferences) {
+    const serialized = JSON.stringify(next);
+    const restoreScope = scope;
+    try {
+      if (status === "unauthenticated") {
+        if (!saveGuestPreferences(next)) {
+          throw new Error("Could not restore your settings");
+        }
+      } else if (status === "authenticated") {
+        const operation = saveQueue.current
+          .catch(() => undefined)
+          .then(async () => {
+            if (loadedScope.current !== restoreScope) {
+              throw new Error("Your account changed during restore");
+            }
+            await saveRemotePreferences(next);
+          });
+        saveQueue.current = operation.catch(() => undefined);
+        await operation;
+      } else {
+        throw new Error("Your settings are still loading");
+      }
+      if (loadedScope.current !== restoreScope) {
+        throw new Error("Your account changed during restore");
+      }
+      lastSaved.current = serialized;
+      setPreferences(next);
+      setSyncError(null);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not restore your settings";
+      setSyncError(message);
+      throw new Error(message);
+    }
+  }
+
+  return {
+    preferences,
+    setPreferences,
+    restorePreferences,
+    syncError,
+    retry,
+  };
 }
 
 const PreferencesContext = createContext<ReturnType<

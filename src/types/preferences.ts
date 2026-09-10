@@ -8,7 +8,7 @@ export type UserPreferences = {
   scheduleMode?: ScheduleMode;
 };
 
-export type UserPreferencesDocument = {
+export type UserSettingsDocument = {
   userId: string;
-  preferences: UserPreferences;
+  settings: UserPreferences;
 };

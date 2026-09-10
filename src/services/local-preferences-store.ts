@@ -22,7 +22,9 @@ export function loadGuestPreferences() {
 export function saveGuestPreferences(preferences: UserPreferences) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    return true;
   } catch {
     // Keep the in-memory app usable when browser storage is unavailable or full.
+    return false;
   }
 }

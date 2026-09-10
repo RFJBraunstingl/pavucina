@@ -12,7 +12,7 @@ import type { UserPreferences } from "@/types/preferences";
 type Props = {
   graph: Graph;
   preferences: UserPreferences;
-  onRestore: (graph: Graph, preferences: UserPreferences) => void;
+  onRestore: (graph: Graph, preferences: UserPreferences) => Promise<boolean>;
 };
 
 export default function BackupRestore({ graph, preferences, onRestore }: Props) {
@@ -58,12 +58,27 @@ export default function BackupRestore({ graph, preferences, onRestore }: Props) 
     }
   }
 
-  function confirmRestore() {
+  async function confirmRestore() {
     const backup = pendingBackup.current;
     if (!backup) return;
-    onRestore(backup.graph, backup.preferences);
-    setIsError(false);
-    setMessage("Backup restored.");
+    setRestoring(true);
+    try {
+      const settingsRestored = await onRestore(
+        backup.graph,
+        backup.preferences,
+      );
+      setIsError(!settingsRestored);
+      setMessage(
+        settingsRestored
+          ? "Backup restored."
+          : "Graph restored, but settings could not be restored. Check your settings.",
+      );
+    } catch (error) {
+      setIsError(true);
+      setMessage(error instanceof Error ? error.message : "Restore failed.");
+    } finally {
+      setRestoring(false);
+    }
   }
 
   return (
@@ -108,7 +123,7 @@ export default function BackupRestore({ graph, preferences, onRestore }: Props) 
             <button
               type="submit"
               className="confirm-delete"
-              onClick={confirmRestore}
+              onClick={() => void confirmRestore()}
             >
               Restore
             </button>

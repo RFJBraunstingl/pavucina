@@ -62,14 +62,20 @@ as well as other relationships such as assignments to people, deadlines, etc.
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes
 
-Authenticated graphs preserve every saved version. Each provider account has one
-`<provider>_<id>_graph_versions` collection and one `<provider>_<id>_nodes`
-collection.
-The latest version is selected directly from the versions collection; there is no
-separate head, user, account, profile, or session collection.
+Authenticated data uses four shared collections:
 
-Authenticated timeline preferences are stored in one shared `preferences`
-collection with one document per user and a unique index on `userId`.
+- `users` maps each OAuth provider identity to a random internal user UUID
+- `nodes` stores versioned graph and inbox nodes
+- `edges` stores whole-graph edge snapshots and their referenced node revisions
+- `settings` stores one settings document per user
+
+Every data document is scoped and indexed by its internal user ID. Saving inserts
+changed node revisions before inserting the edge snapshot that makes the version
+current. Restoring inserts fresh node revisions and then one new edge snapshot;
+it does not require MongoDB transaction support. Settings are restored last.
+
+This schema is a clean break from versions through 1.1.5. Remove the old database
+or Docker volume before upgrading; no legacy collection migration is provided.
 
 ## OAuth login
 
@@ -81,9 +87,9 @@ collection with one document per user and a unique index on `userId`.
 4. Start MongoDB with `docker compose up -d`.
 5. Start Pavucina with `npm run dev`.
 
-Only the provider name and immutable provider account ID are kept as application
-identity. Profile fields and provider tokens are not persisted. GitHub and Google
-accounts use separate workspaces.
+Only the provider name and immutable provider account ID are kept in the identity
+mapping. Profile fields and provider tokens are not persisted. GitHub and Google
+identities map to separate internal users and therefore separate workspaces.
 
 ## ToDo
 - filter tasks by level
