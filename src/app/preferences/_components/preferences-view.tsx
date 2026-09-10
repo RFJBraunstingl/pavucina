@@ -5,6 +5,7 @@ import { useRef } from "react";
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import { usePreferences } from "../../_components/use-preferences";
+import AccountLinks from "./account-links";
 import BackupRestore from "./backup-restore";
 import { useGraph } from "@/providers/graph-provider";
 import { resolvedScheduleMode } from "@/services/preferences-service";
@@ -92,6 +93,7 @@ export default function PreferencesView() {
           </label>
         </fieldset>
       </section>
+      <AccountLinks />
       <BackupRestore
         graph={graph}
         preferences={preferences}

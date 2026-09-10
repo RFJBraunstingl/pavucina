@@ -3,6 +3,8 @@
 import { useRef } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 
+import AuthProviderButtons from "./auth-provider-buttons";
+
 export default function AuthControls() {
   const dialog = useRef<HTMLDialogElement>(null);
   const { status } = useSession();
@@ -33,14 +35,7 @@ export default function AuthControls() {
         <form method="dialog">
           <h2 id="auth-dialog-heading">Sign in to sync</h2>
           <p>Choose how you want to continue.</p>
-          <div className="auth-methods">
-            <button type="button" autoFocus onClick={() => void signIn("github")}>
-              Continue with GitHub
-            </button>
-            <button type="button" onClick={() => void signIn("google")}>
-              Continue with Google
-            </button>
-          </div>
+          <AuthProviderButtons onSelect={(provider) => signIn(provider)} />
           <button type="submit" className="auth-dialog-close">Close</button>
         </form>
       </dialog>

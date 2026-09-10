@@ -148,7 +148,8 @@ h1 {
   cursor: pointer;
 }
 
-.auth-controls button:disabled {
+.auth-controls button:disabled,
+.auth-methods button:disabled {
   cursor: wait;
   opacity: 0.55;
 }

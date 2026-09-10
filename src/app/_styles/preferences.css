@@ -85,6 +85,59 @@
   color: var(--ink);
 }
 
+.account-links > p,
+.account-link-conflict p,
+.account-link-message {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.account-links > button,
+.account-link-conflict button {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-links button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.account-link-conflict {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #d8a29b;
+  border-radius: 11px;
+  background: #fff4f2;
+}
+
+.account-link-conflict p {
+  margin: 6px 0 12px;
+  color: #7a2920;
+}
+
+.account-link-conflict > div {
+  display: flex;
+  gap: 8px;
+}
+
+.account-link-conflict button:last-child {
+  border-color: #a5483b;
+  background: #a5483b;
+  color: #fff;
+}
+
+.account-link-message {
+  margin: 12px 0 0;
+}
+
 .backup-restore h2 {
   margin-bottom: 8px;
 }

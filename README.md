@@ -62,9 +62,10 @@ as well as other relationships such as assignments to people, deadlines, etc.
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes
 
-Authenticated data uses four shared collections:
+Authenticated data uses five shared collections:
 
 - `users` maps each OAuth provider identity to a random internal user UUID
+- `account_link_requests` stores short-lived account-link confirmations
 - `nodes` stores versioned graph and inbox nodes
 - `edges` stores whole-graph edge snapshots and their referenced node revisions
 - `settings` stores one settings document per user
@@ -84,12 +85,17 @@ or Docker volume before upgrading; no legacy collection migration is provided.
    `http://localhost:3000/api/auth/callback/github`.
 3. Create Google OAuth credentials with authorized redirect URI
    `http://localhost:3000/api/auth/callback/google`.
-4. Start MongoDB with `docker compose up -d`.
-5. Start Pavucina with `npm run dev`.
+4. Register a Microsoft Entra application for personal Microsoft accounts and
+   accounts in any organizational directory. Add redirect URI
+   `http://localhost:3000/api/auth/callback/microsoft-entra-id` and copy its
+   client ID and secret into the Microsoft variables in `.env.local`.
+5. Start MongoDB with `docker compose up -d`.
+6. Start Pavucina with `npm run dev`.
 
 Only the provider name and immutable provider account ID are kept in the identity
-mapping. Profile fields and provider tokens are not persisted. GitHub and Google
-identities map to separate internal users and therefore separate workspaces.
+mapping. Profile fields and provider tokens are not persisted. Provider accounts
+use separate workspaces unless explicitly linked in Preferences. Microsoft login
+requests identity access only; Outlook mailbox access is not enabled by signing in.
 
 ## ToDo
 - filter tasks by level
