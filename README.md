@@ -1,6 +1,6 @@
 # Pavucina
 
-Checkout the app here: [https://pavucina.com](https://pavucina.com)
+Checkout the app here: [https://pavucina.rfj.dev](https://pavucina.rfj.dev)
 
 Pavucina is a task management application where tasks are stored hierarchically in a knowledge graph.
 The knowledge graph is a directed acyclic graph where nodes represent tasks and edges represent dependencies between task
