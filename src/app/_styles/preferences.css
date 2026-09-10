@@ -34,6 +34,10 @@
   box-shadow: 0 12px 38px rgb(24 33 28 / 7%);
 }
 
+.preferences-card + .preferences-card {
+  margin-top: 18px;
+}
+
 .preferences-card h2 {
   margin-bottom: 24px;
   font-size: 22px;
@@ -79,6 +83,45 @@
 
 .schedule-mode-options strong {
   color: var(--ink);
+}
+
+.backup-restore h2 {
+  margin-bottom: 8px;
+}
+
+.backup-restore header > p:last-child,
+.backup-message {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.backup-actions button {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.backup-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.backup-message {
+  margin: 12px 0 0;
+}
+
+.backup-message.error {
+  color: #7a2920;
 }
 
 @media (max-width: 680px) {
