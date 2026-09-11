@@ -39,6 +39,7 @@ async function requests() {
 async function deleteWorkspace(userId: string) {
   const database = await getMongoDatabase();
   await Promise.all([
+    database.collection("calendar_connections").deleteMany({ userId }),
     database.collection("edges").deleteMany({ userId }),
     database.collection("mailboxes").deleteMany({ userId }),
     database.collection("nodes").deleteMany({ userId }),

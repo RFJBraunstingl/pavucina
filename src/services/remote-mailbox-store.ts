@@ -1,12 +1,5 @@
 import type { MailboxesResponse, MailboxSource } from "@/types/mailbox";
-
-async function requireSuccess(response: Response, fallback: string) {
-  if (response.ok) return;
-  const value: unknown = await response.json().catch(() => null);
-  const message = value && typeof value === "object" && "error" in value &&
-    typeof value.error === "string" ? value.error : fallback;
-  throw new Error(message);
-}
+import { requireSuccess } from "./remote-response";
 
 export async function loadMailboxes() {
   const response = await fetch("/api/mailboxes", { cache: "no-store" });

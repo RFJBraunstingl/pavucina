@@ -21,6 +21,7 @@ export function dayScheduleItem(
   const duration = timeToMinutes(endTime) - start;
   const top = (start / 60) * HOUR_HEIGHT;
   return {
+    id: task.id,
     task,
     startDate: date,
     endDate: date,

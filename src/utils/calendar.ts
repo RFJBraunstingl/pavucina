@@ -1,6 +1,10 @@
 import { daysBetween } from "./date.ts";
 import { minutesToTime, timeToMinutes } from "./time.ts";
-import type { CalendarItem, CalendarResizeEdge } from "@/types/calendar";
+import type {
+  CalendarItem,
+  CalendarLayoutItem,
+  CalendarResizeEdge,
+} from "@/types/calendar";
 import type { TaskNode } from "@/types/graph";
 
 export const CALENDAR_START = 5 * 60;
@@ -14,15 +18,15 @@ export const HOUR_LABELS = Array.from(
   (_, index) => `${String(index + CALENDAR_START / 60).padStart(2, "0")}:00`,
 );
 
-function itemEnd(item: CalendarItem) {
+function itemEnd(item: CalendarLayoutItem) {
   return Math.max(
     timeToMinutes(item.startTime) + CALENDAR_RESIZE_STEP,
     timeToMinutes(item.endTime),
   );
 }
 
-export function layoutCalendarItems(items: CalendarItem[]) {
-  const positioned = new Map<string, CalendarItem>();
+export function layoutCalendarItems<T extends CalendarLayoutItem>(items: T[]) {
+  const positioned = new Map<string, T>();
 
   for (const dayIndex of new Set(items.map((item) => item.dayIndex))) {
     const sorted = items
@@ -31,14 +35,14 @@ export function layoutCalendarItems(items: CalendarItem[]) {
         (left, right) =>
           timeToMinutes(left.startTime) - timeToMinutes(right.startTime) ||
           itemEnd(right) - itemEnd(left) ||
-          left.task.id.localeCompare(right.task.id),
+          left.id.localeCompare(right.id),
       );
-    let group: Array<[CalendarItem, number]> = [];
+    let group: Array<[T, number]> = [];
     let groupEnd = -1;
     let laneEnds: number[] = [];
     const finishGroup = () => {
       for (const [item, laneIndex] of group) {
-        positioned.set(item.task.id, {
+        positioned.set(item.id, {
           ...item,
           laneIndex,
           laneCount: laneEnds.length,
@@ -61,7 +65,41 @@ export function layoutCalendarItems(items: CalendarItem[]) {
     }
     if (group.length) finishGroup();
   }
-  return items.map((item) => positioned.get(item.task.id) ?? item);
+  return items.map((item) => positioned.get(item.id) ?? item);
+}
+
+export function calendarPosition(
+  id: string,
+  startDate: string,
+  endDate: string,
+  startTime: string,
+  endTime: string,
+  weekStart: string,
+): CalendarLayoutItem | null {
+  const dayIndex = daysBetween(weekStart, startDate);
+  const start = timeToMinutes(startTime);
+  if (dayIndex < 0 || dayIndex > 6 || start < CALENDAR_START || start >= CALENDAR_END) {
+    return null;
+  }
+  const duration = Math.max(
+    CALENDAR_RESIZE_STEP,
+    timeToMinutes(endTime) - start,
+  );
+  return {
+    id,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    dayIndex,
+    laneIndex: 0,
+    laneCount: 1,
+    top: ((start - CALENDAR_START) / 60) * HOUR_HEIGHT,
+    height: Math.min(
+      Math.max(34, (duration / 60) * HOUR_HEIGHT),
+      ((CALENDAR_END - start) / 60) * HOUR_HEIGHT,
+    ),
+  };
 }
 
 export function resizeTimeRange(
@@ -97,28 +135,13 @@ export function calendarItem(
   endTime: string,
   weekStart: string,
 ): CalendarItem | null {
-  const dayIndex = daysBetween(weekStart, startDate);
-  const start = timeToMinutes(startTime);
-  if (dayIndex < 0 || dayIndex > 6 || start < CALENDAR_START || start >= CALENDAR_END) {
-    return null;
-  }
-  const duration = Math.max(
-    CALENDAR_RESIZE_STEP,
-    timeToMinutes(endTime) - start,
-  );
-  return {
-    task,
+  const position = calendarPosition(
+    task.id,
     startDate,
     endDate,
     startTime,
     endTime,
-    dayIndex,
-    laneIndex: 0,
-    laneCount: 1,
-    top: ((start - CALENDAR_START) / 60) * HOUR_HEIGHT,
-    height: Math.min(
-      Math.max(34, (duration / 60) * HOUR_HEIGHT),
-      ((CALENDAR_END - start) / 60) * HOUR_HEIGHT,
-    ),
-  };
+    weekStart,
+  );
+  return position ? { ...position, task } : null;
 }

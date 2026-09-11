@@ -62,13 +62,15 @@ as well as other relationships such as assignments to people, deadlines, etc.
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes
 
-Authenticated data uses five shared collections:
+Authenticated data uses seven shared collections:
 
 - `users` maps each OAuth provider identity to a random internal user UUID
 - `account_link_requests` stores short-lived account-link confirmations
 - `nodes` stores versioned graph and inbox nodes
 - `edges` stores whole-graph edge snapshots and their referenced node revisions
 - `settings` stores one settings document per user
+- `mailboxes` stores encrypted Gmail and Outlook mailbox connections
+- `calendar_connections` stores encrypted calendar connections and display choices
 
 Every data document is scoped and indexed by its internal user ID. Saving inserts
 changed node revisions before inserting the edge snapshot that makes the version
@@ -83,11 +85,15 @@ or Docker volume before upgrading; no legacy collection migration is provided.
 1. Copy `.env.example` to `.env.local` and replace the placeholder values.
 2. Create a GitHub OAuth App with callback URL
    `http://localhost:3000/api/auth/callback/github`.
-3. Create Google OAuth credentials with authorized redirect URI
-   `http://localhost:3000/api/auth/callback/google`.
+3. Create Google OAuth credentials, enable the Google Calendar API, and add
+   authorized redirect URIs `http://localhost:3000/api/auth/callback/google`,
+   `http://localhost:3000/api/auth/callback/gmail`, and
+   `http://localhost:3000/api/auth/callback/google-calendar`.
 4. Register a Microsoft Entra application for personal Microsoft accounts and
-   accounts in any organizational directory. Add redirect URI
-   `http://localhost:3000/api/auth/callback/microsoft-entra-id` and copy its
+   accounts in any organizational directory. Add redirect URIs
+   `http://localhost:3000/api/auth/callback/microsoft-entra-id`,
+   `http://localhost:3000/api/auth/callback/outlook`, and
+   `http://localhost:3000/api/auth/callback/outlook-calendar`, then copy its
    client ID and secret into the Microsoft variables in `.env.local`.
 5. Start MongoDB with `docker compose up -d`.
 6. Start Pavucina with `npm run dev`.
@@ -95,7 +101,8 @@ or Docker volume before upgrading; no legacy collection migration is provided.
 Only the provider name and immutable provider account ID are kept in the identity
 mapping. Profile fields and provider tokens are not persisted. Provider accounts
 use separate workspaces unless explicitly linked in Preferences. Microsoft login
-requests identity access only; Outlook mailbox access is not enabled by signing in.
+requests identity access only; mailbox and calendar permissions are granted
+separately when their respective connections are added.
 
 ## ToDo
 - filter tasks by level

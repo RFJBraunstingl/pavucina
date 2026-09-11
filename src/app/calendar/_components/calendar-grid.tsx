@@ -1,6 +1,8 @@
 import { useMemo, useRef } from "react";
 
 import CalendarEvent from "./calendar-event";
+import CalendarAllDay from "./calendar-all-day";
+import ExternalCalendarEvent from "./external-calendar-event";
 import { useCalendarSchedule } from "./use-calendar-schedule";
 import { flattenTasks, getParentTaskIds } from "@/services/task-service";
 import {
@@ -15,6 +17,7 @@ import {
   layoutCalendarItems,
 } from "@/utils/calendar";
 import { dayLabel, dayOfMonth } from "@/utils/date";
+import { externalCalendarItems } from "@/utils/external-calendar";
 import type { CalendarGridProps } from "@/types/calendar";
 
 export default function CalendarGrid({
@@ -23,16 +26,16 @@ export default function CalendarGrid({
   days,
   today,
   hideDone,
+  externalEvents,
   selectedId,
   onGraphChange,
   onSelect,
 }: CalendarGridProps) {
   const body = useRef<HTMLDivElement>(null);
   const parentIds = useMemo(() => getParentTaskIds(graph), [graph]);
-  const items = useMemo(
+  const taskItems = useMemo(
     () =>
-      layoutCalendarItems(
-        flattenTasks(graph)
+      flattenTasks(graph)
           .filter(
             ({ task }) =>
               (scheduleMode === "all" || !parentIds.has(task.id)) &&
@@ -52,8 +55,14 @@ export default function CalendarGrid({
             );
             return item ? [item] : [];
           }),
-      ),
     [days, graph, hideDone, parentIds, scheduleMode],
+  );
+  const items = useMemo(
+    () => layoutCalendarItems([
+      ...taskItems,
+      ...externalCalendarItems(externalEvents, days),
+    ]),
+    [days, externalEvents, taskItems],
   );
   const schedule = useCalendarSchedule({
     graph,
@@ -76,6 +85,7 @@ export default function CalendarGrid({
             </div>
           ))}
         </div>
+        <CalendarAllDay days={days} events={externalEvents} />
         <div className="calendar-body">
           <div className="calendar-times" style={{ height: CALENDAR_HEIGHT }}>
             {HOUR_LABELS.map((time) => <span key={time}>{time}</span>)}
@@ -89,21 +99,19 @@ export default function CalendarGrid({
             {HOUR_LABELS.map((time, index) => (
               <div className="calendar-hour-line" style={{ top: index * HOUR_HEIGHT }} key={time} />
             ))}
-            {items.map((item) => (
+            {items.map((item) => "task" in item ? (
               <CalendarEvent
                 item={item}
                 selected={selectedId === item.task.id}
                 onSelect={() => onSelect(item.task.id)}
-                key={item.task.id}
-                onDragStart={(event, mode) =>
-                  schedule.beginDrag(event, item, mode)
-                }
+                key={item.id}
+                onDragStart={(event, mode) => schedule.beginDrag(event, item, mode)}
                 onPointerMove={schedule.continueDrag}
                 onPointerEnd={schedule.endDrag}
-                onKeyDown={(event, mode) =>
-                  schedule.handleArrow(event, item, mode)
-                }
+                onKeyDown={(event, mode) => schedule.handleArrow(event, item, mode)}
               />
+            ) : (
+              <ExternalCalendarEvent item={item} key={item.id} />
             ))}
           </div>
         </div>

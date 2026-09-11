@@ -1,10 +1,8 @@
+import type { OAuthCredentials } from "./oauth";
+
 export type MailboxSource = "gmail" | "outlook";
 
-export type MailboxCredentials = {
-  accessToken: string;
-  refreshToken?: string;
-  expiresAt?: number;
-};
+export type MailboxCredentials = OAuthCredentials;
 
 export type MailboxConnectionDocument = {
   _id: string;

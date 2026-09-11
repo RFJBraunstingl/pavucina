@@ -8,6 +8,7 @@ import {
   openMailboxCredentials,
   sealMailboxCredentials,
 } from "./mailbox-crypto";
+import { createOAuthRequest } from "./oauth-client";
 import { updateMailboxCredentials } from "./mailbox-repository";
 import type {
   MailboxConnectionDocument,
@@ -85,25 +86,11 @@ async function refreshedCredentials(
 }
 
 function mailboxRequest(connection: MailboxConnectionDocument) {
-  let credentials = openMailboxCredentials(connection.credentials);
-  return async (url: string, init?: RequestInit) => {
-    const request = async (forceRefresh = false) => {
-      if (
-        forceRefresh ||
-        (credentials.expiresAt !== undefined &&
-          credentials.expiresAt <= Date.now() + 60_000)
-      ) credentials = await refreshedCredentials(connection, credentials);
-      const headers = new Headers(init?.headers);
-      headers.set("authorization", `Bearer ${credentials.accessToken}`);
-      return fetch(url, { ...init, headers });
-    };
-    let response = await request();
-    if (response.status === 401) response = await request(true);
-    if (!response.ok) {
-      throw new Error(`Could not access mailbox (${response.status})`);
-    }
-    return response;
-  };
+  return createOAuthRequest(
+    openMailboxCredentials(connection.credentials),
+    (credentials) => refreshedCredentials(connection, credentials),
+    "Could not access mailbox",
+  );
 }
 
 async function gmailMessages(connection: MailboxConnectionDocument) {

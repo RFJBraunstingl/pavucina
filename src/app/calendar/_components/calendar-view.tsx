@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 
 import CalendarGrid from "./calendar-grid";
+import CalendarControls from "./calendar-controls";
+import { useExternalCalendars } from "./use-external-calendars";
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import TaskInspector from "../../_components/task-inspector";
@@ -23,6 +25,7 @@ export default function CalendarView() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const days = useMemo(() => makeDateRange(weekStart, 7), [weekStart]);
+  const calendars = useExternalCalendars(days);
 
   if (!hydrated || !graph) {
     return <GraphLoading label="Loading calendar…" error={syncError} onRetry={retry} />;
@@ -47,6 +50,10 @@ export default function CalendarView() {
       <AppHeader active="calendar" title="Calendar" />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
+      <GraphSyncError
+        error={calendars.error}
+        onRetry={() => void calendars.refresh()}
+      />
       <div className="workspace">
         <section className="calendar-card" aria-labelledby="calendar-heading">
           <div className="timeline-toolbar">
@@ -54,20 +61,23 @@ export default function CalendarView() {
               <p className="eyebrow">Weekly schedule</p>
               <h2 id="calendar-heading">{rangeLabel(days[0], days[6])}</h2>
             </div>
-            <div className="range-controls" aria-label="Calendar range">
-              <label className="done-toggle">
-                <input
-                  type="checkbox"
-                  checked={preferences.hideDone}
-                  onChange={(event) =>
-                    updatePreferences({ hideDone: event.target.checked })
-                  }
-                />
-                Hide done
-              </label>
-              <button type="button" aria-label="Previous week" onClick={() => setWeekStart((day) => addDays(day, -7))}>←</button>
-              <button type="button" className="today-button" onClick={() => setWeekStart(startOfWeek(today))}>Today</button>
-              <button type="button" aria-label="Next week" onClick={() => setWeekStart((day) => addDays(day, 7))}>→</button>
+            <div className="calendar-toolbar-actions">
+              <CalendarControls calendars={calendars} />
+              <div className="range-controls" aria-label="Calendar range">
+                <label className="done-toggle">
+                  <input
+                    type="checkbox"
+                    checked={preferences.hideDone}
+                    onChange={(event) =>
+                      updatePreferences({ hideDone: event.target.checked })
+                    }
+                  />
+                  Hide done
+                </label>
+                <button type="button" aria-label="Previous week" onClick={() => setWeekStart((day) => addDays(day, -7))}>←</button>
+                <button type="button" className="today-button" onClick={() => setWeekStart(startOfWeek(today))}>Today</button>
+                <button type="button" aria-label="Next week" onClick={() => setWeekStart((day) => addDays(day, 7))}>→</button>
+              </div>
             </div>
           </div>
           <p className="calendar-hint">
@@ -79,6 +89,7 @@ export default function CalendarView() {
             days={days}
             today={today}
             hideDone={preferences.hideDone}
+            externalEvents={calendars.data?.events ?? []}
             selectedId={selectedId}
             onGraphChange={setGraph}
             onSelect={setSelectedId}

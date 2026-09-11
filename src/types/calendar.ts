@@ -1,10 +1,11 @@
 import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 
 import type { Graph, TaskNode } from "./graph";
+import type { ExternalCalendarEvent } from "./external-calendar";
 import type { ScheduleMode } from "./preferences";
 
-export type CalendarItem = {
-  task: TaskNode;
+export type CalendarLayoutItem = {
+  id: string;
   startDate: string;
   endDate: string;
   startTime: string;
@@ -14,6 +15,11 @@ export type CalendarItem = {
   laneCount: number;
   top: number;
   height: number;
+};
+
+export type CalendarItem = CalendarLayoutItem & { task: TaskNode };
+export type ExternalCalendarItem = CalendarLayoutItem & {
+  event: ExternalCalendarEvent & { allDay: false };
 };
 
 export type CalendarResizeEdge = "start" | "end";
@@ -38,6 +44,7 @@ export type CalendarGridProps = {
   days: string[];
   today: string;
   hideDone: boolean;
+  externalEvents: ExternalCalendarEvent[];
   selectedId: string | null;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string) => void;

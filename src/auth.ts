@@ -13,6 +13,12 @@ import {
   resolveUserId,
 } from "@/services/user-identity";
 import {
+  calendarSessionUserId,
+  calendarSourceFromAuthProvider,
+  connectCalendarFromOAuth,
+  isCalendarAuthProvider,
+} from "@/services/calendar-oauth";
+import {
   connectMailboxFromOAuth,
   mailboxSessionUserId,
 } from "@/services/mailbox-oauth";
@@ -101,12 +107,68 @@ export const { handlers, auth } = NextAuth({
       },
       account: discardProviderTokens,
     }),
+    Google({
+      id: "google-calendar",
+      name: "Google Calendar",
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          scope: [
+            "openid email profile",
+            "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+            "https://www.googleapis.com/auth/calendar.events.readonly",
+          ].join(" "),
+          access_type: "offline",
+          prompt: "consent select_account",
+        },
+      },
+      async profile(profile, tokens) {
+        await connectCalendarFromOAuth(
+          "google",
+          profile.sub,
+          profile.email,
+          tokens,
+        );
+        return { id: profile.sub, name: profile.name, email: profile.email };
+      },
+      account: discardProviderTokens,
+    }),
+    MicrosoftEntraID({
+      id: "outlook-calendar",
+      name: "Outlook Calendar",
+      clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
+      clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
+      issuer: "https://login.microsoftonline.com/common/v2.0",
+      authorization: {
+        params: {
+          scope: "openid profile email offline_access User.Read Calendars.Read.Shared",
+          prompt: "select_account",
+        },
+      },
+      async profile(profile, tokens) {
+        const address = profile.email ?? profile.preferred_username;
+        await connectCalendarFromOAuth(
+          "outlook",
+          profile.sub,
+          address,
+          tokens,
+        );
+        return { id: profile.sub, name: profile.name, email: address };
+      },
+      account: discardProviderTokens,
+    }),
   ],
   callbacks: {
     async jwt({ token, account }) {
       let id = null;
       if (account) {
-        if (isMailboxSource(account.provider)) {
+        if (isCalendarAuthProvider(account.provider)) {
+          id = await calendarSessionUserId(
+            calendarSourceFromAuthProvider(account.provider),
+            account.providerAccountId,
+          );
+        } else if (isMailboxSource(account.provider)) {
           id = await mailboxSessionUserId(
             account.provider,
             account.providerAccountId,
