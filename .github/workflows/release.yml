@@ -26,6 +26,15 @@ jobs:
         id: tag
         run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: Build release notes
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/pavucina
+          TAG: ${{ steps.tag.outputs.TAG }}
+        run: |
+          git log -1 --format=%B HEAD > release-notes.md
+          printf '**Docker Image**\n- `%s:%s`\n- https://hub.docker.com/r/%s\n' \
+            "$IMAGE" "$TAG" "$IMAGE" >> release-notes.md
+
       - name: Build Docker image
         run: |
           docker build \
@@ -44,9 +53,4 @@ jobs:
           tag_name: ${{ steps.tag.outputs.TAG }}
           name: Release ${{ steps.tag.outputs.TAG }}
           generate_release_notes: false
-          body: |
-            ## 🚀 Release ${{ steps.tag.outputs.TAG }}
-
-            **Docker Image**
-            - `${{ secrets.DOCKERHUB_USERNAME }}/pavucina:${{ steps.tag.outputs.TAG }}`
-            - https://hub.docker.com/r/${{ secrets.DOCKERHUB_USERNAME }}/pavucina
+          body_path: release-notes.md
