@@ -13,6 +13,7 @@ import { usePreferences } from "../../_components/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import {
   getDaySchedule,
+  getOverdueTasks,
   scheduleTaskForDay,
 } from "@/services/task-day-schedule-service";
 import { resolvedScheduleMode } from "@/services/preferences-service";
@@ -48,6 +49,18 @@ export default function ScheduleView() {
     })),
     [days, graph, preferences, scheduleMode],
   );
+  const overdue = useMemo(() => {
+    if (!graph) return [];
+    const visibleTaskIds = new Set(
+      schedules.flatMap(({ events, unscheduled }) => [
+        ...events.map(({ task }) => task.id),
+        ...unscheduled.map(({ task }) => task.id),
+      ]),
+    );
+    return getOverdueTasks(graph, today, scheduleMode).filter(
+      ({ task }) => !visibleTaskIds.has(task.id),
+    );
+  }, [graph, scheduleMode, schedules, today]);
   const tray = useTraySchedule({
     days,
     bodyRef: body,
@@ -114,6 +127,7 @@ export default function ScheduleView() {
           </p>
           <ScheduleTray
             days={schedules.map(({ date, unscheduled }) => ({ date, tasks: unscheduled }))}
+            overdue={overdue}
             selectedId={selectedId}
             selectedDate={scheduleDate}
             onSelect={selectTask}

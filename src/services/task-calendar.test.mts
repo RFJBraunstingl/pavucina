@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   getDaySchedule,
+  getOverdueTasks,
   scheduleTaskForDay,
   scheduleTaskOnDay,
 } from "./task-day-schedule-service.ts";
@@ -125,6 +126,53 @@ test("daily scheduling separates ranged tasks and collapses scheduled dates", ()
   );
   assert.deepEqual(droppedTimeRange(DAY_HEIGHT, DAY_HEIGHT, 60), ["22:45", "23:45"]);
   assert.throws(() => scheduleTaskForDay(graph, task.id, DAY, "15:00", "14:00"));
+});
+
+test("daily scheduling finds overdue incomplete tasks", () => {
+  const parent = {
+    id: "overdue-parent",
+    type: "task",
+    properties: { name: "Older parent" },
+  } as const;
+  const child = {
+    id: "overdue-child",
+    type: "task",
+    properties: { name: "Recent child" },
+  } as const;
+  const dueToday = {
+    id: "due-today",
+    type: "task",
+    properties: { name: "Due today" },
+  } as const;
+  const done = {
+    id: "done-overdue",
+    type: "task",
+    properties: { name: "Finished", done: true },
+  } as const;
+  let graph = graphWithTasks(parent, child, dueToday, done);
+  graph.relationships.push({
+    id: "overdue-child-edge",
+    type: "child",
+    sourceId: parent.id,
+    targetId: child.id,
+  });
+  for (const [taskId, date] of [
+    [parent.id, "2026-09-04"],
+    [child.id, "2026-09-06"],
+    [dueToday.id, DAY],
+    [done.id, "2026-09-03"],
+  ]) {
+    graph = setTaskDates(graph, taskId, date, date);
+  }
+
+  assert.deepEqual(
+    getOverdueTasks(graph, DAY, "all").map(({ task }) => task.id),
+    [parent.id, child.id],
+  );
+  assert.deepEqual(
+    getOverdueTasks(graph, DAY, "leaf").map(({ task }) => task.id),
+    [child.id],
+  );
 });
 
 test("daily scheduling honors task hierarchy and completed-task filtering", () => {

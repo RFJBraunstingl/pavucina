@@ -126,6 +126,32 @@ export function getDaySchedule(
   return { events: layoutCalendarItems(events), unscheduled };
 }
 
+export function getOverdueTasks(
+  graph: Graph,
+  today: string,
+  scheduleMode: ScheduleMode,
+) {
+  return flattenTasks(graph)
+    .flatMap(({ task }) => {
+      if (
+        task.properties.done ||
+        !isTaskSchedulable(graph, task.id, scheduleMode)
+      ) {
+        return [];
+      }
+      const startDate = getTaskDate(graph, task.id, "plannedStartDate");
+      const endDate = getTaskDate(graph, task.id, "plannedEndDate");
+      return startDate && endDate && endDate < today
+        ? [{ task, startDate, endDate }]
+        : [];
+    })
+    .sort(
+      (left, right) =>
+        left.endDate.localeCompare(right.endDate) ||
+        left.task.properties.name.localeCompare(right.task.properties.name),
+    );
+}
+
 export function scheduleTaskForDay(
   graph: Graph,
   taskId: string,

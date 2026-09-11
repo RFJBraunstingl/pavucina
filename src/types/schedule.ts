@@ -36,6 +36,7 @@ export type ScheduleGridProps = {
 
 export type ScheduleTrayProps = {
   days: ScheduleTrayDay[];
+  overdue: DayScheduleTask[];
   selectedId: string | null;
   selectedDate: string;
   onSelect: (taskId: string, date: string) => void;
