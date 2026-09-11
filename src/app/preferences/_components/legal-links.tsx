@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const LINKS = [
+  ["About", "/about"],
   ["Privacy Policy", "/privacy"],
   ["Terms of Service", "/terms"],
   ["Imprint", "/imprint"],
@@ -10,10 +11,10 @@ export default function LegalLinks() {
   return (
     <section className="preferences-card" aria-labelledby="legal-links-heading">
       <header>
-        <p className="eyebrow">About</p>
-        <h2 id="legal-links-heading">Legal</h2>
+        <p className="eyebrow">Information</p>
+        <h2 id="legal-links-heading">About &amp; legal</h2>
       </header>
-      <nav className="legal-link-list" aria-label="Legal information">
+      <nav className="legal-link-list" aria-label="About and legal information">
         {LINKS.map(([label, href]) => (
           <Link href={href} key={href}>{label}</Link>
         ))}
