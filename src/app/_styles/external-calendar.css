@@ -11,8 +11,7 @@
   flex-wrap: wrap;
 }
 
-.external-calendar-controls > button,
-.calendar-manager button {
+.external-calendar-controls > button {
   padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -23,8 +22,7 @@
   cursor: pointer;
 }
 
-.external-calendar-controls button:disabled,
-.calendar-manager button:disabled {
+.external-calendar-controls button:disabled {
   cursor: wait;
   opacity: 0.55;
 }
@@ -134,16 +132,10 @@
 .calendar-manager {
   width: min(620px, calc(100vw - 32px));
   max-height: min(720px, calc(100vh - 32px));
-  margin: auto;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: white;
-  color: var(--ink);
+  overflow: auto;
 }
 
-.calendar-manager::backdrop { background: rgb(24 33 28 / 45%); }
-.calendar-manager > form { display: grid; padding: 22px; gap: 16px; }
+.calendar-manager > form { display: grid; gap: 16px; }
 .calendar-manager header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .calendar-manager h2 { margin: 0; font-size: 20px; }
 .calendar-connect-actions { display: flex; gap: 8px; }

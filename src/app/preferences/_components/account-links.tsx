@@ -141,14 +141,16 @@ export default function AccountLinks() {
       )}
       <dialog
         ref={dialog}
-        className="auth-dialog"
+        className="app-dialog auth-dialog"
         aria-labelledby="link-dialog-heading"
       >
         <form method="dialog">
           <h2 id="link-dialog-heading">Link another account</h2>
           <p>Sign in to an account that should share this workspace.</p>
           <AuthProviderButtons disabled={busy} onSelect={link} />
-          <button type="submit" className="auth-dialog-close">Close</button>
+          <div className="dialog-actions">
+            <button type="submit">Close</button>
+          </div>
         </form>
       </dialog>
     </section>

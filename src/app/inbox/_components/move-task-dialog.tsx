@@ -35,7 +35,7 @@ export default function MoveTaskDialog({
   return (
     <dialog
       ref={dialog}
-      className="delete-dialog move-task-dialog desktop-transfer"
+      className="app-dialog move-task-dialog desktop-transfer"
       aria-labelledby="move-task-heading"
       onClose={onClose}
     >
@@ -50,7 +50,7 @@ export default function MoveTaskDialog({
             </option>
           ))}
         </select>
-        <div className="delete-dialog-actions">
+        <div className="dialog-actions">
           <button type="button" onClick={onClose}>Cancel</button>
           <button type="submit" disabled={!parents.length}>Move</button>
         </div>

@@ -30,7 +30,7 @@ export default function AuthControls() {
       </button>
       <dialog
         ref={dialog}
-        className="auth-dialog"
+        className="app-dialog auth-dialog"
         aria-labelledby="auth-dialog-heading"
       >
         <form method="dialog">
@@ -41,7 +41,9 @@ export default function AuthControls() {
             By signing in, you agree to the <Link href="/terms">Terms</Link> and
             acknowledge the <Link href="/privacy">Privacy Policy</Link>.
           </p>
-          <button type="submit" className="auth-dialog-close">Close</button>
+          <div className="dialog-actions">
+            <button type="submit">Close</button>
+          </div>
         </form>
       </dialog>
     </div>

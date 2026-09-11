@@ -111,7 +111,7 @@ export default function PreferencesView() {
       <LegalLinks />
       <dialog
         ref={leafModeDialog}
-        className="delete-dialog"
+        className="app-dialog"
         aria-labelledby="leaf-mode-dialog-heading"
       >
         <form method="dialog">
@@ -120,11 +120,11 @@ export default function PreferencesView() {
             Planned dates and times stored on tasks with children will be
             permanently deleted. This cannot be undone.
           </p>
-          <div className="delete-dialog-actions">
+          <div className="dialog-actions">
             <button type="submit" autoFocus>Cancel</button>
             <button
               type="submit"
-              className="confirm-delete"
+              className="dialog-danger"
               onClick={enableLeafMode}
             >
               Delete schedules and enable

@@ -108,7 +108,7 @@ export default function BackupRestore({ graph, preferences, onRestore }: Props) 
       )}
       <dialog
         ref={restoreDialog}
-        className="delete-dialog"
+        className="app-dialog"
         aria-labelledby="restore-dialog-heading"
         onClose={() => { pendingBackup.current = null; }}
       >
@@ -118,11 +118,11 @@ export default function BackupRestore({ graph, preferences, onRestore }: Props) 
             All current tasks, relationships, and settings will be replaced.
             This cannot be undone.
           </p>
-          <div className="delete-dialog-actions">
+          <div className="dialog-actions">
             <button type="submit" autoFocus>Cancel</button>
             <button
               type="submit"
-              className="confirm-delete"
+              className="dialog-danger"
               onClick={() => void confirmRestore()}
             >
               Restore

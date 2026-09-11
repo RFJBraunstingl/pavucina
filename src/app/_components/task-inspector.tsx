@@ -111,7 +111,7 @@ export default function TaskInspector({
           </label>
           <dialog
             ref={deleteDialog}
-            className="delete-dialog"
+            className="app-dialog"
             aria-labelledby="delete-dialog-heading"
           >
             <form method="dialog">
@@ -120,11 +120,11 @@ export default function TaskInspector({
                 <strong>{selected.properties.name}</strong> and all of its child
                 tasks will be permanently deleted.
               </p>
-              <div className="delete-dialog-actions">
+              <div className="dialog-actions">
                 <button type="submit" autoFocus>Cancel</button>
                 <button
                   type="submit"
-                  className="confirm-delete"
+                  className="dialog-danger"
                   onClick={() => removeTask(selected.id)}
                 >
                   Delete

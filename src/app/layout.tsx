@@ -3,6 +3,7 @@ import Providers from "./_components/providers";
 import "./globals.css";
 import "./_styles/base.css";
 import "./_styles/controls.css";
+import "./_styles/dialog.css";
 import "./_styles/timeline-grid.css";
 import "./_styles/timeline-resize.css";
 import "./_styles/task-bars.css";

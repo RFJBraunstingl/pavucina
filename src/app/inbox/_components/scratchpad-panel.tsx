@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type PointerEvent } from "react";
+import ConfirmationDialog from "../../_components/confirmation-dialog";
 import type { TaskNode } from "@/types/graph";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 
 export default function ScratchpadPanel(props: Props) {
   const [draft, setDraft] = useState("");
+  const [deleting, setDeleting] = useState<TaskNode | null>(null);
 
   function createTask(event: FormEvent) {
     event.preventDefault();
@@ -93,11 +95,7 @@ export default function ScratchpadPanel(props: Props) {
                 type="button"
                 className="inbox-delete"
                 aria-label={`Delete ${node.properties.name}`}
-                onClick={() => {
-                  if (window.confirm(`Delete “${node.properties.name}”?`)) {
-                    props.onDelete(node.id);
-                  }
-                }}
+                onClick={() => setDeleting(node)}
               >
                 <span aria-hidden="true">×</span>
               </button>
@@ -107,6 +105,22 @@ export default function ScratchpadPanel(props: Props) {
       ) : (
         <p className="scratchpad-empty">Nothing captured yet.</p>
       )}
+      <ConfirmationDialog
+        open={Boolean(deleting)}
+        title="Delete scratchpad task?"
+        message={
+          <>
+            <strong>{deleting?.properties.name}</strong> will be permanently deleted.
+          </>
+        }
+        confirmLabel="Delete"
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (!deleting) return;
+          props.onDelete(deleting.id);
+          setDeleting(null);
+        }}
+      />
     </section>
   );
 }
