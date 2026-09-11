@@ -85,7 +85,7 @@ export const { handlers, auth } = NextAuth({
       clientSecret:
         process.env.AUTH_OUTLOOK_SECRET ??
         process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-      issuer: "https://login.microsoftonline.com/common/v2.0",
+      issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER_OUTLOOK,
       authorization: {
         params: {
           scope: "openid profile email offline_access User.Read Mail.ReadWrite",
