@@ -114,8 +114,8 @@ export default function AccountLinks() {
         <div className="account-link-conflict" role="alert">
           <strong>{authProviderLabel(conflict)} already has a workspace.</strong>
           <p>
-            Linking will permanently replace its graph, scratchpad, history, and
-            settings with the workspace currently open.
+            Linking will permanently replace its graph, scratchpad, history,
+            settings, and mailbox connections with the workspace currently open.
           </p>
           <div>
             <button

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   addInboxTask,
+  addMailboxInboxTask,
   deleteInboxTask,
   moveInboxTask,
   renameInboxTask,
@@ -88,5 +89,31 @@ test("inbox nodes stay outside graph relationships and use unique IDs", () => {
       ],
     }),
     false,
+  );
+});
+
+test("mailbox tasks preserve context and do not duplicate", () => {
+  const graph = createSeedGraph("2026-09-10");
+  const message = {
+    connectionId: crypto.randomUUID(),
+    source: "gmail" as const,
+    account: "me@example.com",
+    id: "message-id",
+    subject: "A request",
+    sender: "Sender <sender@example.com>",
+    receivedAt: "2026-09-10T10:00:00.000Z",
+    preview: "Please take a look.",
+  };
+  const withMessage = addMailboxInboxTask(
+    graph,
+    crypto.randomUUID(),
+    message,
+  );
+  assert.equal(withMessage.inboxNodes?.[0].properties.name, "A request");
+  assert.match(withMessage.inboxNodes?.[0].properties.description ?? "", /Sender/);
+  assert.equal(isGraph(withMessage), true);
+  assert.equal(
+    addMailboxInboxTask(withMessage, crypto.randomUUID(), message),
+    withMessage,
   );
 });

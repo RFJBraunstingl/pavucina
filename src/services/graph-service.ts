@@ -3,6 +3,7 @@ import { isInboxNodes } from "./inbox-validation-service.ts";
 import { daysBetween, isIsoDate } from "../utils/date.ts";
 import { isUuid } from "../utils/id.ts";
 import { isTime } from "../utils/time.ts";
+import { isMailTaskOrigin } from "../utils/mailbox.ts";
 import type {
   DateNode,
   Graph,
@@ -89,6 +90,9 @@ export function isGraph(value: unknown): value is Graph {
     const validDescription =
       properties.description === undefined ||
       typeof properties.description === "string";
+    const validMailOrigin =
+      properties.mailOrigin === undefined ||
+      isMailTaskOrigin(properties.mailOrigin);
 
     const validTimes = ["plannedStartTime", "plannedEndTime"].every((key) => {
       const time = properties[key];
@@ -101,6 +105,7 @@ export function isGraph(value: unknown): value is Graph {
       typeof properties.name === "string" &&
       properties.name.trim() &&
       validDescription &&
+      validMailOrigin &&
       validDone
     ) {
       nodes.set(rawNode.id, rawNode as TaskNode);

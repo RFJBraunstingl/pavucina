@@ -2,7 +2,7 @@
   display: grid;
   max-width: 1680px;
   margin: 0 auto;
-  grid-template-columns: minmax(190px, 0.65fr) minmax(300px, 1fr) minmax(390px, 1.35fr);
+  grid-template-columns: minmax(340px, 1fr) minmax(280px, 0.8fr) minmax(390px, 1.2fr);
   gap: 18px;
 }
 
@@ -29,7 +29,6 @@
   letter-spacing: -0.025em;
 }
 
-.source-intro,
 .scratchpad-empty {
   margin: 0;
   padding: 22px;
@@ -38,34 +37,10 @@
   line-height: 1.5;
 }
 
-.source-list,
 .scratchpad-list {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.source-list {
-  padding: 0 14px;
-}
-
-.source-list li {
-  display: flex;
-  min-height: 54px;
-  padding: 0 10px;
-  border-top: 1px solid var(--line);
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.source-list small {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
 }
 
 .scratchpad-panel,
@@ -147,7 +122,6 @@
     border-radius: 14px;
   }
 
-  .source-panel,
   .inbox-task-panel,
   .desktop-transfer {
     display: none;

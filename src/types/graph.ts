@@ -1,3 +1,5 @@
+import type { MailTaskOrigin } from "./mailbox";
+
 export type TimeProperty = "plannedStartTime" | "plannedEndTime";
 
 export type TaskProperties = {
@@ -6,6 +8,7 @@ export type TaskProperties = {
   plannedStartTime?: string;
   plannedEndTime?: string;
   done?: boolean;
+  mailOrigin?: MailTaskOrigin;
 };
 
 export type TaskNode = {

@@ -134,23 +134,30 @@ function useGraphState() {
     }
   }
 
-  async function restoreGraph(next: Graph) {
+  async function persistGraph(next: Graph, restoring: boolean) {
+    const action = restoring ? "restore" : "save";
     const serialized = JSON.stringify(next);
     const restoreScope = scope;
     const generation = ++saveGeneration.current;
+    if (
+      !restoring &&
+      loadedScope.current === restoreScope &&
+      lastSaved.current === serialized
+    ) return;
     try {
       if (status === "unauthenticated") {
         if (!saveGuestGraph(next)) {
-          throw new Error("Could not restore your graph");
+          throw new Error(`Could not ${action} your graph`);
         }
       } else if (status === "authenticated") {
         const operation = saveQueue.current
           .catch(() => undefined)
           .then(async () => {
             if (loadedScope.current !== restoreScope) {
-              throw new Error("Your account changed during restore");
+              throw new Error(`Your account changed during ${action}`);
             }
-            await restoreRemoteGraph(next);
+            if (restoring) await restoreRemoteGraph(next);
+            else await saveRemoteGraph(next);
           });
         saveQueue.current = operation.catch(() => undefined);
         await operation;
@@ -158,7 +165,7 @@ function useGraphState() {
         throw new Error("Your data is still loading");
       }
       if (loadedScope.current !== restoreScope) {
-        throw new Error("Your account changed during restore");
+        throw new Error(`Your account changed during ${action}`);
       }
       lastSaved.current = serialized;
       setGraph(next);
@@ -167,23 +174,27 @@ function useGraphState() {
       if (saveGeneration.current === generation) {
         setSaveAttempt((attempt) => attempt + 1);
       }
-      const message =
-        error instanceof Error ? error.message : "Could not restore your graph";
+      const message = error instanceof Error
+        ? error.message
+        : `Could not ${action} your graph`;
       setSyncError(message);
       throw new Error(message);
     }
   }
 
-  return { graph, setGraph, restoreGraph, today, hydrated, syncError, retry };
+  const saveGraphNow = (next: Graph) => persistGraph(next, false);
+  const restoreGraph = (next: Graph) => persistGraph(next, true);
+
+  return {
+    graph, setGraph, saveGraphNow, restoreGraph, today, hydrated, syncError, retry,
+  };
 }
 
 const GraphContext = createContext<ReturnType<typeof useGraphState> | null>(null);
 
 export function GraphProvider({ children }: { children: ReactNode }) {
   return (
-    <GraphContext.Provider value={useGraphState()}>
-      {children}
-    </GraphContext.Provider>
+    <GraphContext.Provider value={useGraphState()}>{children}</GraphContext.Provider>
   );
 }
 

@@ -13,6 +13,7 @@ import { useInboxDrag } from "./use-inbox-drag";
 import { useGraph } from "@/providers/graph-provider";
 import {
   addInboxTask,
+  addMailboxInboxTask,
   deleteInboxTask,
   moveInboxTask,
   renameInboxTask,
@@ -21,7 +22,15 @@ import { resolvedScheduleMode } from "@/services/preferences-service";
 import { flattenTasks, getParentTaskNames } from "@/services/task-service";
 
 export default function InboxView() {
-  const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
+  const {
+    graph,
+    setGraph,
+    saveGraphNow,
+    today,
+    hydrated,
+    syncError,
+    retry,
+  } = useGraph();
   const {
     preferences,
     setPreferences,
@@ -90,7 +99,13 @@ export default function InboxView() {
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <div className="inbox-workspace">
-        <SourcePanel />
+        <SourcePanel
+          onAdd={(message) =>
+            saveGraphNow(
+              addMailboxInboxTask(graph, crypto.randomUUID(), message),
+            )
+          }
+        />
         <ScratchpadPanel
           nodes={graph.inboxNodes ?? []}
           draggingId={drag.draggingId}

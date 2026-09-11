@@ -1,5 +1,6 @@
 import { isUuid } from "../utils/id.ts";
 import { isTime } from "../utils/time.ts";
+import { isMailTaskOrigin } from "../utils/mailbox.ts";
 import type { TaskNode } from "@/types/graph";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -31,6 +32,8 @@ export function isInboxNodes(
       !properties.name.trim() ||
       (properties.description !== undefined &&
         typeof properties.description !== "string") ||
+      (properties.mailOrigin !== undefined &&
+        !isMailTaskOrigin(properties.mailOrigin)) ||
       (properties.done !== undefined &&
         typeof properties.done !== "boolean") ||
       !["plannedStartTime", "plannedEndTime"].every((key) => {

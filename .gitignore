@@ -43,3 +43,5 @@ next-env.d.ts
 
 # ignore intellij files
 .idea
+
+plans
