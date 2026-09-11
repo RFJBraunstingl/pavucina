@@ -1,0 +1,129 @@
+.legal-shell {
+  min-height: 100vh;
+  padding: 32px clamp(16px, 4vw, 56px) 48px;
+}
+
+.legal-header {
+  display: flex;
+  max-width: 760px;
+  margin: 0 auto 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.legal-brand {
+  display: flex;
+  color: var(--ink);
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.legal-header nav,
+.legal-link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.legal-header nav a,
+.legal-link-list a,
+.legal-card a,
+.auth-legal a {
+  color: var(--green-dark);
+  text-underline-offset: 3px;
+}
+
+.legal-header nav a,
+.legal-link-list a {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.legal-card {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid rgb(24 33 28 / 10%);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 12px 38px rgb(24 33 28 / 7%);
+}
+
+.legal-card > header {
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-card h1 {
+  margin-bottom: 12px;
+}
+
+.legal-card > header > p:last-child,
+.legal-card p,
+.legal-card li,
+.legal-card address {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.legal-card > header > p:last-child,
+.legal-card section:last-child p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-card section {
+  margin-top: 30px;
+}
+
+.legal-card h2 {
+  margin-bottom: 10px;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.legal-card ul {
+  padding-left: 22px;
+}
+
+.legal-card address {
+  font-style: normal;
+}
+
+.legal-link-list {
+  gap: 10px;
+}
+
+.legal-link-list a {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.auth-dialog .auth-legal {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .legal-shell {
+    padding: 22px 12px 32px;
+  }
+
+  .legal-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .legal-card {
+    border-radius: 14px;
+  }
+}

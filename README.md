@@ -122,3 +122,9 @@ If you imagine the task graph which organises the task data you can think of it 
 interconnected tasks with a root in the middle and branching out in all directions. 
 
 It's meant to be an homage to my wife - her Grandmother is from Slovakia and Pavucina is one of the few words she picked up as a kid.
+
+## License
+
+Pavucina is available under the [Functional Source License 1.1 with an
+Apache 2.0 Future License](LICENSE.md). Each version converts to Apache 2.0 two
+years after it is made available.

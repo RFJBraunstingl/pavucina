@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import AuthProviderButtons from "./auth-provider-buttons";
@@ -36,6 +37,10 @@ export default function AuthControls() {
           <h2 id="auth-dialog-heading">Sign in to sync</h2>
           <p>Choose how you want to continue.</p>
           <AuthProviderButtons onSelect={(provider) => signIn(provider)} />
+          <p className="auth-legal">
+            By signing in, you agree to the <Link href="/terms">Terms</Link> and
+            acknowledge the <Link href="/privacy">Privacy Policy</Link>.
+          </p>
           <button type="submit" className="auth-dialog-close">Close</button>
         </form>
       </dialog>

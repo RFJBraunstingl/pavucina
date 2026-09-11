@@ -7,6 +7,7 @@ import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import { usePreferences } from "../../_components/use-preferences";
 import AccountLinks from "./account-links";
 import BackupRestore from "./backup-restore";
+import LegalLinks from "./legal-links";
 import { useGraph } from "@/providers/graph-provider";
 import { resolvedScheduleMode } from "@/services/preferences-service";
 import { clearParentTaskSchedules } from "@/services/task-schedule-mode-service";
@@ -107,6 +108,7 @@ export default function PreferencesView() {
           }
         }}
       />
+      <LegalLinks />
       <dialog
         ref={leafModeDialog}
         className="delete-dialog"
