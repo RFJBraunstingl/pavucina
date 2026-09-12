@@ -70,10 +70,20 @@
 }
 
 .todo-copy strong {
+  min-width: 0;
   overflow: hidden;
   font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.todo-copy .todo-name {
+  display: flex;
+  min-width: 0;
+  color: var(--ink);
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
 }
 
 .todo-copy span {
@@ -91,15 +101,9 @@
   text-decoration: line-through;
 }
 
-.todo-actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 8px;
-}
-
 .todo-details-button {
   display: grid;
+  flex: 0 0 auto;
   width: 34px;
   height: 34px;
   padding: 0;
@@ -137,9 +141,5 @@
   .todo-item {
     padding-inline: 16px;
     gap: 10px;
-  }
-
-  .todo-actions {
-    gap: 4px;
   }
 }

@@ -129,7 +129,21 @@ export default function TodoView() {
                         {parentNames.join(" › ")}
                       </span>
                     )}
-                    <strong>{task.properties.name}</strong>
+                    <span className="todo-name">
+                      <strong>{task.properties.name}</strong>
+                      <button
+                        type="button"
+                        className="todo-details-button"
+                        aria-label={`Show details for ${task.properties.name}`}
+                        title="Show task details"
+                        onClick={() => setDetailsTaskId(task.id)}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="12" cy="12" r="9" />
+                          <path d="M12 11v6m0-9h.01" />
+                        </svg>
+                      </button>
+                    </span>
                     <span>
                       <time dateTime={startDate}>
                         {compactDateLabel(startDate)}
@@ -148,27 +162,13 @@ export default function TodoView() {
                       )}
                     </span>
                   </span>
-                  <span className="todo-actions">
-                    <button
-                      type="button"
-                      className="todo-details-button"
-                      aria-label={`Show details for ${task.properties.name}`}
-                      title="Show task details"
-                      onClick={() => setDetailsTaskId(task.id)}
-                    >
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 11v6m0-9h.01" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      className={`completion-button${done ? " is-reopen" : ""}`}
-                      onClick={() => updateCompletion(task.id, done)}
-                    >
-                      {done ? "Reopen" : "Mark as done"}
-                    </button>
-                  </span>
+                  <button
+                    type="button"
+                    className={`completion-button${done ? " is-reopen" : ""}`}
+                    onClick={() => updateCompletion(task.id, done)}
+                  >
+                    {done ? "Reopen" : "Mark as done"}
+                  </button>
                 </li>
               );
             })}
