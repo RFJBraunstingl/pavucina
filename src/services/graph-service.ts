@@ -18,6 +18,14 @@ const RELATIONSHIP_TYPES: RelationshipType[] = [
   "child",
   "plannedStartDate",
   "plannedEndDate",
+  "markedAsDone",
+  "wasMarkedAsDone",
+  "markedAsReopened",
+];
+const UNIQUE_DATE_RELATIONSHIPS: RelationshipType[] = [
+  "plannedStartDate",
+  "plannedEndDate",
+  "markedAsDone",
 ];
 
 export { isUuid } from "../utils/id.ts";
@@ -165,15 +173,17 @@ export function isGraph(value: unknown): value is Graph {
       parents.add(target.id);
       children.set(source.id, [...(children.get(source.id) ?? []), target.id]);
     } else {
-      const key = `${source.id}:${relationship.type}`;
       if (
         source.type !== "task" ||
-        target.type !== "date" ||
-        dateRelationships.has(key)
+        target.type !== "date"
       ) {
         return false;
       }
-      dateRelationships.add(key);
+      if (UNIQUE_DATE_RELATIONSHIPS.includes(relationship.type)) {
+        const key = `${source.id}:${relationship.type}`;
+        if (dateRelationships.has(key)) return false;
+        dateRelationships.add(key);
+      }
     }
 
     relationshipIds.add(relationship.id);

@@ -49,17 +49,6 @@ export function setTaskDescription(
   };
 }
 
-export function setTaskDone(graph: Graph, taskId: string, done: boolean) {
-  return {
-    ...graph,
-    nodes: graph.nodes.map((node) =>
-      node.id === taskId && node.type === "task"
-        ? { ...node, properties: { ...node.properties, done } }
-        : node,
-    ),
-  };
-}
-
 export function setTaskTime(
   graph: Graph,
   taskId: string,

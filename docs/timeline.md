@@ -24,9 +24,9 @@ Task bars show planned start and end dates alongside the task that owns them.
 ## Task details
 
 Selecting a task opens the inspector. It can change the name, description,
-planned dates and times, completion state, or delete the task and its children.
+planned dates and times, mark the task done or reopen it, or delete the task and
+its children.
 In **Leaf tasks only** scheduling mode, parent dates are calculated from their
 children and cannot be edited directly.
 
 [← Documentation index](index.md)
-

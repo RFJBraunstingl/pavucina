@@ -5,6 +5,7 @@ import {
   setTaskTimes,
 } from "./task-schedule-service.ts";
 import { flattenTasks } from "./task-service.ts";
+import { isTaskDone } from "./task-completion-service.ts";
 import { isTaskSchedulable } from "./task-schedule-mode-service.ts";
 import {
   CALENDAR_END,
@@ -105,7 +106,7 @@ export function getDaySchedule(
   const unscheduled = [];
   for (const { task } of flattenTasks(graph)) {
     if (!isTaskSchedulable(graph, task.id, scheduleMode)) continue;
-    if (hideDone && task.properties.done) continue;
+    if (hideDone && isTaskDone(graph, task.id)) continue;
     const startDate = getTaskDate(graph, task.id, "plannedStartDate");
     const endDate = getTaskDate(graph, task.id, "plannedEndDate");
     if (!startDate || !endDate || date < startDate || date > endDate) continue;
@@ -134,7 +135,7 @@ export function getOverdueTasks(
   return flattenTasks(graph)
     .flatMap(({ task }) => {
       if (
-        task.properties.done ||
+        isTaskDone(graph, task.id) ||
         !isTaskSchedulable(graph, task.id, scheduleMode)
       ) {
         return [];

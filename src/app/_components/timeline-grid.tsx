@@ -5,6 +5,7 @@ import { useTaskOrder } from "./use-task-order";
 import { useTaskColumnResize } from "./use-task-column-resize";
 import { useTimelineSchedule } from "./use-timeline-schedule";
 import { flattenTasks, getParentTaskIds } from "@/services/task-service";
+import { isTaskDone } from "@/services/task-completion-service";
 import {
   dayLabel,
   dayOfMonth,
@@ -41,7 +42,7 @@ export default function TimelineGrid({
   const tasks = useMemo(
     () =>
       flattenTasks(graph, collapsedIds).filter(
-        ({ task }) => !hideDone || !task.properties.done,
+        ({ task }) => !hideDone || !isTaskDone(graph, task.id),
       ),
     [collapsedIds, graph, hideDone],
   );

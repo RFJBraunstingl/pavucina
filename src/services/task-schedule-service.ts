@@ -12,11 +12,6 @@ import type {
   TimeProperty,
 } from "@/types/graph";
 
-const DATE_RELATIONSHIPS: DateRelationshipType[] = [
-  "plannedStartDate",
-  "plannedEndDate",
-];
-
 // ponytail: linear graph scans are enough for local data; index nodes when real datasets make rendering slow.
 export function getTaskDate(
   graph: Graph,
@@ -43,7 +38,7 @@ export function getTaskTime(graph: Graph, taskId: string, type: TimeProperty) {
 export function removeUnusedDates(graph: Graph): Graph {
   const usedDates = new Set(
     graph.relationships
-      .filter((item) => DATE_RELATIONSHIPS.includes(item.type as DateRelationshipType))
+      .filter((item) => item.type !== "child")
       .map((item) => item.targetId),
   );
   return {

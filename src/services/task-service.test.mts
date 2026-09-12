@@ -8,7 +8,6 @@ import {
   flattenTasks,
   getLeafTasksForDate,
   renameTask,
-  setTaskDone,
 } from "./task-service.ts";
 import { createNodeRevisionPlan } from "./graph-version-service.ts";
 import {
@@ -39,7 +38,6 @@ test("task graph operations preserve relationships and schedules", () => {
     return task.id;
   };
   const projectId = taskId("Launch Pavucina");
-  const frontendId = taskId("Timeline interactions");
   assert.equal(makeDateRange("2026-03-29").at(-1), "2026-04-25");
   assert.equal(addDays("2026-03-29", 1), "2026-03-30");
   assert.equal(flattenTasks(graph)[1].depth, 1);
@@ -72,14 +70,6 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.notDeepEqual(
     createNodeRevisionPlan(userId, graph.nodes, []).nodeRevisionIds,
     firstVersion.nodeRevisionIds,
-  );
-
-  graph = setTaskDone(graph, frontendId, true);
-  assert.equal(
-    getLeafTasksForDate(graph, "2026-03-29").find(
-      (task) => task.id === frontendId,
-    )?.properties.done,
-    true,
   );
 
   const childId = crypto.randomUUID();

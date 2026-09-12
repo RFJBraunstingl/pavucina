@@ -7,8 +7,12 @@ import { useGraph } from "@/providers/graph-provider";
 import {
   getLeafTasksForDate,
   getParentTaskNames,
-  setTaskDone,
 } from "@/services/task-service";
+import {
+  isTaskDone,
+  markTaskDone,
+  reopenTask,
+} from "@/services/task-completion-service";
 import { getTaskDate } from "@/services/task-schedule-service";
 import { compactDateLabel } from "@/utils/date";
 import type { UserPreferences } from "@/types/preferences";
@@ -42,11 +46,15 @@ export default function TodoView() {
   }
 
   const tasks = getLeafTasksForDate(graph, today);
-  const doneCount = tasks.filter((task) => task.properties.done).length;
+  const doneCount = tasks.filter((task) => isTaskDone(graph, task.id)).length;
 
-  function updateDone(taskId: string, done: boolean) {
+  function updateCompletion(taskId: string, done: boolean) {
     setGraph((current) =>
-      current ? setTaskDone(current, taskId, done) : current,
+      current
+        ? done
+          ? reopenTask(current, taskId, today)
+          : markTaskDone(current, taskId, today)
+        : current,
     );
   }
 
@@ -104,45 +112,44 @@ export default function TodoView() {
               const parentNames = preferences.showFullTaskPath
                 ? getParentTaskNames(graph, task.id)
                 : [];
+              const done = isTaskDone(graph, task.id);
               return (
                 <li
-                  className={`todo-item${task.properties.done ? " is-done" : ""}`}
+                  className={`todo-item${done ? " is-done" : ""}`}
                   key={task.id}
                 >
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={task.properties.done ?? false}
-                      onChange={(event) =>
-                        updateDone(task.id, event.target.checked)
-                      }
-                    />
-                    <span className="todo-copy">
-                      {parentNames.length > 0 && (
-                        <span className="todo-path">
-                          {parentNames.join(" › ")}
-                        </span>
-                      )}
-                      <strong>{task.properties.name}</strong>
-                      <span>
-                        <time dateTime={startDate}>
-                          {compactDateLabel(startDate)}
-                        </time>
-                        {startTime && (
-                          <> · <time dateTime={startTime}>{startTime}</time></>
-                        )}
-                        {" - "}
-                        {endDate && (
-                          <time dateTime={endDate}>
-                            {compactDateLabel(endDate)}
-                          </time>
-                        )}
-                        {endTime && (
-                          <> · <time dateTime={endTime}>{endTime}</time></>
-                        )}
+                  <span className="todo-copy">
+                    {parentNames.length > 0 && (
+                      <span className="todo-path">
+                        {parentNames.join(" › ")}
                       </span>
+                    )}
+                    <strong>{task.properties.name}</strong>
+                    <span>
+                      <time dateTime={startDate}>
+                        {compactDateLabel(startDate)}
+                      </time>
+                      {startTime && (
+                        <> · <time dateTime={startTime}>{startTime}</time></>
+                      )}
+                      {" - "}
+                      {endDate && (
+                        <time dateTime={endDate}>
+                          {compactDateLabel(endDate)}
+                        </time>
+                      )}
+                      {endTime && (
+                        <> · <time dateTime={endTime}>{endTime}</time></>
+                      )}
                     </span>
-                  </label>
+                  </span>
+                  <button
+                    type="button"
+                    className={`completion-button${done ? " is-reopen" : ""}`}
+                    onClick={() => updateCompletion(task.id, done)}
+                  >
+                    {done ? "Reopen" : "Mark as done"}
+                  </button>
                 </li>
               );
             })}

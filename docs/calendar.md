@@ -18,8 +18,8 @@ overlays from Google Calendar and Outlook Calendar.
 
 - Drag tasks between days and times.
 - Drag either edge of a task to change its start or end time.
-- Select a task to edit its name, description, dates, times, completion state,
-  or to delete it in the inspector.
+- Select a task to edit its name, description, dates, and times; mark it done or
+  reopen it; or delete it in the inspector.
 - On mobile, task gestures are locked by default so the day can be scrolled
   safely. Use the lock button to enable or disable dragging and resizing;
   deliberate inspector edits remain available while locked.

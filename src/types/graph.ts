@@ -7,7 +7,6 @@ export type TaskProperties = {
   description?: string;
   plannedStartTime?: string;
   plannedEndTime?: string;
-  done?: boolean;
   mailOrigin?: MailTaskOrigin;
 };
 
@@ -31,7 +30,14 @@ export type DateNode = {
 
 export type GraphNode = RootNode | TaskNode | DateNode;
 export type DateRelationshipType = "plannedStartDate" | "plannedEndDate";
-export type RelationshipType = "child" | DateRelationshipType;
+export type CompletionRelationshipType =
+  | "markedAsDone"
+  | "wasMarkedAsDone"
+  | "markedAsReopened";
+export type RelationshipType =
+  | "child"
+  | DateRelationshipType
+  | CompletionRelationshipType;
 export type TaskPlacement = "before" | "inside" | "after";
 
 export type Relationship = {

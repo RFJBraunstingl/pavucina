@@ -50,15 +50,9 @@
   resize: vertical;
 }
 
-.inspector .task-done {
-  display: flex;
-  align-items: center;
-}
-
-.inspector .task-done input {
-  width: auto;
-  height: auto;
-  accent-color: var(--green);
+.inspector .completion-button {
+  width: 100%;
+  margin-top: 16px;
 }
 
 .delete-task {

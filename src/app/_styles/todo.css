@@ -46,36 +46,26 @@
 }
 
 .todo-item {
+  display: flex;
+  min-height: 72px;
+  padding: 14px 22px;
   border-bottom: 1px solid var(--line);
+  align-items: center;
+  gap: 14px;
 }
 
 .todo-item:last-child {
   border-bottom: 0;
 }
 
-.todo-item label {
-  display: flex;
-  min-height: 72px;
-  padding: 14px 22px;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-}
-
-.todo-item label:hover {
+.todo-item:hover {
   background: #f7faf8;
-}
-
-.todo-item input {
-  width: 19px;
-  height: 19px;
-  margin: 0;
-  accent-color: var(--green);
 }
 
 .todo-copy {
   display: grid;
   min-width: 0;
+  flex: 1;
   gap: 4px;
 }
 

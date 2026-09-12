@@ -23,9 +23,7 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
   - planned start date (date)
   - planned start time (time)
   - planned end time (time)
-  - done (boolean)
-  - actual done date (date)
-  - actual done time (time)
+  - completion and reopening history (relationships to date nodes)
 - tasks are represented as json objects internally and stored in a data store
 - task properties can be either represented as properties or as edges to nodes
 - pavucina makes an educated guess about the type of properties based on the data type
@@ -52,7 +50,7 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 ## ToDo list view
 - shows a checklist of tasks for the current day
 - tasks are displayed in a list with their name and their planned start date and time
-- tasks can be marked as done by clicking on a checkbox
+- tasks can be marked as done or reopened with an action button
 
 ## Storage
 - pavucina can store the graph data in localStorage without an account (this also means the data is not synchronized)
@@ -60,6 +58,10 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 - in general the data consists of nodes and edges
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes
+
+> TODO (remove after 2026-09-26): delete the temporary `done` property
+> validation and load/restore migration once existing workspaces have been
+> converted to completion relationships.
 
 Authenticated data uses seven shared collections:
 

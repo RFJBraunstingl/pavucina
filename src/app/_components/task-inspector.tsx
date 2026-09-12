@@ -6,8 +6,12 @@ import {
   deleteTask,
   renameTask,
   setTaskDescription,
-  setTaskDone,
 } from "@/services/task-service";
+import {
+  isTaskDone,
+  markTaskDone,
+  reopenTask,
+} from "@/services/task-completion-service";
 import type { TaskNode } from "@/types/graph";
 import type { TaskInspectorProps } from "@/types/timeline";
 
@@ -18,12 +22,13 @@ export default function TaskInspector({
   helpText = "Drag a bar to move it. Drag either edge to resize by whole days.",
   onDeleted,
 }: TaskInspectorProps) {
-  const { graph, setGraph } = useGraph();
+  const { graph, setGraph, today } = useGraph();
   const deleteDialog = useRef<HTMLDialogElement>(null);
   const selected = graph?.nodes.find(
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
   );
   if (!graph) return null;
+  const done = selected ? isTaskDone(graph, selected.id) : false;
 
   function updateName(taskId: string, value: string) {
     setGraph((current) =>
@@ -31,9 +36,13 @@ export default function TaskInspector({
     );
   }
 
-  function updateDone(taskId: string, done: boolean) {
+  function updateCompletion(taskId: string, done: boolean) {
     setGraph((current) =>
-      current ? setTaskDone(current, taskId, done) : current,
+      current
+        ? done
+          ? reopenTask(current, taskId, today)
+          : markTaskDone(current, taskId, today)
+        : current,
     );
   }
 
@@ -99,16 +108,13 @@ export default function TaskInspector({
             scheduleDate={scheduleDate}
             helpText={helpText}
           />
-          <label className="task-done">
-            <input
-              type="checkbox"
-              checked={selected.properties.done ?? false}
-              onChange={(event) =>
-                updateDone(selected.id, event.target.checked)
-              }
-            />
-            Done
-          </label>
+          <button
+            type="button"
+            className={`completion-button${done ? " is-reopen" : ""}`}
+            onClick={() => updateCompletion(selected.id, done)}
+          >
+            {done ? "Reopen" : "Mark as done"}
+          </button>
           <dialog
             ref={deleteDialog}
             className="app-dialog"

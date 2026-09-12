@@ -103,6 +103,20 @@
     border-radius: 14px;
   }
 
+  .todo-heading,
+  .todo-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .todo-heading-actions {
+    justify-content: space-between;
+  }
+
+  .todo-item .completion-button {
+    align-self: flex-start;
+  }
+
   .calendar-card + .inspector {
     order: 0;
   }
