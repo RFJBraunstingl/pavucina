@@ -29,7 +29,10 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
           >
             Inbox
           </Link>
-          <Link href="/" aria-current={active === "timeline" ? "page" : undefined}>
+          <Link
+            href="/timeline"
+            aria-current={active === "timeline" ? "page" : undefined}
+          >
             Timeline
           </Link>
           <Link

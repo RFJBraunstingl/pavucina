@@ -1,10 +1,13 @@
+export type AppPage =
+  | "inbox"
+  | "timeline"
+  | "calendar"
+  | "schedule"
+  | "todo";
+
+export type StartPage = AppPage | "last";
+
 export type AppHeaderProps = {
-  active:
-    | "timeline"
-    | "inbox"
-    | "calendar"
-    | "schedule"
-    | "todo"
-    | "preferences";
+  active: AppPage | "preferences";
   title: string;
 };

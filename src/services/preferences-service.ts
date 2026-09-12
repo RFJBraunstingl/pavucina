@@ -3,6 +3,7 @@ import {
   DEFAULT_TASK_COLUMN_WIDTH,
   isTaskColumnWidth,
 } from "../utils/task-column.ts";
+import { isAppPage, isStartPage } from "../utils/navigation.ts";
 import type { UserPreferences } from "@/types/preferences";
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -11,6 +12,8 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   showFullTaskPath: false,
   taskColumnWidth: DEFAULT_TASK_COLUMN_WIDTH,
   scheduleMode: "leaf",
+  desktopStartPage: "last",
+  mobileStartPage: "last",
 };
 
 export function resolvedScheduleMode(preferences: UserPreferences) {
@@ -29,6 +32,10 @@ export function isUserPreferences(value: unknown): value is UserPreferences {
           "showFullTaskPath",
           "taskColumnWidth",
           "scheduleMode",
+          "desktopStartPage",
+          "mobileStartPage",
+          "desktopLastPage",
+          "mobileLastPage",
         ].includes(key),
     ) ||
     typeof preferences.hideDone !== "boolean" ||
@@ -39,7 +46,15 @@ export function isUserPreferences(value: unknown): value is UserPreferences {
       !isTaskColumnWidth(preferences.taskColumnWidth)) ||
     (preferences.scheduleMode !== undefined &&
       preferences.scheduleMode !== "leaf" &&
-      preferences.scheduleMode !== "all")
+      preferences.scheduleMode !== "all") ||
+    (preferences.desktopStartPage !== undefined &&
+      !isStartPage(preferences.desktopStartPage)) ||
+    (preferences.mobileStartPage !== undefined &&
+      !isStartPage(preferences.mobileStartPage)) ||
+    (preferences.desktopLastPage !== undefined &&
+      !isAppPage(preferences.desktopLastPage)) ||
+    (preferences.mobileLastPage !== undefined &&
+      !isAppPage(preferences.mobileLastPage))
   ) {
     return false;
   }

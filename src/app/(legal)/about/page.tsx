@@ -32,7 +32,7 @@ export default function AboutPage() {
         <h2>Explore Pavucina</h2>
         <ul>
           <li><Link href="/inbox">Inbox</Link> — capture tasks manually or from Gmail and Outlook.</li>
-          <li><Link href="/">Timeline</Link> — organize the task hierarchy and plan date ranges.</li>
+          <li><Link href="/timeline">Timeline</Link> — organize the task hierarchy and plan date ranges.</li>
           <li><Link href="/calendar">Calendar</Link> — schedule tasks and overlay external calendars.</li>
           <li><Link href="/schedule">Schedule</Link> — turn date-based tasks into a daily time plan.</li>
           <li><Link href="/todo">ToDo</Link> — complete the leaf tasks scheduled for today.</li>
@@ -51,4 +51,3 @@ export default function AboutPage() {
     </main>
   );
 }
-

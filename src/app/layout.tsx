@@ -20,7 +20,7 @@ import "./_styles/legal.css";
 import "./_styles/responsive.css";
 
 export const metadata: Metadata = {
-  title: "Timeline · Pavucina",
+  title: "Pavucina",
   description: "Plan hierarchical tasks on a timeline.",
   icons: {
     icon: {

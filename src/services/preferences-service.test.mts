@@ -21,6 +21,10 @@ const preferences = {
   showFullTaskPath: true,
   taskColumnWidth: 320,
   scheduleMode: "all" as const,
+  desktopStartPage: "calendar" as const,
+  mobileStartPage: "last" as const,
+  desktopLastPage: "inbox" as const,
+  mobileLastPage: "todo" as const,
 };
 
 test("user preferences validate task IDs, visibility, and column width", () => {
@@ -46,6 +50,14 @@ test("user preferences validate task IDs, visibility, and column width", () => {
     isUserPreferences({ ...preferences, scheduleMode: "parents" }),
     false,
   );
+  assert.equal(
+    isUserPreferences({ ...preferences, mobileStartPage: "preferences" }),
+    false,
+  );
+  assert.equal(
+    isUserPreferences({ ...preferences, desktopLastPage: "about" }),
+    false,
+  );
 });
 
 test("guest preferences persist locally and resolve legacy defaults", () => {
@@ -69,6 +81,8 @@ test("guest preferences persist locally and resolve legacy defaults", () => {
     const loaded = loadGuestPreferences();
     assert.equal(resolvedScheduleMode(loaded), "leaf");
     assert.equal(loaded.showFullTaskPath, false);
+    assert.equal(loaded.desktopStartPage, "last");
+    assert.equal(loaded.mobileStartPage, "last");
   } finally {
     if (descriptor) Object.defineProperty(globalThis, "localStorage", descriptor);
     else Reflect.deleteProperty(globalThis, "localStorage");

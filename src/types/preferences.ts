@@ -1,3 +1,5 @@
+import type { AppPage, StartPage } from "./navigation";
+
 export type ScheduleMode = "leaf" | "all";
 
 export type UserPreferences = {
@@ -6,6 +8,10 @@ export type UserPreferences = {
   showFullTaskPath?: boolean;
   taskColumnWidth?: number;
   scheduleMode?: ScheduleMode;
+  desktopStartPage?: StartPage;
+  mobileStartPage?: StartPage;
+  desktopLastPage?: AppPage;
+  mobileLastPage?: AppPage;
 };
 
 export type UserSettingsDocument = {

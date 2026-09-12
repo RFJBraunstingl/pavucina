@@ -8,6 +8,7 @@ import { usePreferences } from "../../_components/use-preferences";
 import AccountLinks from "./account-links";
 import BackupRestore from "./backup-restore";
 import LegalLinks from "./legal-links";
+import StartupPageSettings from "./startup-page-settings";
 import { useGraph } from "@/providers/graph-provider";
 import { resolvedScheduleMode } from "@/services/preferences-service";
 import { clearParentTaskSchedules } from "@/services/task-schedule-mode-service";
@@ -94,6 +95,14 @@ export default function PreferencesView() {
           </label>
         </fieldset>
       </section>
+      <StartupPageSettings
+        preferences={preferences}
+        onChange={(changes) =>
+          setPreferences((current) =>
+            current ? { ...current, ...changes } : current,
+          )
+        }
+      />
       <AccountLinks />
       <BackupRestore
         graph={graph}
