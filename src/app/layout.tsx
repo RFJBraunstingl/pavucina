@@ -6,6 +6,7 @@ import "./_styles/controls.css";
 import "./_styles/dialog.css";
 import "./_styles/timeline-grid.css";
 import "./_styles/timeline-resize.css";
+import "./_styles/timeline-filters.css";
 import "./_styles/task-bars.css";
 import "./_styles/inspector.css";
 import "./_styles/calendar.css";

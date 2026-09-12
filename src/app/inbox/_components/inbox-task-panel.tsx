@@ -1,7 +1,11 @@
+import { useMemo } from "react";
+
 import TimelineGrid from "../../_components/timeline-grid";
+import { isTaskDone } from "@/services/task-completion-service";
 import {
   addChildTask,
   addTopLevelTask,
+  flattenTasks,
   getParentTaskIds,
   renameTask,
 } from "@/services/task-service";
@@ -23,6 +27,13 @@ type Props = {
 };
 
 export default function InboxTaskPanel(props: Props) {
+  const tasks = useMemo(
+    () => flattenTasks(props.graph, props.collapsedIds).filter(
+      ({ task }) => !props.hideDone || !isTaskDone(props.graph, task.id),
+    ),
+    [props.collapsedIds, props.graph, props.hideDone],
+  );
+
   function addChild(parentId: string) {
     const id = crypto.randomUUID();
     props.onGraphChange(
@@ -80,7 +91,7 @@ export default function InboxTaskPanel(props: Props) {
           today={props.today}
           rangeStart={props.today}
           selectedId={props.selectedId}
-          hideDone={props.hideDone}
+          tasks={tasks}
           taskColumnWidth={320}
           collapsedIds={props.collapsedIds}
           externalDropTargetId={props.dropTargetId}

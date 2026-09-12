@@ -61,7 +61,9 @@ export type TimelineGridProps = {
   today: string;
   rangeStart: string;
   selectedId: string | null;
-  hideDone: boolean;
+  tasks: FlatTask[];
+  filterExpandedIds?: ReadonlySet<string>;
+  filterActive?: boolean;
   taskColumnWidth: number;
   collapsedIds: ReadonlySet<string>;
   externalDropTargetId?: string | null;
@@ -98,6 +100,7 @@ export type TimelineTaskRowProps = FlatTask & {
   hasChildren: boolean;
   schedulingDisabled: boolean;
   collapsed: boolean;
+  collapseLocked: boolean;
   ordering: boolean;
   dropPlacement?: TaskPlacement;
   onSelect: (taskId: string) => void;

@@ -1,11 +1,10 @@
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 
 import TimelineTaskRow from "./timeline-task-row";
 import { useTaskOrder } from "./use-task-order";
 import { useTaskColumnResize } from "./use-task-column-resize";
 import { useTimelineSchedule } from "./use-timeline-schedule";
-import { flattenTasks, getParentTaskIds } from "@/services/task-service";
-import { isTaskDone } from "@/services/task-completion-service";
+import { getParentTaskIds } from "@/services/task-service";
 import {
   dayLabel,
   dayOfMonth,
@@ -14,6 +13,8 @@ import {
 } from "@/utils/date";
 import type { TimelineGridProps } from "@/types/timeline";
 
+const NO_EXPANDED_FILTERS = new Set<string>();
+
 export default function TimelineGrid({
   graph,
   scheduleMode,
@@ -21,7 +22,9 @@ export default function TimelineGrid({
   today,
   rangeStart,
   selectedId,
-  hideDone,
+  tasks,
+  filterExpandedIds = NO_EXPANDED_FILTERS,
+  filterActive = false,
   taskColumnWidth,
   collapsedIds,
   externalDropTargetId,
@@ -39,13 +42,6 @@ export default function TimelineGrid({
     onTaskColumnWidthChange,
   );
   const parentIds = getParentTaskIds(graph);
-  const tasks = useMemo(
-    () =>
-      flattenTasks(graph, collapsedIds).filter(
-        ({ task }) => !hideDone || !isTaskDone(graph, task.id),
-      ),
-    [collapsedIds, graph, hideDone],
-  );
   const schedule = useTimelineSchedule({
     graph,
     scheduleMode,
@@ -70,6 +66,7 @@ export default function TimelineGrid({
   }
 
   function toggleTask(taskId: string) {
+    if (filterExpandedIds.has(taskId)) return;
     const next = new Set(collapsedIds);
     if (next.has(taskId)) next.delete(taskId);
     else next.add(taskId);
@@ -125,6 +122,11 @@ export default function TimelineGrid({
           ))}
         </div>
 
+        {filterActive && tasks.length === 0 && (
+          <div className="timeline-row task-row">
+            <p className="timeline-filter-empty">No visible tasks match these filters.</p>
+          </div>
+        )}
         {tasks.map(({ task, depth }) => (
           <TimelineTaskRow
             graph={graph}
@@ -138,7 +140,8 @@ export default function TimelineGrid({
             schedulingDisabled={
               scheduleMode === "leaf" && parentIds.has(task.id)
             }
-            collapsed={collapsedIds.has(task.id)}
+            collapsed={collapsedIds.has(task.id) && !filterExpandedIds.has(task.id)}
+            collapseLocked={filterExpandedIds.has(task.id)}
             ordering={order.draggedId === task.id}
             dropPlacement={
               externalDropTargetId === task.id

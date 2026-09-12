@@ -15,6 +15,7 @@ export default function TimelineTaskRow({
   hasChildren,
   schedulingDisabled,
   collapsed,
+  collapseLocked,
   ordering,
   dropPlacement,
   onSelect,
@@ -33,18 +34,8 @@ export default function TimelineTaskRow({
   onOrderKey,
 }: TimelineTaskRowProps) {
   const scheduleMode = schedulingDisabled ? "leaf" : "all";
-  const start = getEffectiveTaskDate(
-    graph,
-    task.id,
-    "plannedStartDate",
-    scheduleMode,
-  );
-  const end = getEffectiveTaskDate(
-    graph,
-    task.id,
-    "plannedEndDate",
-    scheduleMode,
-  );
+  const start = getEffectiveTaskDate(graph, task.id, "plannedStartDate", scheduleMode);
+  const end = getEffectiveTaskDate(graph, task.id, "plannedEndDate", scheduleMode);
   const scheduleHint = schedulingDisabled
     ? "Leaf node scheduling is enabled."
     : undefined;
@@ -86,6 +77,8 @@ export default function TimelineTaskRow({
             className="task-toggle"
             aria-expanded={!collapsed}
             aria-label={`${collapsed ? "Expand" : "Collapse"} ${task.properties.name}`}
+            disabled={collapseLocked}
+            title={collapseLocked ? "Expanded by the active filter" : undefined}
             onClick={() => onToggle(task.id)}
           >
             <span aria-hidden="true">{collapsed ? "▸" : "▾"}</span>

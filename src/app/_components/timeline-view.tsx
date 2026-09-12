@@ -5,8 +5,10 @@ import { useMemo, useState } from "react";
 import AppHeader from "./app-header";
 import { GraphLoading, GraphSyncError } from "./graph-state";
 import TaskInspector from "./task-inspector";
+import TimelineFilters from "./timeline-filters";
 import TimelineGrid from "./timeline-grid";
 import { usePreferences } from "./use-preferences";
+import { useTimelineFilters } from "./use-timeline-filters";
 import { useGraph } from "@/providers/graph-provider";
 import {
   addChildTask,
@@ -33,6 +35,11 @@ export default function TimelineView() {
   const collapsedIds = useMemo(
     () => new Set(preferences?.collapsedTaskIds),
     [preferences?.collapsedTaskIds],
+  );
+  const filters = useTimelineFilters(
+    graph,
+    preferences?.hideDone ?? true,
+    collapsedIds,
   );
   if (!hydrated || !graph) {
     return <GraphLoading label="Loading timeline…" error={syncError} onRetry={retry} />;
@@ -83,6 +90,13 @@ export default function TimelineView() {
 
   function expandAll() {
     updatePreferences({ collapsedTaskIds: [] });
+  }
+
+  function updateFilters(depth: number, selectedIds: string[]) {
+    const visibleIds = filters.update(depth, selectedIds);
+    if (selectedId && visibleIds && !visibleIds.has(selectedId)) {
+      setSelectedId(null);
+    }
   }
 
   return (
@@ -137,6 +151,13 @@ export default function TimelineView() {
             </div>
           </div>
 
+          <TimelineFilters
+            levels={filters.levels}
+            active={filters.active}
+            onChange={updateFilters}
+            onClear={filters.clear}
+          />
+
           <TimelineGrid
             graph={graph}
             scheduleMode={scheduleMode}
@@ -144,7 +165,9 @@ export default function TimelineView() {
             today={today}
             rangeStart={rangeStart}
             selectedId={selectedId}
-            hideDone={preferences.hideDone}
+            tasks={filters.tasks}
+            filterExpandedIds={filters.expandedTaskIds}
+            filterActive={filters.active}
             taskColumnWidth={
               preferences.taskColumnWidth ?? DEFAULT_TASK_COLUMN_WIDTH
             }

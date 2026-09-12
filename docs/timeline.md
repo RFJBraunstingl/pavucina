@@ -11,6 +11,9 @@ Task bars show planned start and end dates alongside the task that owns them.
 - Use the keyboard arrow controls on the reorder handle for the same operations.
 - Expand or collapse individual branches, or use **Collapse all** and
   **Expand all**.
+- Filter the hierarchy with cascading multi-select fields. Each selection
+  reveals the next available task level, while **Clear filters** restores the
+  complete hierarchy.
 - Resize the task-name column on desktop.
 
 ## Planning

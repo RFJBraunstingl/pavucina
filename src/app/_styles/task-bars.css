@@ -47,6 +47,11 @@ button.task-toggle:hover {
   color: var(--green);
 }
 
+button.task-toggle:disabled {
+  color: #b8c0bb;
+  cursor: default;
+}
+
 .task-select {
   overflow: hidden;
   flex: 1;
