@@ -112,6 +112,16 @@
   touch-action: pan-x;
 }
 
+.schedule-tray.interactions-locked .schedule-tray-task {
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.calendar-event.locked .calendar-event-body {
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
 .schedule-tray-task.selected {
   border-color: var(--green);
   box-shadow: 0 0 0 2px rgb(22 122 84 / 12%);
@@ -152,24 +162,4 @@
   margin: -7px 0 0;
   color: var(--muted);
   font-size: 10px;
-}
-
-.schedule-day .calendar-week {
-  min-width: 360px;
-}
-
-.schedule-day .calendar-days-header {
-  grid-template-columns: 72px repeat(var(--schedule-days), minmax(240px, 1fr));
-}
-
-.schedule-day .calendar-body {
-  grid-template-columns: 72px minmax(240px, 1fr);
-}
-
-.schedule-day .calendar-days {
-  grid-template-columns: repeat(var(--schedule-days), 1fr);
-}
-
-.schedule-day .calendar-day {
-  background: white;
 }

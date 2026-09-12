@@ -2,7 +2,6 @@ export type AppPage =
   | "inbox"
   | "timeline"
   | "calendar"
-  | "schedule"
   | "todo";
 
 export type StartPage = AppPage | "last";

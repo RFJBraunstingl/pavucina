@@ -64,3 +64,17 @@ export function isUserPreferences(value: unknown): value is UserPreferences {
     new Set(ids).size === ids.length
   );
 }
+
+export function parseUserPreferences(value: unknown) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+  const preferences = { ...value } as Record<string, unknown>;
+  for (const key of ["desktopStartPage", "mobileStartPage"]) {
+    if (preferences[key] === "schedule") preferences[key] = "last";
+  }
+  for (const key of ["desktopLastPage", "mobileLastPage"]) {
+    if (preferences[key] === "schedule") delete preferences[key];
+  }
+  return isUserPreferences(preferences) ? preferences : null;
+}

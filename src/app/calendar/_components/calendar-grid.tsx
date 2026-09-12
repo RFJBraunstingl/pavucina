@@ -1,22 +1,16 @@
-import { useMemo, useRef } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef } from "react";
 
 import CalendarEvent from "./calendar-event";
 import CalendarAllDay from "./calendar-all-day";
 import ExternalCalendarEvent from "./external-calendar-event";
 import { useCalendarSchedule } from "./use-calendar-schedule";
-import { flattenTasks, getParentTaskIds } from "@/services/task-service";
 import {
-  getTaskDate,
-  getTaskTime,
-} from "@/services/task-schedule-service";
-import {
-  calendarItem,
   CALENDAR_HEIGHT,
   HOUR_HEIGHT,
   HOUR_LABELS,
   layoutCalendarItems,
 } from "@/utils/calendar";
-import { dayLabel, dayOfMonth } from "@/utils/date";
+import { dayLabel, dayOfMonth, isWeekend } from "@/utils/date";
 import { externalCalendarItems } from "@/utils/external-calendar";
 import type { CalendarGridProps } from "@/types/calendar";
 
@@ -25,57 +19,47 @@ export default function CalendarGrid({
   scheduleMode,
   days,
   today,
-  hideDone,
+  taskEvents,
   externalEvents,
   selectedId,
+  locked,
+  bodyRef,
   onGraphChange,
   onSelect,
 }: CalendarGridProps) {
-  const body = useRef<HTMLDivElement>(null);
-  const parentIds = useMemo(() => getParentTaskIds(graph), [graph]);
-  const taskItems = useMemo(
-    () =>
-      flattenTasks(graph)
-          .filter(
-            ({ task }) =>
-              (scheduleMode === "all" || !parentIds.has(task.id)) &&
-              (!hideDone || !task.properties.done),
-          )
-          .flatMap(({ task }) => {
-            const startDate = getTaskDate(graph, task.id, "plannedStartDate");
-            const endDate = getTaskDate(graph, task.id, "plannedEndDate");
-            if (!startDate || !endDate) return [];
-            const item = calendarItem(
-              task,
-              startDate,
-              endDate,
-              getTaskTime(graph, task.id, "plannedStartTime") ?? "09:00",
-              getTaskTime(graph, task.id, "plannedEndTime") ?? "10:00",
-              days[0],
-            );
-            return item ? [item] : [];
-          }),
-    [days, graph, hideDone, parentIds, scheduleMode],
-  );
+  const scroll = useRef<HTMLDivElement>(null);
   const items = useMemo(
     () => layoutCalendarItems([
-      ...taskItems,
+      ...taskEvents,
       ...externalCalendarItems(externalEvents, days),
     ]),
-    [days, externalEvents, taskItems],
+    [days, externalEvents, taskEvents],
   );
   const schedule = useCalendarSchedule({
     graph,
     scheduleMode,
     days,
-    bodyRef: body,
+    bodyRef,
     onGraphChange,
     onSelect,
   });
 
+  useEffect(() => {
+    const now = new Date();
+    if (scroll.current) {
+      scroll.current.scrollTop = Math.max(
+        0,
+        ((now.getHours() * 60 + now.getMinutes()) / 60 - 1) * HOUR_HEIGHT,
+      );
+    }
+  }, []);
+
   return (
-    <div className="calendar-scroll">
-      <div className="calendar-week">
+    <div className="calendar-scroll" ref={scroll}>
+      <div
+        className={`calendar-week${days.length === 1 ? " single-day" : ""}`}
+        style={{ "--calendar-days": days.length } as CSSProperties}
+      >
         <div className="calendar-days-header">
           <div className="calendar-corner" />
           {days.map((day) => (
@@ -92,18 +76,27 @@ export default function CalendarGrid({
           </div>
           <div
             className="calendar-days"
-            ref={body}
+            ref={bodyRef}
             style={{ height: CALENDAR_HEIGHT }}
+            role="region"
+            aria-label={`24 hour calendar from ${days[0]} to ${days.at(-1)}`}
           >
-            {days.map((day) => <div className="calendar-day" key={day} />)}
+            {days.map((day) => (
+              <div
+                className={`calendar-day${isWeekend(day) ? " weekend" : ""}`}
+                key={day}
+              />
+            ))}
             {HOUR_LABELS.map((time, index) => (
               <div className="calendar-hour-line" style={{ top: index * HOUR_HEIGHT }} key={time} />
             ))}
             {items.map((item) => "task" in item ? (
               <CalendarEvent
                 item={item}
+                dayCount={days.length}
                 selected={selectedId === item.task.id}
-                onSelect={() => onSelect(item.task.id)}
+                locked={locked}
+                onSelect={() => onSelect(item.task.id, item.startDate)}
                 key={item.id}
                 onDragStart={(event, mode) => schedule.beginDrag(event, item, mode)}
                 onPointerMove={schedule.continueDrag}
@@ -111,7 +104,11 @@ export default function CalendarGrid({
                 onKeyDown={(event, mode) => schedule.handleArrow(event, item, mode)}
               />
             ) : (
-              <ExternalCalendarEvent item={item} key={item.id} />
+              <ExternalCalendarEvent
+                item={item}
+                dayCount={days.length}
+                key={item.id}
+              />
             ))}
           </div>
         </div>

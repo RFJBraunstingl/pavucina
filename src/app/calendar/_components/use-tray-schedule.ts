@@ -5,12 +5,7 @@ import { droppedTimeRange } from "@/utils/day-schedule";
 import type { TaskNode } from "@/types/graph";
 import type { TrayScheduleOptions } from "@/types/schedule";
 
-export function useTraySchedule({
-  days,
-  bodyRef,
-  onSchedule,
-  onSelect,
-}: TrayScheduleOptions) {
+export function useTraySchedule(props: TrayScheduleOptions) {
   const drag = useRef<{ pointerId: number; task: TaskNode } | null>(null);
 
   function beginDrag(
@@ -18,9 +13,9 @@ export function useTraySchedule({
     task: TaskNode,
     date: string,
   ) {
-    if (event.button !== 0) return;
+    if (props.locked || event.button !== 0) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    onSelect(task.id, date);
+    props.onSelect(task.id, date);
     drag.current = { pointerId: event.pointerId, task };
   }
 
@@ -31,8 +26,10 @@ export function useTraySchedule({
   function endDrag(event: PointerEvent<HTMLButtonElement>) {
     const active = drag.current;
     drag.current = null;
-    const body = bodyRef.current;
-    if (!active || active.pointerId !== event.pointerId || !body) return;
+    const body = props.bodyRef.current;
+    if (props.locked || !active || active.pointerId !== event.pointerId || !body) {
+      return;
+    }
     const target = document.elementFromPoint(event.clientX, event.clientY);
     if (!target || !body.contains(target)) return;
     const bounds = body.getBoundingClientRect();
@@ -46,10 +43,12 @@ export function useTraySchedule({
       taskDuration(active.task) ?? 60,
     );
     const dayIndex = Math.min(
-      days.length - 1,
-      Math.floor(((event.clientX - bounds.left) / bounds.width) * days.length),
+      props.days.length - 1,
+      Math.floor(
+        ((event.clientX - bounds.left) / bounds.width) * props.days.length,
+      ),
     );
-    onSchedule(active.task.id, days[dayIndex], startTime, endTime);
+    props.onSchedule(active.task.id, props.days[dayIndex], startTime, endTime);
   }
 
   function cancelDrag(event: PointerEvent<HTMLButtonElement>) {

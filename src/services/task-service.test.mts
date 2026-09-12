@@ -128,7 +128,7 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.equal(
     calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "12:00", "2026-04-06")
       ?.top,
-    384,
+    704,
   );
   assert.equal(
     calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "13:00", "2026-04-06")
@@ -147,8 +147,8 @@ test("task graph operations preserve relationships and schedules", () => {
       ["11:15", "12:00"],
       ["11:45", "12:00"],
       ["11:00", "11:15"],
-      ["05:00", "06:00"],
-      ["22:00", "23:00"],
+      ["04:45", "06:00"],
+      ["22:00", "23:15"],
     ],
   );
 

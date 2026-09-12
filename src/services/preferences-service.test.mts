@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   isUserPreferences,
+  parseUserPreferences,
   resolvedScheduleMode,
 } from "./preferences-service.ts";
 import {
@@ -58,6 +59,20 @@ test("user preferences validate task IDs, visibility, and column width", () => {
     isUserPreferences({ ...preferences, desktopLastPage: "about" }),
     false,
   );
+});
+
+test("removed schedule destinations are discarded from stored preferences", () => {
+  const expected = { ...preferences, desktopStartPage: "last" as const };
+  Reflect.deleteProperty(expected, "mobileLastPage");
+  assert.deepEqual(
+    parseUserPreferences({
+      ...preferences,
+      desktopStartPage: "schedule",
+      mobileLastPage: "schedule",
+    }),
+    expected,
+  );
+  assert.equal(isUserPreferences({ ...preferences, desktopStartPage: "schedule" }), false);
 });
 
 test("guest preferences persist locally and resolve legacy defaults", () => {

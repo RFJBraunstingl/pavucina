@@ -23,6 +23,7 @@ test("startup pages resolve independently for desktop and mobile", () => {
 
 test("only workspace routes are remembered", () => {
   assert.equal(appPageFromPathname("/timeline"), "timeline");
+  assert.equal(appPageFromPathname("/schedule"), null);
   assert.equal(appPageFromPathname("/preferences"), null);
   assert.equal(appPageFromPathname("/"), null);
 

@@ -1,7 +1,7 @@
 import { unzipSync, zipSync } from "fflate";
 
 import { isGraph } from "./graph-service.ts";
-import { isUserPreferences } from "./preferences-service.ts";
+import { parseUserPreferences } from "./preferences-service.ts";
 import type { Graph } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
@@ -82,6 +82,7 @@ export function readBackupArchive(archive: Uint8Array) {
 
   const graph: unknown = { version: 1, nodes, relationships, inboxNodes };
   if (!isGraph(graph)) invalidBackup("nodes, inbox, or edges are invalid");
-  if (!isUserPreferences(preferences)) invalidBackup("settings are invalid");
-  return { graph, preferences };
+  const parsedPreferences = parseUserPreferences(preferences);
+  if (!parsedPreferences) invalidBackup("settings are invalid");
+  return { graph, preferences: parsedPreferences };
 }

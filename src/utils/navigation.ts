@@ -7,7 +7,6 @@ export const APP_PAGES: ReadonlyArray<{ id: AppPage; label: string }> = [
   { id: "inbox", label: "Inbox" },
   { id: "timeline", label: "Timeline" },
   { id: "calendar", label: "Calendar" },
-  { id: "schedule", label: "Schedule" },
   { id: "todo", label: "ToDo" },
 ];
 

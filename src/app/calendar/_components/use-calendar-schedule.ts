@@ -1,10 +1,8 @@
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
 import { isTaskSchedulable } from "@/services/task-schedule-mode-service";
-import {
-  moveScheduledTask,
-  setTaskTimes,
-} from "@/services/task-schedule-service";
+import { moveTaskWithinDay } from "@/services/task-day-schedule-service";
+import { setTaskTimes } from "@/services/task-schedule-service";
 import {
   CALENDAR_END,
   CALENDAR_RESIZE_STEP,
@@ -25,9 +23,6 @@ export function useCalendarSchedule({
   scheduleMode,
   days,
   bodyRef,
-  startMinute = CALENDAR_START,
-  endMinute = CALENDAR_END,
-  moveTask = moveScheduledTask,
   onGraphChange,
   onSelect,
 }: CalendarInteractionOptions) {
@@ -46,7 +41,7 @@ export function useCalendarSchedule({
     }
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    onSelect(item.task.id);
+    onSelect(item.task.id, item.startDate);
     drag.current = {
       pointerId: event.pointerId,
       taskId: item.task.id,
@@ -77,8 +72,8 @@ export function useCalendarSchedule({
         active.endTime,
         active.mode,
         amount,
-        startMinute,
-        endMinute,
+        CALENDAR_START,
+        CALENDAR_END,
       );
       const target = times.join(":");
       if (target === active.lastTarget) return;
@@ -98,9 +93,9 @@ export function useCalendarSchedule({
       ),
     );
     const minutes = Math.max(
-      startMinute,
+      CALENDAR_START,
       Math.min(
-        endMinute - 30,
+        CALENDAR_END - 30,
         timeToMinutes(active.startTime) +
           Math.round(offsetY / (HOUR_HEIGHT / 2)) * 30,
       ),
@@ -109,7 +104,7 @@ export function useCalendarSchedule({
     if (target === active.lastTarget) return;
     drag.current = { ...active, lastTarget: target };
     onGraphChange(
-      moveTask(
+      moveTaskWithinDay(
         active.originGraph,
         active.taskId,
         days[dayIndex],
@@ -136,8 +131,8 @@ export function useCalendarSchedule({
         item.endTime,
         mode,
         event.key === "ArrowUp" ? -CALENDAR_RESIZE_STEP : CALENDAR_RESIZE_STEP,
-        startMinute,
-        endMinute,
+        CALENDAR_START,
+        CALENDAR_END,
       );
       onGraphChange(setTaskTimes(graph, item.task.id, ...times));
       return;
@@ -157,14 +152,14 @@ export function useCalendarSchedule({
     const vertical =
       event.key === "ArrowUp" ? -30 : event.key === "ArrowDown" ? 30 : 0;
     const minutes = Math.max(
-      startMinute,
+      CALENDAR_START,
       Math.min(
-        endMinute - 30,
+        CALENDAR_END - 30,
         timeToMinutes(item.startTime) + vertical,
       ),
     );
     onGraphChange(
-      moveTask(
+      moveTaskWithinDay(
         graph,
         item.task.id,
         targetDate,

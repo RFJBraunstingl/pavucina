@@ -84,6 +84,20 @@
   font-weight: 750;
 }
 
+.calendar-edit-lock {
+  display: none;
+  place-items: center;
+}
+
+.calendar-edit-lock svg {
+  width: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .tree-actions {
   display: flex;
   margin-top: 8px;

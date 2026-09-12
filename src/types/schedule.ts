@@ -1,10 +1,7 @@
 import type { PointerEvent, RefObject } from "react";
 
+import type { TaskNode } from "./graph";
 import type { CalendarItem } from "./calendar";
-import type { Graph, TaskNode } from "./graph";
-import type { ScheduleMode } from "./preferences";
-
-export type DayScheduleEvent = CalendarItem;
 
 export type DayScheduleTask = {
   task: TaskNode;
@@ -13,7 +10,7 @@ export type DayScheduleTask = {
 };
 
 export type DaySchedule = {
-  events: DayScheduleEvent[];
+  events: CalendarItem[];
   unscheduled: DayScheduleTask[];
 };
 
@@ -22,23 +19,12 @@ export type ScheduleTrayDay = {
   tasks: DayScheduleTask[];
 };
 
-export type ScheduleGridProps = {
-  graph: Graph;
-  scheduleMode: ScheduleMode;
-  days: string[];
-  today: string;
-  events: DayScheduleEvent[];
-  selectedId: string | null;
-  bodyRef: RefObject<HTMLDivElement | null>;
-  onGraphChange: (graph: Graph) => void;
-  onSelect: (taskId: string, date: string) => void;
-};
-
 export type ScheduleTrayProps = {
   days: ScheduleTrayDay[];
   overdue: DayScheduleTask[];
   selectedId: string | null;
   selectedDate: string;
+  locked: boolean;
   onSelect: (taskId: string, date: string) => void;
   onDragStart: (
     event: PointerEvent<HTMLButtonElement>,
@@ -53,6 +39,7 @@ export type ScheduleTrayProps = {
 export type TrayScheduleOptions = {
   days: string[];
   bodyRef: RefObject<HTMLDivElement | null>;
+  locked: boolean;
   onSchedule: (
     taskId: string,
     date: string,

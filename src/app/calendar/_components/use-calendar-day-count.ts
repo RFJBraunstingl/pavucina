@@ -1,17 +1,17 @@
 import { useSyncExternalStore } from "react";
 
-const WIDE_SCREEN = "(min-width: 1200px)";
+import { MOBILE_VIEW_QUERY } from "@/utils/navigation";
 
 function subscribe(onChange: () => void) {
-  const query = window.matchMedia(WIDE_SCREEN);
+  const query = window.matchMedia(MOBILE_VIEW_QUERY);
   query.addEventListener("change", onChange);
   return () => query.removeEventListener("change", onChange);
 }
 
 function getSnapshot() {
-  return window.matchMedia(WIDE_SCREEN).matches ? 3 : 1;
+  return window.matchMedia(MOBILE_VIEW_QUERY).matches ? 1 : 7;
 }
 
-export function useScheduleDayCount() {
+export function useCalendarDayCount() {
   return useSyncExternalStore(subscribe, getSnapshot, () => 1);
 }

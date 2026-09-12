@@ -1,15 +1,19 @@
-import { CALENDAR_RESIZE_STEP, HOUR_HEIGHT } from "./calendar.ts";
+import {
+  CALENDAR_END,
+  CALENDAR_HEIGHT,
+  CALENDAR_RESIZE_STEP,
+  CALENDAR_START,
+  HOUR_HEIGHT,
+  HOUR_LABELS,
+} from "./calendar.ts";
 import { minutesToTime, timeToMinutes } from "./time.ts";
 import type { CalendarItem } from "@/types/calendar";
 import type { TaskNode } from "@/types/graph";
 
-export const DAY_START = 0;
-export const DAY_END = 24 * 60 - 1;
-export const DAY_HEIGHT = 24 * HOUR_HEIGHT;
-export const DAY_HOUR_LABELS = Array.from(
-  { length: 25 },
-  (_, hour) => `${String(hour).padStart(2, "0")}:00`,
-);
+export const DAY_START = CALENDAR_START;
+export const DAY_END = CALENDAR_END;
+export const DAY_HEIGHT = CALENDAR_HEIGHT;
+export const DAY_HOUR_LABELS = HOUR_LABELS;
 
 export function dayScheduleItem(
   task: TaskNode,

@@ -1,4 +1,4 @@
-import { calendarPosition, CALENDAR_END, CALENDAR_START } from "./calendar.ts";
+import { calendarPosition } from "./calendar.ts";
 import { addDays, isIsoDate, todayIso } from "./date.ts";
 import { minutesToTime } from "./time.ts";
 import type { ExternalCalendarItem } from "../types/calendar.ts";
@@ -89,8 +89,8 @@ export function externalCalendarItems(
     const eventStart = new Date(event.start).getTime();
     const eventEnd = new Date(event.end).getTime();
     return days.flatMap((day) => {
-      const visibleStart = localDay(day, CALENDAR_START).getTime();
-      const visibleEnd = localDay(day, CALENDAR_END).getTime();
+      const visibleStart = localDay(day).getTime();
+      const visibleEnd = localDay(addDays(day, 1)).getTime();
       const start = Math.max(eventStart, visibleStart);
       const end = Math.min(eventEnd, visibleEnd);
       if (start >= end) return [];

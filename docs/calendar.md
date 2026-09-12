@@ -1,16 +1,28 @@
 # Calendar
 
-The Calendar shows scheduled tasks in a weekly time grid. It also supports
-read-only overlays from Google Calendar and Outlook Calendar.
+The Calendar combines date-based planning with a concrete 24-hour schedule. It
+shows seven days on desktop and one day on mobile, and supports read-only
+overlays from Google Calendar and Outlook Calendar.
 
-## Scheduled tasks
+## Planning tasks
 
-- View one week at a time and move to the previous week, next week, or today.
+- Review date-ranged or untimed tasks in the planning tray above the calendar.
+- Review incomplete overdue tasks in the tray's separate overdue section.
+- Drag a tray task into the calendar to assign its day and time.
+- View only tasks with a valid single-day time slot in the calendar grid.
+- Move through weeks on desktop or individual days on mobile, and return to
+  today at any time.
+- Hide completed tasks with **Hide done**.
+
+## Adjusting scheduled work
+
 - Drag tasks between days and times.
 - Drag either edge of a task to change its start or end time.
-- Select a task to edit its name, description, dates, times, and completion
-  state in the inspector.
-- Hide completed tasks with **Hide done**.
+- Select a task to edit its name, description, dates, times, completion state,
+  or to delete it in the inspector.
+- On mobile, task gestures are locked by default so the day can be scrolled
+  safely. Use the lock button to enable or disable dragging and resizing;
+  deliberate inspector edits remain available while locked.
 
 ## External calendars
 
@@ -28,4 +40,3 @@ read-only overlays from Google Calendar and Outlook Calendar.
   setting changes.
 
 [← Documentation index](index.md)
-

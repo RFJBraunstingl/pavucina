@@ -1,4 +1,4 @@
-import { isUserPreferences } from "./preferences-service.ts";
+import { parseUserPreferences } from "./preferences-service.ts";
 import type { UserPreferences } from "@/types/preferences";
 
 export async function loadRemotePreferences() {
@@ -6,8 +6,9 @@ export async function loadRemotePreferences() {
   if (!response.ok) throw new Error("Could not load your preferences");
 
   const value: unknown = await response.json();
-  if (!isUserPreferences(value)) throw new Error("The saved preferences are invalid");
-  return value;
+  const preferences = parseUserPreferences(value);
+  if (!preferences) throw new Error("The saved preferences are invalid");
+  return preferences;
 }
 
 export async function saveRemotePreferences(preferences: UserPreferences) {

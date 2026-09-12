@@ -3,7 +3,7 @@ import "server-only";
 import { getMongoDatabase } from "./mongodb.ts";
 import {
   DEFAULT_USER_PREFERENCES,
-  isUserPreferences,
+  parseUserPreferences,
 } from "./preferences-service.ts";
 import type {
   UserPreferences,
@@ -30,10 +30,11 @@ export async function loadPreferences(userId: string) {
     userId,
   });
   if (!document) return DEFAULT_USER_PREFERENCES;
-  if (!isUserPreferences(document.settings)) {
+  const preferences = parseUserPreferences(document.settings);
+  if (!preferences) {
     throw new Error("Stored user preferences are invalid");
   }
-  return document.settings;
+  return preferences;
 }
 
 export async function savePreferences(

@@ -43,11 +43,13 @@ export type CalendarGridProps = {
   scheduleMode: ScheduleMode;
   days: string[];
   today: string;
-  hideDone: boolean;
+  taskEvents: CalendarItem[];
   externalEvents: ExternalCalendarEvent[];
   selectedId: string | null;
+  locked: boolean;
+  bodyRef: RefObject<HTMLDivElement | null>;
   onGraphChange: (graph: Graph) => void;
-  onSelect: (taskId: string) => void;
+  onSelect: (taskId: string, date: string) => void;
 };
 
 export type CalendarInteractionOptions = {
@@ -55,16 +57,14 @@ export type CalendarInteractionOptions = {
   scheduleMode: ScheduleMode;
   days: string[];
   bodyRef: RefObject<HTMLDivElement | null>;
-  startMinute?: number;
-  endMinute?: number;
-  moveTask?: (graph: Graph, taskId: string, date: string, time: string) => Graph;
   onGraphChange: (graph: Graph) => void;
-  onSelect: (taskId: string) => void;
+  onSelect: (taskId: string, date: string) => void;
 };
 
 export type CalendarEventProps = {
   item: CalendarItem;
   selected: boolean;
+  locked: boolean;
   dayCount?: number;
   onSelect: () => void;
   onDragStart: (

@@ -92,6 +92,13 @@ test("calendar layout gives overlapping events separate lanes", () => {
     laidOut.map(({ laneIndex, laneCount }) => [laneIndex, laneCount]),
     [[0, 2], [1, 2], [0, 2], [0, 1], [0, 1]],
   );
+  assert.deepEqual(
+    [
+      item(tasks[0], "00:00", "01:00").top,
+      item(tasks[0], "23:30", "23:59").height,
+    ],
+    [0, 32],
+  );
 });
 
 test("daily scheduling separates ranged tasks and collapses scheduled dates", () => {

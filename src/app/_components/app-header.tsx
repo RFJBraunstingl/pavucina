@@ -41,12 +41,6 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
           >
             Calendar
           </Link>
-          <Link
-            href="/schedule"
-            aria-current={active === "schedule" ? "page" : undefined}
-          >
-            Schedule
-          </Link>
           <Link href="/todo" aria-current={active === "todo" ? "page" : undefined}>
             ToDo
           </Link>

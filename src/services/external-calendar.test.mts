@@ -98,8 +98,8 @@ test("external events share lanes with tasks and split overnight", () => {
   assert.deepEqual(
     segments.map(({ startDate, startTime, endTime }) => [startDate, startTime, endTime]),
     [
-      ["2026-09-07", "22:00", "23:00"],
-      ["2026-09-08", "05:00", "06:00"],
+      ["2026-09-07", "22:00", "00:00"],
+      ["2026-09-08", "00:00", "06:00"],
     ],
   );
 

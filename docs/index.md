@@ -12,12 +12,10 @@ Pavucina server.
 
 - [Inbox](inbox.md) — capture tasks manually or from Gmail and Outlook.
 - [Timeline](timeline.md) — organize the task hierarchy and plan date ranges.
-- [Calendar](calendar.md) — schedule tasks by time and overlay external calendars.
-- [Schedule](schedule.md) — turn date-based tasks into a daily time plan.
+- [Calendar](calendar.md) — plan tasks by time and overlay external calendars.
 - [ToDo](todo.md) — complete the leaf tasks scheduled for today.
 - [Preferences](preferences.md) — configure scheduling, accounts, and backups.
 
 ## Legal
 
 - [Privacy Policy](https://pavucina.rfj.dev/privacy)
-

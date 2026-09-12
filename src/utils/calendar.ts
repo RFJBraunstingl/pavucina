@@ -7,15 +7,14 @@ import type {
 } from "@/types/calendar";
 import type { TaskNode } from "@/types/graph";
 
-export const CALENDAR_START = 5 * 60;
-export const CALENDAR_END = 23 * 60;
+export const CALENDAR_START = 0;
+export const CALENDAR_END = 24 * 60 - 1;
 export const CALENDAR_RESIZE_STEP = 15;
 export const HOUR_HEIGHT = 64;
-export const CALENDAR_HEIGHT =
-  ((CALENDAR_END - CALENDAR_START) / 60) * HOUR_HEIGHT;
+export const CALENDAR_HEIGHT = 24 * HOUR_HEIGHT;
 export const HOUR_LABELS = Array.from(
-  { length: (CALENDAR_END - CALENDAR_START) / 60 + 1 },
-  (_, index) => `${String(index + CALENDAR_START / 60).padStart(2, "0")}:00`,
+  { length: 25 },
+  (_, hour) => `${String(hour).padStart(2, "0")}:00`,
 );
 
 function itemEnd(item: CalendarLayoutItem) {
@@ -81,9 +80,10 @@ export function calendarPosition(
   if (dayIndex < 0 || dayIndex > 6 || start < CALENDAR_START || start >= CALENDAR_END) {
     return null;
   }
+  const end = timeToMinutes(endTime);
   const duration = Math.max(
     CALENDAR_RESIZE_STEP,
-    timeToMinutes(endTime) - start,
+    endDate > startDate && end === 0 ? 24 * 60 - start : end - start,
   );
   return {
     id,
@@ -97,7 +97,7 @@ export function calendarPosition(
     top: ((start - CALENDAR_START) / 60) * HOUR_HEIGHT,
     height: Math.min(
       Math.max(34, (duration / 60) * HOUR_HEIGHT),
-      ((CALENDAR_END - start) / 60) * HOUR_HEIGHT,
+      ((CALENDAR_END + 1 - start) / 60) * HOUR_HEIGHT,
     ),
   };
 }

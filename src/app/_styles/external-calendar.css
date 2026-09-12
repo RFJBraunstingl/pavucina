@@ -53,7 +53,7 @@
   position: sticky;
   z-index: 19;
   top: 68px;
-  grid-template-columns: 72px repeat(7, minmax(120px, 1fr));
+  grid-template-columns: 72px repeat(var(--calendar-days), minmax(120px, 1fr));
   border-bottom: 1px solid var(--line);
   background: #f9fbf9;
 }

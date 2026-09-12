@@ -22,13 +22,17 @@
   min-width: 980px;
 }
 
+.calendar-week.single-day {
+  min-width: 360px;
+}
+
 .calendar-days-header {
   display: grid;
   position: sticky;
   z-index: 20;
   top: 0;
   height: 68px;
-  grid-template-columns: 72px repeat(7, minmax(120px, 1fr));
+  grid-template-columns: 72px repeat(var(--calendar-days), minmax(120px, 1fr));
   border-bottom: 1px solid var(--line);
   background: #f9fbf9;
 }
@@ -69,6 +73,10 @@
   grid-template-columns: 72px minmax(840px, 1fr);
 }
 
+.single-day .calendar-body {
+  grid-template-columns: 72px minmax(240px, 1fr);
+}
+
 .calendar-times {
   display: flex;
   padding: 0 10px;
@@ -88,7 +96,7 @@
 .calendar-days {
   display: grid;
   position: relative;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(var(--calendar-days), 1fr);
   grid-template-rows: 1fr;
 }
 
@@ -98,8 +106,7 @@
   background: #fff;
 }
 
-.calendar-day:nth-child(6),
-.calendar-day:nth-child(7) {
+.calendar-day.weekend {
   background: #f7f9f7;
 }
 
