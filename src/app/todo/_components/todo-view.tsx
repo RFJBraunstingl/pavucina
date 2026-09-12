@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+
+import TaskDetailsDialog from "./task-details-dialog";
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import { usePreferences } from "../../_components/use-preferences";
@@ -19,6 +22,7 @@ import type { UserPreferences } from "@/types/preferences";
 
 export default function TodoView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
+  const [detailsTaskId, setDetailsTaskId] = useState<string | null>(null);
   const {
     preferences,
     setPreferences,
@@ -47,6 +51,7 @@ export default function TodoView() {
 
   const tasks = getLeafTasksForDate(graph, today);
   const doneCount = tasks.filter((task) => isTaskDone(graph, task.id)).length;
+  const detailsTask = tasks.find((task) => task.id === detailsTaskId) ?? null;
 
   function updateCompletion(taskId: string, done: boolean) {
     setGraph((current) =>
@@ -143,13 +148,27 @@ export default function TodoView() {
                       )}
                     </span>
                   </span>
-                  <button
-                    type="button"
-                    className={`completion-button${done ? " is-reopen" : ""}`}
-                    onClick={() => updateCompletion(task.id, done)}
-                  >
-                    {done ? "Reopen" : "Mark as done"}
-                  </button>
+                  <span className="todo-actions">
+                    <button
+                      type="button"
+                      className="todo-details-button"
+                      aria-label={`Show details for ${task.properties.name}`}
+                      title="Show task details"
+                      onClick={() => setDetailsTaskId(task.id)}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 11v6m0-9h.01" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className={`completion-button${done ? " is-reopen" : ""}`}
+                      onClick={() => updateCompletion(task.id, done)}
+                    >
+                      {done ? "Reopen" : "Mark as done"}
+                    </button>
+                  </span>
                 </li>
               );
             })}
@@ -158,6 +177,11 @@ export default function TodoView() {
           <p className="todo-empty">No tasks are scheduled for today.</p>
         )}
       </section>
+      <TaskDetailsDialog
+        graph={graph}
+        task={detailsTask}
+        onClose={() => setDetailsTaskId(null)}
+      />
     </main>
   );
 }

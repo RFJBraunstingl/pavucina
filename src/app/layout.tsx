@@ -12,6 +12,7 @@ import "./_styles/calendar.css";
 import "./_styles/external-calendar.css";
 import "./_styles/schedule.css";
 import "./_styles/todo.css";
+import "./_styles/todo-dialog.css";
 import "./_styles/preferences.css";
 import "./_styles/inbox.css";
 import "./_styles/mailbox.css";

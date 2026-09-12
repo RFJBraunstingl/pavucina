@@ -6,6 +6,8 @@ today.
 ## Features
 
 - See each task's planned start and end dates and any planned times.
+- Open a task's details to review its full path, description, schedule, and
+  completion status. On mobile, task details use the full screen.
 - Complete or reopen a task with its action button.
 - Track progress with the completed-task count.
 - Show the complete parent path above each task when **Show full path** is

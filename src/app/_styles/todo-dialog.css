@@ -1,0 +1,70 @@
+.todo-details-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(680px, calc(100dvh - 32px));
+}
+
+.todo-details-dialog > form {
+  display: grid;
+  max-height: inherit;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.todo-details-dialog header .eyebrow {
+  display: block;
+}
+
+.todo-details {
+  display: grid;
+  overflow: auto;
+  margin: 10px 0 22px;
+  align-content: start;
+}
+
+.todo-details > div {
+  display: grid;
+  padding: 12px 0;
+  grid-template-columns: 120px minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+  gap: 14px;
+}
+
+.todo-details dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.todo-details dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.todo-details-description dd {
+  white-space: pre-wrap;
+}
+
+@media (max-width: 680px) {
+  .todo-details-dialog {
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .todo-details-dialog > form {
+    height: 100%;
+  }
+
+  .todo-details > div {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}

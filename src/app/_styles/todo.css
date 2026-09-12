@@ -91,9 +91,55 @@
   text-decoration: line-through;
 }
 
+.todo-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-details-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  place-items: center;
+}
+
+.todo-details-button:hover {
+  border-color: var(--line);
+  background: #eef6f1;
+  color: var(--green-dark);
+}
+
+.todo-details-button svg {
+  width: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .todo-empty {
   margin: 0;
   padding: 40px 22px;
   color: var(--muted);
   text-align: center;
+}
+
+@media (max-width: 680px) {
+  .todo-item {
+    padding-inline: 16px;
+    gap: 10px;
+  }
+
+  .todo-actions {
+    gap: 4px;
+  }
 }
