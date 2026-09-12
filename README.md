@@ -3,8 +3,7 @@
 Checkout the app here: [https://pavucina.rfj.dev](https://pavucina.rfj.dev)
 
 Pavucina is a task management application where tasks are stored hierarchically in a knowledge graph.
-The knowledge graph is a directed acyclic graph where nodes represent tasks and edges represent dependencies between task
-as well as other relationships such as assignments to people, deadlines, etc.
+The knowledge graph is a directed graph where nodes represent objects (such as tasks, dates, ...) and edges represent relationships between objects such as task X -(is Planned to be done by)-> date Y.
 
 ## Data model
 - tasks are nodes in the knowledge graph
@@ -17,7 +16,7 @@ as well as other relationships such as assignments to people, deadlines, etc.
   - boolean
   - single select
   - multi select
-- the user can configure the properties used by tasks
+- the user can configure the properties used by tasks (TODO)
 - some recommended properties are set by default:
   - description (long text)
   - planned done date (date)
@@ -77,15 +76,12 @@ changed node revisions before inserting the edge snapshot that makes the version
 current. Restoring inserts fresh node revisions and then one new edge snapshot;
 it does not require MongoDB transaction support. Settings are restored last.
 
-This schema is a clean break from versions through 1.1.5. Remove the old database
-or Docker volume before upgrading; no legacy collection migration is provided.
-
 ## OAuth login
 
 1. Copy `.env.example` to `.env.local` and replace the placeholder values.
 2. Create a GitHub OAuth App with callback URL
    `http://localhost:3000/api/auth/callback/github`.
-3. Create Google OAuth credentials, enable the Google Calendar API, and add
+3. Create Google OAuth credentials, enable the Google Calendar API, enable the Google Mail API, and add
    authorized redirect URIs `http://localhost:3000/api/auth/callback/google`,
    `http://localhost:3000/api/auth/callback/gmail`, and
    `http://localhost:3000/api/auth/callback/google-calendar`.
@@ -128,3 +124,5 @@ It's meant to be an homage to my wife - her Grandmother is from Slovakia and Pav
 Pavucina is available under the [Functional Source License 1.1 with an
 Apache 2.0 Future License](LICENSE.md). Each version converts to Apache 2.0 two
 years after it is made available.
+
+This is the same model that [Sentry](https://sentry.io) uses as of this writing and basically means you are free to use, modify, and self-host the code as you wish. You are just not allowed to host Pavucina for other people and take money for it.
