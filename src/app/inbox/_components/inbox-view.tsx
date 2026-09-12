@@ -25,7 +25,6 @@ export default function InboxView() {
   const {
     graph,
     setGraph,
-    saveGraphNow,
     today,
     hydrated,
     syncError,
@@ -100,11 +99,12 @@ export default function InboxView() {
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <div className="inbox-workspace">
         <SourcePanel
-          onAdd={(message) =>
-            saveGraphNow(
-              addMailboxInboxTask(graph, crypto.randomUUID(), message),
-            )
-          }
+          onAdd={(message) => {
+            const id = crypto.randomUUID();
+            setGraph((current) =>
+              current ? addMailboxInboxTask(current, id, message) : current,
+            );
+          }}
         />
         <ScratchpadPanel
           nodes={graph.inboxNodes ?? []}

@@ -10,6 +10,7 @@ import {
   normalizeGmailMessage,
   normalizeOutlookMessage,
 } from "./mailbox-message.ts";
+import { markRemoteMessageRead } from "./remote-mailbox-store.ts";
 import type {
   MailboxConnectionDocument,
   MailMessage,
@@ -72,4 +73,25 @@ test("provider messages normalize and keep the newest 25 per source", () => {
     newestMessagesPerSource(messages).map(({ id }) => id),
     Array.from({ length: 25 }, (_, index) => String(29 - index)),
   );
+});
+
+test("marking a message read uses a navigation-safe request", async () => {
+  const originalFetch = globalThis.fetch;
+  let request: { input: string; init?: RequestInit } | undefined;
+  globalThis.fetch = async (input, init) => {
+    request = { input: String(input), init };
+    return new Response(null, { status: 204 });
+  };
+
+  try {
+    await markRemoteMessageRead("connection-id", "message-id");
+    assert.equal(request?.input, "/api/mailboxes/connection-id/messages");
+    assert.equal(request?.init?.method, "PATCH");
+    assert.equal(request?.init?.keepalive, true);
+    assert.deepEqual(JSON.parse(String(request?.init?.body)), {
+      messageId: "message-id",
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

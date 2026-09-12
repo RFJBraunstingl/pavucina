@@ -1,5 +1,5 @@
 import type { MailboxesResponse, MailboxSource } from "@/types/mailbox";
-import { requireSuccess } from "./remote-response";
+import { requireSuccess } from "./remote-response.ts";
 
 export async function loadMailboxes() {
   const response = await fetch("/api/mailboxes", { cache: "no-store" });
@@ -22,6 +22,7 @@ export async function markRemoteMessageRead(
 ) {
   const response = await fetch(`/api/mailboxes/${connectionId}/messages`, {
     method: "PATCH",
+    keepalive: true,
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ messageId }),
   });

@@ -44,7 +44,7 @@ export default function MailMessageList(props: Props) {
                 disabled={disabled}
                 onClick={() => props.onAdd(message)}
               >
-                {props.busy === key ? "Working…" : "Add to scratchpad"}
+                Add to scratchpad
               </button>
             </div>
           </li>

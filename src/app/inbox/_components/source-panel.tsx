@@ -22,7 +22,7 @@ import type {
 export default function SourcePanel({
   onAdd,
 }: {
-  onAdd: (message: MailMessage) => Promise<void>;
+  onAdd: (message: MailMessage) => void;
 }) {
   const { status } = useSession();
   const [data, setData] = useState<MailboxesResponse | null>(null);
@@ -63,27 +63,21 @@ export default function SourcePanel({
     }
   }
 
-  async function handleMessage(mail: MailMessage, add: boolean) {
-    const key = `${mail.connectionId}:${mail.id}`;
-    setBusy(key);
+  function handleMessage(mail: MailMessage, add: boolean) {
     setMessage(null);
-    try {
-      if (add) await onAdd(mail);
-      await markRemoteMessageRead(mail.connectionId, mail.id);
-      setData((current) => current && ({
-        ...current,
-        messages: current.messages.filter(
-          (item) =>
-            item.connectionId !== mail.connectionId || item.id !== mail.id,
-        ),
-      }));
-    } catch (error) {
+    if (add) onAdd(mail);
+    setData((current) => current && ({
+      ...current,
+      messages: current.messages.filter(
+        (item) =>
+          item.connectionId !== mail.connectionId || item.id !== mail.id,
+      ),
+    }));
+    void markRemoteMessageRead(mail.connectionId, mail.id).catch((error) => {
       setMessage(
         error instanceof Error ? error.message : "Could not update message",
       );
-    } finally {
-      setBusy(null);
-    }
+    });
   }
 
   async function confirmDisconnect() {
