@@ -70,7 +70,12 @@ test("legacy done properties migrate to planned-end dates", () => {
       { ...fallback, properties: { name: "Fallback", done: true } },
       { ...open, properties: { name: "Open", done: false } },
     ],
-    relationships: [],
+    relationships: [{
+      id: crypto.randomUUID(),
+      type: "child",
+      sourceId: planned.id,
+      targetId: open.id,
+    }],
     inboxNodes: [{ ...task("Inbox"), properties: { name: "Inbox", done: true } }],
   } as unknown as Graph;
   graph = setTaskDate(graph, planned.id, "plannedEndDate", "2026-09-08");
@@ -94,4 +99,55 @@ test("legacy done properties migrate to planned-end dates", () => {
   );
   assert.equal(migrateTaskCompletion(migrated, "2026-09-12"), migrated);
   assert.equal(isGraph(migrated), true);
+});
+
+test("marking a task completes every descendant but reopening does not", () => {
+  const parent = task("Parent");
+  const child = task("Child");
+  const grandchild = task("Grandchild");
+  const unrelated = task("Unrelated");
+  let graph: Graph = {
+    version: 1,
+    nodes: [parent, child, grandchild, unrelated],
+    relationships: [],
+  };
+  graph = markTaskDone(graph, child.id, "2026-09-10");
+  graph = {
+    ...graph,
+    relationships: [
+      ...graph.relationships,
+      { id: crypto.randomUUID(), type: "child", sourceId: parent.id, targetId: child.id },
+      { id: crypto.randomUUID(), type: "child", sourceId: child.id, targetId: grandchild.id },
+    ],
+  };
+  const originalChildEdge = graph.relationships.find(
+    (item) => item.sourceId === child.id && item.type === "markedAsDone",
+  )!;
+  graph = markTaskDone(graph, parent.id, "2026-09-12");
+
+  assert.deepEqual(
+    [parent, child, grandchild, unrelated].map((item) => isTaskDone(graph, item.id)),
+    [true, true, true, false],
+  );
+  const newTargetIds = graph.relationships
+    .filter(
+      (item) =>
+        item.type === "markedAsDone" && item.sourceId !== originalChildEdge.sourceId,
+    )
+    .map((item) => item.targetId);
+  assert.equal(new Set(newTargetIds).size, 1);
+  assert.equal(dateValue(graph, newTargetIds[0]), "2026-09-12");
+  assert.equal(
+    graph.relationships.find(
+      (item) => item.sourceId === child.id && item.type === "markedAsDone",
+    ),
+    originalChildEdge,
+  );
+  assert.equal(markTaskDone(graph, parent.id, "2026-09-12"), graph);
+  graph = reopenTask(graph, parent.id, "2026-09-13");
+  assert.deepEqual(
+    [parent, child, grandchild].map((item) => isTaskDone(graph, item.id)),
+    [false, true, true],
+  );
+  assert.equal(isGraph(graph), true);
 });

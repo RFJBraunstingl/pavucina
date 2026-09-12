@@ -7,6 +7,7 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 
 ## Data model
 - tasks are nodes in the knowledge graph
+- marking a task as done also marks all of its descendants as done
 - tasks have a variable set of properties (only the property "name" is mandatory)
 - properties can have data types such as
   - short text

@@ -1,4 +1,5 @@
 import { getTaskDate } from "./task-schedule-service.ts";
+import { getTaskAndDescendantIds } from "./task-tree-service.ts";
 import { isIsoDate } from "../utils/date.ts";
 import type { DateNode, Graph, TaskNode, TaskProperties } from "@/types/graph";
 
@@ -30,28 +31,30 @@ export function isTaskDone(graph: Graph, taskId: string) {
   );
 }
 
-export function markTaskDone(graph: Graph, taskId: string, date: string): Graph {
-  if (!isIsoDate(date)) throw new Error(`Invalid ISO date: ${date}`);
-  if (
-    isTaskDone(graph, taskId) ||
-    !graph.nodes.some((node) => node.type === "task" && node.id === taskId)
-  ) {
-    return graph;
-  }
+function markTasksDone(graph: Graph, taskIds: Iterable<string>, date: string) {
+  const incompleteIds = [...taskIds].filter(
+    (taskId) => !isTaskDone(graph, taskId),
+  );
+  if (!incompleteIds.length) return graph;
   const target = dateNode(graph, date);
   return {
     ...graph,
     nodes: graph.nodes.includes(target) ? graph.nodes : [...graph.nodes, target],
     relationships: [
       ...graph.relationships,
-      {
+      ...incompleteIds.map((sourceId) => ({
         id: crypto.randomUUID(),
-        type: "markedAsDone",
-        sourceId: taskId,
+        type: "markedAsDone" as const,
+        sourceId,
         targetId: target.id,
-      },
+      })),
     ],
   };
+}
+
+export function markTaskDone(graph: Graph, taskId: string, date: string): Graph {
+  if (!isIsoDate(date)) throw new Error(`Invalid ISO date: ${date}`);
+  return markTasksDone(graph, getTaskAndDescendantIds(graph, taskId), date);
 }
 
 export function reopenTask(graph: Graph, taskId: string, date: string): Graph {
@@ -110,9 +113,9 @@ export function migrateTaskCompletion(graph: Graph, today: string): Graph {
     ),
   };
   for (const taskId of legacyDone) {
-    migrated = markTaskDone(
+    migrated = markTasksDone(
       migrated,
-      taskId,
+      [taskId],
       getTaskDate(graph, taskId, "plannedEndDate") ?? today,
     );
   }

@@ -3,7 +3,10 @@ import {
   removeUnusedDates,
 } from "./task-schedule-service.ts";
 import { clearTaskSchedule } from "./task-schedule-mode-service.ts";
-import { flattenTasks } from "./task-tree-service.ts";
+import {
+  flattenTasks,
+  getTaskAndDescendantIds,
+} from "./task-tree-service.ts";
 import { ensureRootNode } from "./graph-service.ts";
 import { isTime } from "../utils/time.ts";
 import type { Graph, TimeProperty } from "@/types/graph";
@@ -70,23 +73,8 @@ export function setTaskTime(
 }
 
 export function deleteTask(graph: Graph, taskId: string) {
-  const taskExists = graph.nodes.some(
-    (node) => node.id === taskId && node.type === "task",
-  );
-  if (!taskExists) return graph;
-
-  const deletedIds = new Set<string>();
-  const pendingIds = [taskId];
-  while (pendingIds.length) {
-    const id = pendingIds.pop()!;
-    if (deletedIds.has(id)) continue;
-    deletedIds.add(id);
-    for (const relationship of graph.relationships) {
-      if (relationship.type === "child" && relationship.sourceId === id) {
-        pendingIds.push(relationship.targetId);
-      }
-    }
-  }
+  const deletedIds = getTaskAndDescendantIds(graph, taskId);
+  if (!deletedIds.size) return graph;
 
   return removeUnusedDates({
     ...graph,

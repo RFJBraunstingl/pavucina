@@ -44,6 +44,31 @@ export function getParentTaskIds(graph: Graph) {
   );
 }
 
+export function getTaskAndDescendantIds(graph: Graph, taskId: string) {
+  const taskIds = new Set(
+    graph.nodes.flatMap((node) => node.type === "task" ? [node.id] : []),
+  );
+  if (!taskIds.has(taskId)) return new Set<string>();
+
+  const result = new Set<string>();
+  const pending = [taskId];
+  while (pending.length) {
+    const id = pending.pop()!;
+    if (result.has(id)) continue;
+    result.add(id);
+    for (const relationship of graph.relationships) {
+      if (
+        relationship.type === "child" &&
+        relationship.sourceId === id &&
+        taskIds.has(relationship.targetId)
+      ) {
+        pending.push(relationship.targetId);
+      }
+    }
+  }
+  return result;
+}
+
 export function getParentTaskNames(graph: Graph, taskId: string) {
   // ponytail: rebuild maps per call; cache paths if large ToDo lists make this measurable.
   const tasks = new Map(
