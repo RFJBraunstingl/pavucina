@@ -4,10 +4,11 @@ import test from "node:test";
 import {
   isTaskDone,
   markTaskDone,
+  migrateTaskCompletion,
   reopenTask,
 } from "./task-completion-service.ts";
 import { isGraph } from "./graph-service.ts";
-import { removeUnusedDates } from "./task-schedule-service.ts";
+import { removeUnusedDates, setTaskDate } from "./task-schedule-service.ts";
 import type { Graph, TaskNode } from "../types/graph.ts";
 
 const task = (name: string): TaskNode => ({
@@ -55,12 +56,49 @@ test("completion edges retain done and reopened history", () => {
     id: crypto.randomUUID(),
   });
   assert.equal(isGraph(duplicate), false);
-  assert.equal(isGraph({
-    version: 1,
-    nodes: [{ ...item, properties: { name: item.properties.name, done: true } }],
-    relationships: [],
-  }), false);
   assert.throws(() => markTaskDone(graph, item.id, "not-a-date"));
+});
+
+test("legacy done properties migrate to planned-end dates", () => {
+  const planned = task("Planned");
+  const fallback = task("Fallback");
+  const open = task("Open");
+  let graph = {
+    version: 1,
+    nodes: [
+      { ...planned, properties: { name: "Planned", done: true } },
+      { ...fallback, properties: { name: "Fallback", done: true } },
+      { ...open, properties: { name: "Open", done: false } },
+    ],
+    relationships: [{
+      id: crypto.randomUUID(),
+      type: "child",
+      sourceId: planned.id,
+      targetId: open.id,
+    }],
+    inboxNodes: [{ ...task("Inbox"), properties: { name: "Inbox", done: true } }],
+  } as unknown as Graph;
+  graph = setTaskDate(graph, planned.id, "plannedEndDate", "2026-09-08");
+  assert.equal(isGraph(graph), true);
+
+  const migrated = migrateTaskCompletion(graph, "2026-09-12");
+  const completionDate = (taskId: string) => dateValue(
+    migrated,
+    migrated.relationships.find(
+      (item) => item.sourceId === taskId && item.type === "markedAsDone",
+    )?.targetId,
+  );
+  assert.equal(completionDate(planned.id), "2026-09-08");
+  assert.equal(completionDate(fallback.id), "2026-09-12");
+  assert.equal(isTaskDone(migrated, open.id), false);
+  assert.equal(
+    [...migrated.nodes, ...(migrated.inboxNodes ?? [])].some(
+      (node) => node.type === "task" && "done" in node.properties,
+    ),
+    false,
+  );
+  assert.equal(migrateTaskCompletion(migrated, "2026-09-12"), migrated);
+  assert.equal(isGraph(migrated), true);
 });
 
 test("marking a task completes every descendant but reopening does not", () => {

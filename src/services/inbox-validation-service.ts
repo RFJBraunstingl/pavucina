@@ -34,7 +34,8 @@ export function isInboxNodes(
         typeof properties.description !== "string") ||
       (properties.mailOrigin !== undefined &&
         !isMailTaskOrigin(properties.mailOrigin)) ||
-      "done" in properties ||
+      (properties.done !== undefined &&
+        typeof properties.done !== "boolean") ||
       !["plannedStartTime", "plannedEndTime"].every((key) => {
         const time = properties[key];
         return time === undefined || (typeof time === "string" && isTime(time));

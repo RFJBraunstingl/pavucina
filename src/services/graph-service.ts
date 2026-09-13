@@ -68,6 +68,8 @@ export function isGraph(value: unknown): value is Graph {
     }
     if (!isRecord(rawNode.properties)) return false;
     const properties = rawNode.properties;
+    const validDone =
+      properties.done === undefined || typeof properties.done === "boolean";
     const validDescription =
       properties.description === undefined ||
       typeof properties.description === "string";
@@ -87,7 +89,7 @@ export function isGraph(value: unknown): value is Graph {
       properties.name.trim() &&
       validDescription &&
       validMailOrigin &&
-      !("done" in properties)
+      validDone
     ) {
       nodes.set(rawNode.id, rawNode as TaskNode);
     } else if (
