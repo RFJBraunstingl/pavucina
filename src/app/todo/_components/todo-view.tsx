@@ -1,28 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import TaskDetailsDialog from "./task-details-dialog";
+import TodoDetailsDialog from "./todo-details-dialog";
+import TodoListItem from "./todo-list-item";
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
+import { useExternalCalendars } from "../../_components/use-external-calendars";
 import { usePreferences } from "../../_components/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
-import {
-  getLeafTasksForDate,
-  getParentTaskNames,
-} from "@/services/task-service";
+import { useCalendarImport } from "@/providers/calendar-import-provider";
+import { getTodoItemsForDate } from "@/services/todo-service";
 import {
   isTaskDone,
   markTaskDone,
   reopenTask,
 } from "@/services/task-completion-service";
-import { getTaskDate } from "@/services/task-schedule-service";
 import { compactDateLabel } from "@/utils/date";
 import type { UserPreferences } from "@/types/preferences";
 
 export default function TodoView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
-  const [detailsTaskId, setDetailsTaskId] = useState<string | null>(null);
+  const [detailsItemId, setDetailsItemId] = useState<string | null>(null);
+  const days = useMemo(() => [today], [today]);
+  const calendars = useExternalCalendars(days, undefined, false);
+  const calendarImport = useCalendarImport();
   const {
     preferences,
     setPreferences,
@@ -49,9 +51,14 @@ export default function TodoView() {
     );
   }
 
-  const tasks = getLeafTasksForDate(graph, today);
+  const items = getTodoItemsForDate(graph, today, calendars.data?.connections);
+  const tasks = items.filter((item) => item.type === "task");
   const doneCount = tasks.filter((task) => isTaskDone(graph, task.id)).length;
-  const detailsTask = tasks.find((task) => task.id === detailsTaskId) ?? null;
+  const detailsItem = items.find((item) => item.id === detailsItemId) ?? null;
+  const calendarError = calendars.error || calendars.data?.connections
+    .map((connection) => connection.error).filter(Boolean).join("; ") || null;
+  const loadingEvents = (!calendars.data && !calendarError) ||
+    calendars.busy === "refresh" || calendarImport.busy;
 
   function updateCompletion(taskId: string, done: boolean) {
     setGraph((current) =>
@@ -74,6 +81,9 @@ export default function TodoView() {
       <AppHeader active="todo" title="ToDo" />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
+      <GraphSyncError error={calendarError} onRetry={() => void calendars.refresh()} />
+      <GraphSyncError error={calendarImport.error} onRetry={() =>
+        void calendarImport.syncNow().catch(() => undefined)} />
       <section className="todo-card" aria-labelledby="todo-heading">
         <header className="todo-heading">
           <div>
@@ -99,88 +109,30 @@ export default function TodoView() {
           </div>
         </header>
 
-        {tasks.length ? (
+        {loadingEvents && (
+          <p className="todo-empty" role="status">Loading calendar events…</p>
+        )}
+        {items.length > 0 ? (
           <ul className="todo-list">
-            {tasks.map((task) => {
-              const startDate = getTaskDate(
-                graph,
-                task.id,
-                "plannedStartDate",
-              )!;
-              const endDate = getTaskDate(
-                graph,
-                task.id,
-                "plannedEndDate",
-              );
-              const startTime = task.properties.plannedStartTime;
-              const endTime = task.properties.plannedEndTime;
-              const parentNames = preferences.showFullTaskPath
-                ? getParentTaskNames(graph, task.id)
-                : [];
-              const done = isTaskDone(graph, task.id);
-              return (
-                <li
-                  className={`todo-item${done ? " is-done" : ""}`}
-                  key={task.id}
-                >
-                  <span className="todo-copy">
-                    {parentNames.length > 0 && (
-                      <span className="todo-path">
-                        {parentNames.join(" › ")}
-                      </span>
-                    )}
-                    <span className="todo-name">
-                      <strong>{task.properties.name}</strong>
-                      <button
-                        type="button"
-                        className="todo-details-button"
-                        aria-label={`Show details for ${task.properties.name}`}
-                        title="Show task details"
-                        onClick={() => setDetailsTaskId(task.id)}
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <circle cx="12" cy="12" r="9" />
-                          <path d="M12 11v6m0-9h.01" />
-                        </svg>
-                      </button>
-                    </span>
-                    <span>
-                      <time dateTime={startDate}>
-                        {compactDateLabel(startDate)}
-                      </time>
-                      {startTime && (
-                        <> · <time dateTime={startTime}>{startTime}</time></>
-                      )}
-                      {" - "}
-                      {endDate && (
-                        <time dateTime={endDate}>
-                          {compactDateLabel(endDate)}
-                        </time>
-                      )}
-                      {endTime && (
-                        <> · <time dateTime={endTime}>{endTime}</time></>
-                      )}
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    className={`completion-button${done ? " is-reopen" : ""}`}
-                    onClick={() => updateCompletion(task.id, done)}
-                  >
-                    {done ? "Reopen" : "Mark as done"}
-                  </button>
-                </li>
-              );
-            })}
+            {items.map((item) => (
+              <TodoListItem
+                key={item.id}
+                graph={graph}
+                item={item}
+                showFullTaskPath={preferences.showFullTaskPath ?? false}
+                onDetails={setDetailsItemId}
+                onCompletion={updateCompletion}
+              />
+            ))}
           </ul>
-        ) : (
-          <p className="todo-empty">No tasks are scheduled for today.</p>
+        ) : !loadingEvents && !calendarError && !calendarImport.error && (
+          <p className="todo-empty">No tasks or events are scheduled for today.</p>
         )}
       </section>
-      <TaskDetailsDialog
+      <TodoDetailsDialog
         graph={graph}
-        task={detailsTask}
-        onClose={() => setDetailsTaskId(null)}
+        item={detailsItem}
+        onClose={() => setDetailsItemId(null)}
       />
     </main>
   );

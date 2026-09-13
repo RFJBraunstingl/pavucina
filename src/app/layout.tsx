@@ -10,6 +10,7 @@ import "./_styles/timeline-filters.css";
 import "./_styles/task-bars.css";
 import "./_styles/inspector.css";
 import "./_styles/calendar.css";
+import "./_styles/calendar-creation.css";
 import "./_styles/external-calendar.css";
 import "./_styles/schedule.css";
 import "./_styles/todo.css";

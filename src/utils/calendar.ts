@@ -17,10 +17,15 @@ export const HOUR_LABELS = Array.from(
   (_, hour) => `${String(hour).padStart(2, "0")}:00`,
 );
 
+export function calendarItemEnd(item: CalendarLayoutItem) {
+  if (item.endDate > item.startDate) return 24 * 60;
+  return timeToMinutes(item.endTime);
+}
+
 function itemEnd(item: CalendarLayoutItem) {
   return Math.max(
     timeToMinutes(item.startTime) + CALENDAR_RESIZE_STEP,
-    timeToMinutes(item.endTime),
+    calendarItemEnd(item),
   );
 }
 
@@ -77,7 +82,7 @@ export function calendarPosition(
 ): CalendarLayoutItem | null {
   const dayIndex = daysBetween(weekStart, startDate);
   const start = timeToMinutes(startTime);
-  if (dayIndex < 0 || dayIndex > 6 || start < CALENDAR_START || start >= CALENDAR_END) {
+  if (dayIndex < 0 || dayIndex > 6 || start < CALENDAR_START || start > CALENDAR_END) {
     return null;
   }
   const end = timeToMinutes(endTime);

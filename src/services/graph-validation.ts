@@ -1,4 +1,5 @@
 import { daysBetween } from "../utils/date.ts";
+import { minutesBetweenDateTimes } from "../utils/time.ts";
 import type { Graph, GraphNode } from "../types/graph.ts";
 
 export function hasAcyclicTaskHierarchy(
@@ -42,6 +43,10 @@ export function hasValidGraphDateRanges(
     const endDate = relationships.get(`${node.id}:${endType}`);
     if (node.type === "event" && (!startDate || !endDate)) return false;
     if (startDate && endDate && daysBetween(startDate, endDate) < 0) return false;
+    if (node.type === "event" && !node.properties.externalOrigin &&
+      !node.properties.allDay && startDate && endDate &&
+      minutesBetweenDateTimes(startDate, node.properties.startTime!,
+        endDate, node.properties.endTime!) <= 0) return false;
   }
   return true;
 }

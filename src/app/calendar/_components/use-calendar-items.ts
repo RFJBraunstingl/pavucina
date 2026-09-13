@@ -5,8 +5,8 @@ import {
   getOverdueTasks,
 } from "@/services/task-day-schedule-service";
 import { resolvedScheduleMode } from "@/services/preferences-service";
+import { visibleCalendarEvents } from "@/utils/event-calendar";
 import type { CalendarConnectionSummary } from "@/types/external-calendar";
-import type { EventNode } from "@/types/event";
 import type { Graph } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
@@ -42,16 +42,9 @@ export function useCalendarItems(
       ({ task }) => !visible.has(task.id),
     );
   }, [graph, scheduleMode, schedules, today]);
-  const visibleCalendarKeys = useMemo(() => new Set(
-    connections?.flatMap((connection) => connection.calendars.flatMap((calendar) =>
-      calendar.selected && calendar.visible
-        ? [`${connection.id}:${calendar.id}`]
-        : [])) ?? [],
-  ), [connections]);
-  const importedEvents = useMemo(() => graph?.nodes.filter(
-    (node): node is EventNode => node.type === "event" && visibleCalendarKeys.has(
-      `${node.properties.externalOrigin.connectionId}:${node.properties.externalOrigin.calendarId}`,
-    )) ?? [], [graph, visibleCalendarKeys]);
+  const graphEvents = useMemo(
+    () => visibleCalendarEvents(graph, connections, preferences?.calendarEventImportEnabled),
+    [graph, connections, preferences?.calendarEventImportEnabled]);
 
-  return { scheduleMode, schedules, taskEvents, overdue, importedEvents };
+  return { scheduleMode, schedules, taskEvents, overdue, graphEvents };
 }

@@ -3,7 +3,7 @@ import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 import type { Graph, TaskNode } from "./graph";
 import type { ExternalCalendarEvent } from "./external-calendar";
 import type { ScheduleMode } from "./preferences";
-import type { EventNode } from "./event";
+import type { EventNode, EventTimeRange } from "./event";
 
 export type CalendarLayoutItem = {
   id: string;
@@ -23,6 +23,13 @@ export type ExternalCalendarItem = CalendarLayoutItem & {
   event: ExternalCalendarEvent & { allDay: false };
 };
 export type ImportedCalendarItem = CalendarLayoutItem & { eventNode: EventNode };
+
+export type GraphCalendarEventProps = {
+  item: ImportedCalendarItem;
+  dayCount?: number;
+  selected: boolean;
+  onSelect: () => void;
+};
 
 export type CalendarResizeEdge = "start" | "end";
 export type CalendarDragMode = "move" | CalendarResizeEdge;
@@ -47,14 +54,45 @@ export type CalendarGridProps = {
   today: string;
   taskEvents: CalendarItem[];
   externalEvents: ExternalCalendarEvent[];
-  importedEvents: EventNode[];
+  graphEvents: EventNode[];
   selectedId: string | null;
   locked: boolean;
   bodyRef: RefObject<HTMLDivElement | null>;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string, date: string) => void;
   onSelectEvent: (eventId: string) => void;
+  onCreateEvent: (range: EventTimeRange) => void;
+  creating: boolean;
 };
+
+export type CalendarRangeControlsProps = {
+  day: string;
+  today: string;
+  dayCount: number;
+  locked: boolean;
+  hideDone: boolean;
+  onToggleLock: () => void;
+  onHideDone: (hidden: boolean) => void;
+  onShowDay: (date: string) => void;
+  onCreate: () => void;
+};
+
+export type CalendarCreationOptions = {
+  items: CalendarLayoutItem[];
+  days: string[];
+  locked: boolean;
+  creating: boolean;
+  bodyRef: RefObject<HTMLDivElement | null>;
+  onCreate: (range: EventTimeRange) => void;
+};
+
+export type CalendarPreview = {
+  range: EventTimeRange;
+  items: CalendarLayoutItem[];
+  days: string[];
+};
+
+export type CalendarPointerOrigin = { x: number; y: number };
 
 export type CalendarInteractionOptions = {
   graph: Graph;

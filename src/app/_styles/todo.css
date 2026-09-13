@@ -96,6 +96,20 @@
   overflow-wrap: anywhere;
 }
 
+.todo-calendar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.todo-calendar-color {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
 .todo-item.is-done .todo-copy strong {
   color: var(--muted);
   text-decoration: line-through;

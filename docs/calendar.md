@@ -24,6 +24,27 @@ overlays from Google Calendar and Outlook Calendar.
   safely. Use the lock button to enable or disable dragging and resizing;
   deliberate inspector edits remain available while locked.
 
+## Creating events
+
+- Unlock editing on mobile, then tap free time to create a native Pavucina event.
+  Desktop editing is always unlocked; hovering over free time previews the event
+  with a plus, and one click opens its form.
+- Use **+ New event** for keyboard access, then enter the date and time in the form.
+- Suggestions fill free gaps of up to one hour. In longer gaps, the start snaps
+  to a quarter hour and the suggested duration stops at one hour, the next visible
+  timed item, or midnight. Hidden calendars and all-day entries do not block suggestions.
+- Enter a title, start/end dates and times, and optionally a location and
+  description. The time zone is shown in the form. You can choose longer or
+  overlapping times, including events spanning midnight.
+- Select a native event to edit it or delete it with confirmation. These
+  deliberate edits remain available while locked. Cancel and Escape discard the
+  draft; hovering never saves an event.
+- Native events appear independently of calendar-import settings and are saved
+  with the workspace, including backups and revision history. Importing,
+  disconnecting, or disabling external calendars does not remove native events.
+- Native events do not send invitations or write to Google or Outlook. They
+  currently support timed, non-recurring events and editing through the form.
+
 ## External calendars
 
 - Connect multiple Google or Outlook calendar accounts with separate read-only

@@ -1,7 +1,31 @@
 import { calendarPosition } from "./calendar.ts";
+import { isImportedEvent } from "./event.ts";
 import type { EventNode } from "../types/event.ts";
+import type { CalendarConnectionSummary } from "../types/external-calendar.ts";
 import type { Graph } from "../types/graph.ts";
 import type { ImportedCalendarItem } from "../types/calendar.ts";
+
+export function visibleImportedEvents(
+  graph: Graph | null,
+  connections: CalendarConnectionSummary[] = [],
+) {
+  const visibleCalendarKeys = new Set(connections.flatMap((connection) =>
+    connection.calendars.flatMap((calendar) => calendar.selected && calendar.visible
+      ? [`${connection.id}:${calendar.id}`]
+      : [])));
+  return graph?.nodes.filter((node): node is EventNode =>
+    isImportedEvent(node) && visibleCalendarKeys.has(
+      `${node.properties.externalOrigin.connectionId}:${node.properties.externalOrigin.calendarId}`,
+    )) ?? [];
+}
+
+export function visibleCalendarEvents(
+  graph: Graph | null, connections: CalendarConnectionSummary[] = [], includeImported = false,
+) {
+  const native = graph?.nodes.filter((node): node is EventNode =>
+    node.type === "event" && !node.properties.externalOrigin) ?? [];
+  return includeImported ? [...native, ...visibleImportedEvents(graph, connections)] : native;
+}
 
 function eventDates(graph: Graph) {
   const dateValues = new Map(graph.nodes.flatMap((node) => node.type === "date"

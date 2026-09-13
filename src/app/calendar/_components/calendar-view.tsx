@@ -3,14 +3,16 @@
 import { useMemo, useRef, useState } from "react";
 
 import CalendarControls from "./calendar-controls";
-import CalendarEditLock from "./calendar-edit-lock";
+import CalendarRangeControls from "./calendar-range-controls";
 import CalendarGrid from "./calendar-grid";
+import EventDialog from "./event-dialog";
 import EventInspector from "./event-inspector";
 import ScheduleTray from "./schedule-tray";
 import { useCalendarDayCount } from "./use-calendar-day-count";
 import { useCalendarItems } from "./use-calendar-items";
-import { useExternalCalendars } from "./use-external-calendars";
+import { useExternalCalendars } from "../../_components/use-external-calendars";
 import { useTraySchedule } from "./use-tray-schedule";
+import { useEventEditor } from "./use-event-editor";
 import AppHeader from "../../_components/app-header";
 import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import TaskInspector from "../../_components/task-inspector";
@@ -19,13 +21,15 @@ import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
 import { scheduleTaskForDay } from "@/services/task-day-schedule-service";
 import {
-  addDays,
   compactDateLabel,
   makeDateRange,
   rangeLabel,
   startOfWeek,
 } from "@/utils/date";
 import type { UserPreferences } from "@/types/preferences";
+import { defaultCalendarEvent } from "@/utils/calendar-creation";
+import { externalCalendarItems } from "@/utils/external-calendar";
+import { importedCalendarItems } from "@/utils/event-calendar";
 
 export default function CalendarView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
@@ -38,6 +42,7 @@ export default function CalendarView() {
   const calendarImport = useCalendarImport();
   const [day, setDay] = useState(today);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const editor = useEventEditor(setSelectedId);
   const [scheduleDate, setScheduleDate] = useState(today);
   const [mobileLocked, setMobileLocked] = useState(true);
   const body = useRef<HTMLDivElement>(null);
@@ -50,10 +55,11 @@ export default function CalendarView() {
     calendarImport.disconnect,
     !calendarImport.enabled,
   );
-  const { scheduleMode, schedules, taskEvents, overdue, importedEvents } =
+  const { scheduleMode, schedules, taskEvents, overdue, graphEvents } =
     useCalendarItems(graph, preferences, days, today, calendars.data?.connections);
   const selectedEvent = graph?.nodes.find((node) => node.id === selectedId);
   const locked = mobile && mobileLocked;
+  const externalEvents = calendarImport.enabled ? [] : calendars.data?.events ?? [];
   const tray = useTraySchedule({
     days,
     bodyRef: body,
@@ -86,6 +92,7 @@ export default function CalendarView() {
     setDay(date);
     setScheduleDate(date);
     setSelectedId(null);
+    editor.close();
   }
 
   return (
@@ -113,39 +120,21 @@ export default function CalendarView() {
                   await calendars.refresh();
                 }}
               />
-              <div className="range-controls" aria-label="Calendar range">
-                <label className="done-toggle">
-                  <input
-                    type="checkbox"
-                    checked={preferences.hideDone}
-                    onChange={(event) =>
-                      updatePreferences({ hideDone: event.target.checked })
-                    }
-                  />
-                  Hide done
-                </label>
-                {mobile && (
-                  <CalendarEditLock locked={mobileLocked} onToggle={() =>
-                    setMobileLocked((current) => !current)} />
-                )}
-                <button
-                  type="button"
-                  aria-label={`Previous ${mobile ? "day" : "week"}`}
-                  onClick={() => showDay(addDays(day, -dayCount))}
-                >←</button>
-                <button type="button" className="today-button" onClick={() => showDay(today)}>Today</button>
-                <button
-                  type="button"
-                  aria-label={`Next ${mobile ? "day" : "week"}`}
-                  onClick={() => showDay(addDays(day, dayCount))}
-                >→</button>
-              </div>
+              <CalendarRangeControls day={day} today={today} dayCount={dayCount}
+                locked={locked} hideDone={preferences.hideDone}
+                onToggleLock={() => setMobileLocked((current) => !current)}
+                onHideDone={(hideDone) => updatePreferences({ hideDone })}
+                onShowDay={showDay}
+                onCreate={() => editor.create(defaultCalendarEvent([
+                  ...taskEvents, ...importedCalendarItems(graph, graphEvents, days),
+                  ...externalCalendarItems(externalEvents, days),
+                ], day))} />
             </div>
           </div>
           <p className="calendar-hint">
             {locked
-              ? "Editing is locked. Unlock to drag or resize tasks."
-              : "Drag tasks into the calendar, or drag an edge to resize them."}
+              ? "Editing is locked. Unlock to create events, or drag and resize tasks."
+              : "Click or tap free time to create an event. Drag tasks or their edges to reschedule them."}
           </p>
           <ScheduleTray
             days={schedules.map(({ date, unscheduled }) => ({
@@ -168,20 +157,23 @@ export default function CalendarView() {
             days={days}
             today={today}
             taskEvents={taskEvents}
-            externalEvents={calendarImport.enabled ? [] : calendars.data?.events ?? []}
-            importedEvents={calendarImport.enabled ? importedEvents : []}
+            externalEvents={externalEvents}
+            graphEvents={graphEvents}
             selectedId={selectedId}
             locked={locked}
             bodyRef={body}
             onGraphChange={setGraph}
             onSelect={selectTask}
-            onSelectEvent={setSelectedId}
+            onSelectEvent={editor.select}
+            onCreateEvent={editor.create}
+            creating={Boolean(editor.draft)}
           />
         </section>
         {selectedEvent?.type === "event" ? (
           <EventInspector
             graph={graph}
             event={selectedEvent}
+            onEdit={() => editor.select(selectedEvent.id)}
           />
         ) : (
           <TaskInspector
@@ -193,6 +185,10 @@ export default function CalendarView() {
           />
         )}
       </div>
+      {graph && editor.draft && (
+        <EventDialog key={editor.draft.id} draft={editor.draft}
+          onSave={editor.save} onDelete={editor.remove} onClose={editor.close} />
+      )}
     </main>
   );
 }

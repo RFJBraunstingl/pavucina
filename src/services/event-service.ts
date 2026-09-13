@@ -1,7 +1,7 @@
 import { removeUnusedDates } from "./task-schedule-service.ts";
 import { importedEventSchedule } from "./event-schedule-service.ts";
-import { calendarEventOriginKey, EVENT_TEXT_LIMITS } from "../utils/event.ts";
-import type { EventNode, EventProperties } from "../types/event.ts";
+import { calendarEventOriginKey, EVENT_TEXT_LIMITS, isImportedEvent } from "../utils/event.ts";
+import type { ImportedEventNode } from "../types/event.ts";
 import type { CalendarSyncBatch, ExternalCalendarEvent } from "../types/external-calendar.ts";
 import type { DateNode, Graph, Relationship } from "../types/graph.ts";
 
@@ -14,10 +14,10 @@ function clipped(value: string | undefined, limit: number) {
 
 export function removeImportedEvents(
   graph: Graph,
-  remove: (event: EventNode) => boolean = () => true,
+  remove: (event: ImportedEventNode) => boolean = () => true,
 ) {
   const ids = new Set(graph.nodes.flatMap((node) =>
-    node.type === "event" && remove(node) ? [node.id] : []));
+    isImportedEvent(node) && remove(node) ? [node.id] : []));
   if (!ids.size) return graph;
   return removeUnusedDates({
     ...graph,
@@ -32,7 +32,7 @@ function eventProperties(
   batch: CalendarSyncBatch,
   event: ExternalCalendarEvent,
   timeZone: string,
-): EventProperties {
+): ImportedEventNode["properties"] {
   const schedule = importedEventSchedule(event, timeZone);
   return {
     name: clipped(event.title, EVENT_TEXT_LIMITS.name) ?? "(Busy)",
@@ -64,7 +64,7 @@ function upsertEvents(
 ) {
   const nodes = [...graph.nodes];
   const nodeIndex = new Map(nodes.map((node, index) => [node.id, index]));
-  const existingEvents = new Map(nodes.flatMap((node) => node.type === "event"
+  const existingEvents = new Map(nodes.flatMap((node) => isImportedEvent(node)
     ? [[calendarEventOriginKey(node.properties.externalOrigin), node] as const]
     : []));
   const dates = new Map(nodes.flatMap((node) => node.type === "date"
@@ -84,7 +84,7 @@ function upsertEvents(
     const properties = eventProperties(batch, event, timeZone);
     const originKey = calendarEventOriginKey(properties.externalOrigin);
     const existing = existingEvents.get(originKey);
-    const node: EventNode = {
+    const node: ImportedEventNode = {
       id: existing?.id ?? crypto.randomUUID(),
       type: "event",
       properties,
@@ -143,7 +143,7 @@ export function reconcileCalendarBatch(
   const metadataUpdated = {
     ...graph,
     nodes: graph.nodes.map((node) => {
-      if (node.type !== "event") return node;
+      if (!isImportedEvent(node)) return node;
       const origin = node.properties.externalOrigin;
       if (origin.connectionId !== batch.connectionId ||
         origin.calendarId !== batch.calendar.id) return node;
@@ -169,9 +169,7 @@ export function reconcileCalendarBatch(
 
 export function replaceImportedEventSubgraph(current: Graph, remote: Graph) {
   const next = removeImportedEvents(current);
-  const events = remote.nodes.filter(
-    (node): node is EventNode => node.type === "event",
-  );
+  const events = remote.nodes.filter(isImportedEvent);
   const eventIds = new Set(events.map(({ id }) => id));
   const remoteDates = new Map(remote.nodes.flatMap((node) => node.type === "date"
     ? [[node.id, node] as const]

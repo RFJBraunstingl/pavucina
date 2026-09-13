@@ -1,20 +1,17 @@
 import type { CSSProperties } from "react";
 
-import type { ImportedCalendarItem } from "@/types/calendar";
+import type { GraphCalendarEventProps } from "@/types/calendar";
 
-export default function ImportedCalendarEvent({
+export default function GraphCalendarEvent({
   item,
   dayCount = 7,
   selected,
   onSelect,
-}: {
-  item: ImportedCalendarItem;
-  dayCount?: number;
-  selected: boolean;
-  onSelect: () => void;
-}) {
+}: GraphCalendarEventProps) {
   const { eventNode, dayIndex, laneIndex, laneCount, top, height } = item;
   const laneWidth = 100 / (dayCount * laneCount);
+  const imported = Boolean(eventNode.properties.externalOrigin);
+  const label = `${eventNode.properties.name}, ${item.startDate} ${item.startTime} – ${item.endDate} ${item.endTime}`;
   return (
     <div
       className={`external-calendar-event${selected ? " selected" : ""}`}
@@ -26,10 +23,10 @@ export default function ImportedCalendarEvent({
         "--external-calendar-color": eventNode.properties.calendarColor,
       } as CSSProperties}
     >
-      <button type="button" onClick={onSelect}>
-        <small>{eventNode.properties.calendarName}</small>
+      <button type="button" onClick={onSelect} aria-label={label} title={label}>
+        {imported && <small>{eventNode.properties.calendarName}</small>}
         <strong>{eventNode.properties.name}</strong>
-        <span>{item.startTime} – {item.endTime}</span>
+        {(imported || height >= 48) && <span>{item.startTime} – {item.endTime}</span>}
       </button>
     </div>
   );

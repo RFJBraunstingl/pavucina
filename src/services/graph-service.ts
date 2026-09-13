@@ -95,9 +95,11 @@ export function isGraph(value: unknown): value is Graph {
       isEventProperties(properties)
     ) {
       const event = rawNode as EventNode;
-      const key = calendarEventOriginKey(event.properties.externalOrigin);
-      if (eventOrigins.has(key)) return false;
-      eventOrigins.add(key);
+      if (event.properties.externalOrigin) {
+        const key = calendarEventOriginKey(event.properties.externalOrigin);
+        if (eventOrigins.has(key)) return false;
+        eventOrigins.add(key);
+      }
       nodes.set(rawNode.id, event);
     } else if (
       rawNode.type === "date" &&

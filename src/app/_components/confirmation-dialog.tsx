@@ -27,7 +27,10 @@ export default function ConfirmationDialog(props: Props) {
       ref={dialog}
       className="app-dialog"
       aria-labelledby={headingId}
-      onClose={props.onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        props.onClose();
+      }}
     >
       <form
         method="dialog"
@@ -59,4 +62,3 @@ export default function ConfirmationDialog(props: Props) {
     </dialog>
   );
 }
-

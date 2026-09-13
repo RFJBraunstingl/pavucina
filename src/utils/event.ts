@@ -1,7 +1,12 @@
 import { isCalendarColor, isCalendarSource } from "./external-calendar.ts";
 import { isUuid } from "./id.ts";
 import { isTime } from "./time.ts";
-import type { CalendarEventOrigin, EventProperties } from "../types/event.ts";
+import type { CalendarEventOrigin, EventProperties, ImportedEventNode } from "../types/event.ts";
+import type { GraphNode } from "../types/graph.ts";
+
+export function isImportedEvent(node: GraphNode): node is ImportedEventNode {
+  return node.type === "event" && node.properties.externalOrigin !== undefined;
+}
 
 export const EVENT_TEXT_LIMITS = {
   name: 512,
@@ -79,5 +84,5 @@ export function isEventProperties(value: Record<string, unknown>): value is Even
     optionalText(value.providerUpdatedAt, 64) &&
     (value.providerUpdatedAt === undefined ||
       !Number.isNaN(Date.parse(value.providerUpdatedAt as string))) &&
-    isCalendarEventOrigin(value.externalOrigin);
+    (value.externalOrigin === undefined || isCalendarEventOrigin(value.externalOrigin));
 }

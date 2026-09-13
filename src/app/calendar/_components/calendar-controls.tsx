@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import CalendarManager from "./calendar-manager";
-import type { useExternalCalendars } from "./use-external-calendars";
+import type { useExternalCalendars } from "../../_components/use-external-calendars";
 import type { CalendarSelection } from "@/types/external-calendar";
 
 type CalendarsState = ReturnType<typeof useExternalCalendars>;
