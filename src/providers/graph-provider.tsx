@@ -12,7 +12,6 @@ import {
 import { useSession } from "next-auth/react";
 
 import { loadGuestGraph, saveGuestGraph } from "@/services/local-graph-store";
-import { migrateTaskCompletion } from "@/services/task-completion-service";
 import {
   loadRemoteGraph,
   restoreRemoteGraph,
@@ -53,10 +52,9 @@ function useGraphState() {
 
       if (status === "unauthenticated") {
         const loaded = loadGuestGraph(today);
-        const next = loaded ? migrateTaskCompletion(loaded, today) : loaded;
         loadedScope.current = "guest";
         lastSaved.current = loaded ? JSON.stringify(loaded) : null;
-        setGraph(next);
+        setGraph(loaded);
         return;
       }
 
@@ -64,17 +62,16 @@ function useGraphState() {
         let loaded = await loadRemoteGraph();
         if (!loaded) {
           if (cancelled) return;
-          loaded = migrateTaskCompletion(loadGuestGraph(today)!, today);
+          loaded = loadGuestGraph(today)!;
           if (!(await saveRemoteGraph(loaded, true))) {
             loaded = await loadRemoteGraph();
             if (!loaded) throw new Error("Could not load your saved graph");
           }
         }
         if (cancelled) return;
-        const next = migrateTaskCompletion(loaded, today);
         loadedScope.current = scope;
         lastSaved.current = JSON.stringify(loaded);
-        setGraph(next);
+        setGraph(loaded);
       } catch (error) {
         if (!cancelled) {
           setSyncError(

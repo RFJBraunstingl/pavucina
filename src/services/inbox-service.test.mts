@@ -77,6 +77,17 @@ test("inbox nodes stay outside graph relationships and use unique IDs", () => {
   );
   assert.equal(
     isGraph({
+      ...graph,
+      inboxNodes: [{
+        id: crypto.randomUUID(),
+        type: "task",
+        properties: { name: "Legacy", done: true },
+      }],
+    }),
+    false,
+  );
+  assert.equal(
+    isGraph({
       ...withInbox,
       relationships: [
         ...withInbox.relationships,

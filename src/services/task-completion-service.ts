@@ -1,15 +1,6 @@
-import { getTaskDate } from "./task-schedule-service.ts";
 import { getTaskAndDescendantIds } from "./task-tree-service.ts";
 import { isIsoDate } from "../utils/date.ts";
-import type { DateNode, Graph, TaskNode, TaskProperties } from "@/types/graph";
-
-type LegacyTaskProperties = TaskProperties & { done?: boolean };
-
-function withoutLegacyDone(task: TaskNode): TaskNode {
-  const properties = { ...task.properties } as LegacyTaskProperties;
-  delete properties.done;
-  return { ...task, properties };
-}
+import type { DateNode, Graph } from "@/types/graph";
 
 function dateNode(graph: Graph, value: string): DateNode {
   return (
@@ -87,37 +78,4 @@ export function reopenTask(graph: Graph, taskId: string, date: string): Graph {
       },
     ],
   };
-}
-
-export function migrateTaskCompletion(graph: Graph, today: string): Graph {
-  if (!isIsoDate(today)) throw new Error(`Invalid ISO date: ${today}`);
-  const legacyDone = graph.nodes.flatMap((node) =>
-    node.type === "task" && (node.properties as LegacyTaskProperties).done
-      ? [node.id]
-      : [],
-  );
-  const hasLegacyProperties = [...graph.nodes, ...(graph.inboxNodes ?? [])].some(
-    (node) => node.type === "task" && "done" in node.properties,
-  );
-  if (!hasLegacyProperties) return graph;
-
-  let migrated: Graph = {
-    ...graph,
-    nodes: graph.nodes.map((node) =>
-      node.type === "task" && "done" in node.properties
-        ? withoutLegacyDone(node)
-        : node,
-    ),
-    inboxNodes: graph.inboxNodes?.map((node) =>
-      "done" in node.properties ? withoutLegacyDone(node) : node,
-    ),
-  };
-  for (const taskId of legacyDone) {
-    migrated = markTasksDone(
-      migrated,
-      [taskId],
-      getTaskDate(graph, taskId, "plannedEndDate") ?? today,
-    );
-  }
-  return migrated;
 }

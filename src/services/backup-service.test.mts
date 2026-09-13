@@ -29,7 +29,7 @@ test("backup writes all workspace data and restores its contents", () => {
     "nodes.json",
     "settings.json",
   ]);
-  assert.deepEqual(readBackupArchive(archive, "2026-09-10"), {
+  assert.deepEqual(readBackupArchive(archive), {
     graph,
     preferences: DEFAULT_USER_PREFERENCES,
   });
@@ -37,7 +37,7 @@ test("backup writes all workspace data and restores its contents", () => {
 
 test("restore rejects incomplete backups", () => {
   assert.throws(
-    () => readBackupArchive(zipSync({ "nodes.json": new Uint8Array() }), "2026-09-10"),
+    () => readBackupArchive(zipSync({ "nodes.json": new Uint8Array() })),
     /Invalid backup: expected nodes\.json, edges\.json, settings\.json/,
   );
 });
@@ -52,13 +52,13 @@ test("restore treats legacy backups as an empty inbox", () => {
     ),
   });
 
-  assert.deepEqual(readBackupArchive(archive, "2026-09-10"), {
+  assert.deepEqual(readBackupArchive(archive), {
     graph: { ...graph, inboxNodes: [] },
     preferences: DEFAULT_USER_PREFERENCES,
   });
 });
 
-test("restore migrates legacy completion properties", () => {
+test("restore rejects legacy completion properties", () => {
   const taskId = crypto.randomUUID();
   const graph = {
     version: 1,
@@ -79,17 +79,8 @@ test("restore migrates legacy completion properties", () => {
     ),
   });
 
-  const restored = readBackupArchive(archive, "2026-09-12").graph;
-  assert.equal("done" in restored.nodes[0].properties, false);
-  const completion = restored.relationships.find(
-    (relationship) => relationship.type === "markedAsDone",
-  );
-  assert.equal(completion?.sourceId, taskId);
-  const completionDate = restored.nodes.find(
-    (node) => node.id === completion?.targetId,
-  );
-  assert.equal(
-    completionDate?.type === "date" ? completionDate.properties.value : undefined,
-    "2026-09-12",
+  assert.throws(
+    () => readBackupArchive(archive),
+    /Invalid backup: nodes, inbox, or edges are invalid/,
   );
 });
