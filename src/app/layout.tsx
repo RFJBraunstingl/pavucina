@@ -17,6 +17,7 @@ import "./_styles/todo-dialog.css";
 import "./_styles/preferences.css";
 import "./_styles/inbox.css";
 import "./_styles/mailbox.css";
+import "./_styles/mailbox-picker.css";
 import "./_styles/scratchpad.css";
 import "./_styles/legal.css";
 import "./_styles/responsive.css";

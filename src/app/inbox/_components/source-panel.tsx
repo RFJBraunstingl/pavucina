@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 
 import DisconnectMailboxDialog from "./disconnect-mailbox-dialog";
+import MailboxConnectionPicker from "./mailbox-connection-picker";
 import MailMessageList from "./mail-message-list";
 import {
   beginMailboxConnection,
@@ -11,7 +12,7 @@ import {
   loadMailboxes,
   markRemoteMessageRead,
 } from "@/services/remote-mailbox-store";
-import { MAILBOX_SOURCES, mailboxSourceLabel } from "@/utils/mailbox";
+import { mailboxSourceLabel } from "@/utils/mailbox";
 import type {
   MailboxConnectionSummary,
   MailboxesResponse,
@@ -28,8 +29,17 @@ export default function SourcePanel({
   const [data, setData] = useState<MailboxesResponse | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string>();
   const [disconnecting, setDisconnecting] =
     useState<MailboxConnectionSummary | null>(null);
+  const selectedConnection = data?.connections.find(
+    ({ id }) => id === selectedConnectionId,
+  ) ?? data?.connections[0];
+  const visibleMessages = selectedConnection
+    ? data?.messages.filter(
+        ({ connectionId }) => connectionId === selectedConnection.id,
+      ) ?? []
+    : [];
 
   const refresh = useCallback(async () => {
     setBusy("refresh");
@@ -121,34 +131,26 @@ export default function SourcePanel({
         </button>
       </header>
       <div className="source-content">
-        <div className="source-actions">
-          {MAILBOX_SOURCES.map((source) => (
-            <button
-              type="button"
-              key={source}
-              disabled={Boolean(busy) || data?.available[source] === false}
-              onClick={() => void connect(source)}
-            >
-              {data?.available[source] === false
-                ? `${mailboxSourceLabel(source)} unavailable`
-                : data?.connections.some((item) => item.source === source)
-                  ? `Add another ${mailboxSourceLabel(source)}`
-                  : `Add ${mailboxSourceLabel(source)}`}
-            </button>
-          ))}
-        </div>
-        {data?.connections.map((connection) => (
-          <div className="mailbox-account" key={connection.id}>
+        <MailboxConnectionPicker
+          connections={data?.connections ?? null}
+          available={data?.available}
+          busy={Boolean(busy)}
+          selectedId={selectedConnection?.id}
+          onSelect={setSelectedConnectionId}
+          onConnect={(source) => void connect(source)}
+        />
+        {selectedConnection && (
+          <div className="mailbox-account">
             <div>
-              <strong>{connection.address}</strong>
-              <small>{mailboxSourceLabel(connection.source)}</small>
-              {connection.error && <span>{connection.error}</span>}
+              <strong>{selectedConnection.address}</strong>
+              <small>{mailboxSourceLabel(selectedConnection.source)}</small>
+              {selectedConnection.error && <span>{selectedConnection.error}</span>}
             </div>
-            {connection.status === "error" && (
+            {selectedConnection.status === "error" && (
               <button
                 type="button"
                 disabled={Boolean(busy)}
-                onClick={() => void connect(connection.source)}
+                onClick={() => void connect(selectedConnection.source)}
               >
                 Reconnect
               </button>
@@ -156,15 +158,15 @@ export default function SourcePanel({
             <button
               type="button"
               disabled={Boolean(busy)}
-              onClick={() => setDisconnecting(connection)}
+              onClick={() => setDisconnecting(selectedConnection)}
             >
               Disconnect
             </button>
           </div>
-        ))}
+        )}
         {message && <p className="mailbox-message" role="status">{message}</p>}
         <MailMessageList
-          messages={data?.messages ?? []}
+          messages={visibleMessages}
           loading={!data || busy === "refresh"}
           busy={busy}
           onAdd={(mail) => handleMessage(mail, true)}

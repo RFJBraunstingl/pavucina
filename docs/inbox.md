@@ -7,6 +7,7 @@ tree.
 ## Mail
 
 - Connect one or more Gmail or Outlook accounts through OAuth.
+- Choose one connected account at a time to review its unread messages.
 - Review up to 25 of the newest unread messages per mail provider.
 - Add a message to the scratchpad as a task. Its subject becomes the task name,
   and its sender, received time, and preview are saved in the description.
@@ -29,4 +30,3 @@ tree.
   the scratchpad.
 
 [← Documentation index](index.md)
-

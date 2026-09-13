@@ -20,7 +20,6 @@
 }
 
 .source-heading button,
-.source-actions button,
 .mailbox-account button,
 .mail-message-actions button {
   padding: 7px 9px;
@@ -36,14 +35,6 @@
 .source-panel button:disabled {
   cursor: wait;
   opacity: 0.55;
-}
-
-.source-actions {
-  display: grid;
-  padding: 14px;
-  border-bottom: 1px solid var(--line);
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
 }
 
 .mailbox-account {

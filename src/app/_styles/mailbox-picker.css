@@ -1,0 +1,63 @@
+.mailbox-picker {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mailbox-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mailbox-picker select,
+.mailbox-picker-value {
+  min-width: 0;
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.mailbox-picker-value {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}
+
+.mailbox-picker-value.selected {
+  color: var(--ink);
+}
+
+.mailbox-add-button,
+.source-actions button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--green-dark);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mailbox-add-button {
+  flex: 0 0 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.source-actions {
+  display: grid;
+  padding-top: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.source-actions button {
+  padding: 7px 9px;
+}
