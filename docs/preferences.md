@@ -37,6 +37,9 @@ in workspace backups.
   items, and settings as a ZIP file.
 - Restore a previous ZIP backup after confirming that it will replace the
   current tasks, relationships, and settings.
+- If your saved graph cannot load, open Preferences from the error screen to
+  restore a backup. Downloads and graph-dependent settings stay disabled until
+  the graph is available again.
 - Backups do not contain sign-in identities or mailbox and calendar credentials.
 
 ## Legal information

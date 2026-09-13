@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Props = {
   error: string | null;
   onRetry: () => void;
@@ -9,6 +11,7 @@ export function GraphLoading({ label, error, onRetry }: Props & { label: string 
       {!error && <span className="brand-mark" aria-hidden="true" />}
       <p role={error ? "alert" : undefined}>{error ?? label}</p>
       {error && <button type="button" onClick={onRetry}>Retry</button>}
+      {error && <Link href="/preferences">Open Preferences</Link>}
     </main>
   );
 }

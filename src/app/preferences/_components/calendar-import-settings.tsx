@@ -1,8 +1,11 @@
 "use client";
 
+import { useSession } from "next-auth/react";
+
 import { useCalendarImport } from "@/providers/calendar-import-provider";
 
 export default function CalendarImportSettings() {
+  const { status } = useSession();
   const calendarImport = useCalendarImport();
   return (
     <section className="preferences-card" aria-labelledby="calendar-import-heading">
@@ -30,7 +33,11 @@ export default function CalendarImportSettings() {
         used. Disabling import deletes imported event data and its history.
       </p>
       {!calendarImport.available && (
-        <p className="calendar-import-note">Sign in to enable server-side import.</p>
+        <p className="calendar-import-note">
+          {status === "authenticated"
+            ? "Load or restore your graph to manage calendar event import."
+            : "Sign in to enable server-side import."}
+        </p>
       )}
       {calendarImport.busy && <p role="status">Synchronizing calendar events…</p>}
       {calendarImport.lastSyncedAt && !calendarImport.busy && (

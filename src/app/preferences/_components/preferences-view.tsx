@@ -27,7 +27,7 @@ export default function PreferencesView() {
   } = usePreferences();
   const leafModeDialog = useRef<HTMLDialogElement>(null);
 
-  if (!hydrated || !graph) {
+  if (!hydrated || (!graph && !syncError)) {
     return <GraphLoading label="Loading preferences…" error={syncError} onRetry={retry} />;
   }
   if (!preferences) {
@@ -68,7 +68,7 @@ export default function PreferencesView() {
           <p className="eyebrow">Preferences</p>
           <h2 id="timeline-preferences">Timeline</h2>
         </header>
-        <fieldset className="schedule-mode-options">
+        <fieldset className="schedule-mode-options" disabled={!graph}>
           <legend>Scheduling mode</legend>
           <label>
             <input

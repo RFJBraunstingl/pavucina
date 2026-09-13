@@ -7,16 +7,9 @@ import {
   readBackupArchive,
 } from "@/services/backup-service";
 import { todayIso } from "@/utils/date";
-import type { Graph } from "@/types/graph";
-import type { UserPreferences } from "@/types/preferences";
+import type { BackupRestoreProps } from "@/types/backup";
 
-type Props = {
-  graph: Graph;
-  preferences: UserPreferences;
-  onRestore: (graph: Graph, preferences: UserPreferences) => Promise<boolean>;
-};
-
-export default function BackupRestore({ graph, preferences, onRestore }: Props) {
+export default function BackupRestore({ graph, preferences, onRestore }: BackupRestoreProps) {
   const input = useRef<HTMLInputElement>(null);
   const restoreDialog = useRef<HTMLDialogElement>(null);
   const pendingBackup = useRef<ReturnType<typeof readBackupArchive>>(null);
@@ -25,6 +18,7 @@ export default function BackupRestore({ graph, preferences, onRestore }: Props) 
   const [restoring, setRestoring] = useState(false);
 
   function downloadBackup() {
+    if (!graph) return;
     const archive = createBackupArchive(graph, preferences);
     const url = URL.createObjectURL(
       new Blob([new Uint8Array(archive)], { type: "application/zip" }),
@@ -91,7 +85,7 @@ export default function BackupRestore({ graph, preferences, onRestore }: Props) 
         <p>Download all data as a ZIP, or replace it from a previous backup.</p>
       </header>
       <div className="backup-actions">
-        <button type="button" onClick={downloadBackup}>Download backup</button>
+        <button type="button" disabled={!graph} onClick={downloadBackup}>Download backup</button>
         <button type="button" disabled={restoring} onClick={() => input.current?.click()}>
           {restoring ? "Restoring…" : "Restore backup"}
         </button>

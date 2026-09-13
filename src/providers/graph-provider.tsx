@@ -78,6 +78,8 @@ function useGraphState() {
         setGraph(next);
       } catch (error) {
         if (!cancelled) {
+          // A failed load still belongs to this account and can be restored.
+          loadedScope.current = scope;
           setSyncError(
             error instanceof Error ? error.message : "Could not load your graph",
           );
