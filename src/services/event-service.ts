@@ -3,7 +3,9 @@ import { importedEventSchedule } from "./event-schedule-service.ts";
 import { calendarEventOriginKey, EVENT_TEXT_LIMITS, isImportedEvent } from "../utils/event.ts";
 import type { ImportedEventNode } from "../types/event.ts";
 import type { CalendarSyncBatch, ExternalCalendarEvent } from "../types/external-calendar.ts";
-import type { DateNode, Graph, Relationship } from "../types/graph.ts";
+import type { Graph, Relationship } from "../types/graph.ts";
+
+export { replaceImportedEventSubgraph } from "./event-adoption-service.ts";
 
 export { getEventDate } from "./event-schedule-service.ts";
 
@@ -165,34 +167,4 @@ export function reconcileCalendarBatch(
         (batch.authoritative && !retained.has(origin.eventId)));
   });
   return upsertEvents(next, batch, upserts, timeZone);
-}
-
-export function replaceImportedEventSubgraph(current: Graph, remote: Graph) {
-  const next = removeImportedEvents(current);
-  const events = remote.nodes.filter(isImportedEvent);
-  const eventIds = new Set(events.map(({ id }) => id));
-  const remoteDates = new Map(remote.nodes.flatMap((node) => node.type === "date"
-    ? [[node.id, node] as const]
-    : []));
-  const localDates = new Map(next.nodes.flatMap((node) => node.type === "date"
-    ? [[node.properties.value, node] as const]
-    : []));
-  const addedDates = new Map<string, DateNode>();
-  const eventEdges = remote.relationships.flatMap((edge) => {
-    if (!eventIds.has(edge.sourceId)) return [];
-    const remoteDate = remoteDates.get(edge.targetId);
-    if (!remoteDate) return [];
-    let target = localDates.get(remoteDate.properties.value);
-    if (!target) {
-      target = remoteDate;
-      localDates.set(remoteDate.properties.value, target);
-      addedDates.set(target.id, target);
-    }
-    return [{ ...edge, targetId: target.id }];
-  });
-  return {
-    ...next,
-    nodes: [...next.nodes, ...addedDates.values(), ...events],
-    relationships: [...next.relationships, ...eventEdges],
-  };
 }

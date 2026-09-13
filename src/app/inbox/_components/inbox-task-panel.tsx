@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import TimelineGrid from "../../_components/timeline-grid";
-import { isTaskDone } from "@/services/task-completion-service";
+import { isNodeDone } from "@/services/completion-service";
 import {
   addChildTask,
   addTopLevelTask,
@@ -29,7 +29,7 @@ type Props = {
 export default function InboxTaskPanel(props: Props) {
   const tasks = useMemo(
     () => flattenTasks(props.graph, props.collapsedIds).filter(
-      ({ task }) => !props.hideDone || !isTaskDone(props.graph, task.id),
+      ({ task }) => !props.hideDone || !isNodeDone(props.graph, task.id),
     ),
     [props.collapsedIds, props.graph, props.hideDone],
   );

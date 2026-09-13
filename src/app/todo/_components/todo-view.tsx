@@ -12,10 +12,10 @@ import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
 import { getTodoItemsForDate } from "@/services/todo-service";
 import {
-  isTaskDone,
-  markTaskDone,
-  reopenTask,
-} from "@/services/task-completion-service";
+  isNodeDone,
+  markNodeDone,
+  reopenNode,
+} from "@/services/completion-service";
 import { compactDateLabel } from "@/utils/date";
 import type { UserPreferences } from "@/types/preferences";
 
@@ -52,20 +52,19 @@ export default function TodoView() {
   }
 
   const items = getTodoItemsForDate(graph, today, calendars.data?.connections);
-  const tasks = items.filter((item) => item.type === "task");
-  const doneCount = tasks.filter((task) => isTaskDone(graph, task.id)).length;
+  const doneCount = items.filter((item) => isNodeDone(graph, item.id)).length;
   const detailsItem = items.find((item) => item.id === detailsItemId) ?? null;
   const calendarError = calendars.error || calendars.data?.connections
     .map((connection) => connection.error).filter(Boolean).join("; ") || null;
   const loadingEvents = (!calendars.data && !calendarError) ||
     calendars.busy === "refresh" || calendarImport.busy;
 
-  function updateCompletion(taskId: string, done: boolean) {
+  function updateCompletion(itemId: string, done: boolean) {
     setGraph((current) =>
       current
         ? done
-          ? reopenTask(current, taskId, today)
-          : markTaskDone(current, taskId, today)
+          ? reopenNode(current, itemId, today)
+          : markNodeDone(current, itemId, today)
         : current,
     );
   }
@@ -104,7 +103,7 @@ export default function TodoView() {
               Show full path
             </label>
             <p className="todo-count" aria-live="polite">
-              {doneCount} of {tasks.length} done
+              {doneCount} of {items.length} done
             </p>
           </div>
         </header>

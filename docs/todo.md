@@ -11,9 +11,9 @@ Live calendar overlays that have not been imported are not included.
 - See each task's planned start and end dates and any planned times.
 - Open a task's details to review its full path, description, schedule, and
   completion status. On mobile, task details use the full screen.
-- Complete or reopen a task with its action button.
-- Track progress with the completed-task count; calendar events do not count
-  toward completion and cannot be marked done.
+- Complete or reopen a task or event with its action button.
+- Track progress with the completed-item count, including tasks and events.
+  Completed items stay in the list with their titles crossed out.
 - Show the complete parent path above each task when **Show full path** is
   enabled.
 - All-day events appear first, followed by tasks and events ordered by start
@@ -21,11 +21,13 @@ Live calendar overlays that have not been imported are not included.
   from yesterday sort at midnight.
 - See each event's calendar color and name, dates, and times or **All day**.
   Open its details to read its description, location, and time zone, or follow
-  its source-calendar link when available. Events are view-only in ToDo; local
-  events can be edited in Calendar.
+  its source-calendar link when available. Completion is stored only in
+  Pavucina, including for imported events. Local events can be edited in Calendar.
 - Multi-day events appear once on each applicable day. An event ending at
   midnight does not appear on the following day; all-day events include their
-  last stored date.
+  last stored date. Completion applies to the whole event across all days
+  and persists through rescheduling and calendar refreshes until reopened.
+  Deleting an event or removing its import also removes its completion.
 - Tasks remain usable while calendar settings load or fail. Failed calendar
   loads and imports offer a retry, and imported changes update the list.
 

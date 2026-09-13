@@ -1,6 +1,10 @@
 import { getTaskAndDescendantIds } from "./task-tree-service.ts";
 import { isIsoDate } from "../utils/date.ts";
-import type { DateNode, Graph } from "@/types/graph";
+import type { CompletionRelationshipType, DateNode, Graph, RelationshipType } from "@/types/graph";
+
+export function isCompletionRelationship(type: RelationshipType): type is CompletionRelationshipType {
+  return type === "markedAsDone" || type === "wasMarkedAsDone" || type === "markedAsReopened";
+}
 
 function dateNode(graph: Graph, value: string): DateNode {
   return (
@@ -15,16 +19,16 @@ function dateNode(graph: Graph, value: string): DateNode {
   );
 }
 
-export function isTaskDone(graph: Graph, taskId: string) {
+export function isNodeDone(graph: Graph, nodeId: string) {
   return graph.relationships.some(
     (relationship) =>
-      relationship.sourceId === taskId && relationship.type === "markedAsDone",
+      relationship.sourceId === nodeId && relationship.type === "markedAsDone",
   );
 }
 
-function markTasksDone(graph: Graph, taskIds: Iterable<string>, date: string) {
-  const incompleteIds = [...taskIds].filter(
-    (taskId) => !isTaskDone(graph, taskId),
+function markNodesDone(graph: Graph, nodeIds: Iterable<string>, date: string) {
+  const incompleteIds = [...nodeIds].filter(
+    (nodeId) => !isNodeDone(graph, nodeId),
   );
   if (!incompleteIds.length) return graph;
   const target = dateNode(graph, date);
@@ -43,20 +47,22 @@ function markTasksDone(graph: Graph, taskIds: Iterable<string>, date: string) {
   };
 }
 
-export function markTaskDone(graph: Graph, taskId: string, date: string): Graph {
+export function markNodeDone(graph: Graph, nodeId: string, date: string): Graph {
   if (!isIsoDate(date)) throw new Error(`Invalid ISO date: ${date}`);
-  return markTasksDone(graph, getTaskAndDescendantIds(graph, taskId), date);
+  const node = graph.nodes.find((node) => node.id === nodeId);
+  const ids = node?.type === "event" ? [nodeId] : getTaskAndDescendantIds(graph, nodeId);
+  return markNodesDone(graph, ids, date);
 }
 
-export function reopenTask(graph: Graph, taskId: string, date: string): Graph {
+export function reopenNode(graph: Graph, nodeId: string, date: string): Graph {
   if (!isIsoDate(date)) throw new Error(`Invalid ISO date: ${date}`);
   const completed = graph.relationships.find(
     (relationship) =>
-      relationship.sourceId === taskId && relationship.type === "markedAsDone",
+      relationship.sourceId === nodeId && relationship.type === "markedAsDone",
   );
   if (
     !completed ||
-    !graph.nodes.some((node) => node.type === "task" && node.id === taskId)
+    !graph.nodes.some((node) => (node.type === "task" || node.type === "event") && node.id === nodeId)
   ) {
     return graph;
   }
@@ -73,7 +79,7 @@ export function reopenTask(graph: Graph, taskId: string, date: string): Graph {
       {
         id: crypto.randomUUID(),
         type: "markedAsReopened",
-        sourceId: taskId,
+        sourceId: nodeId,
         targetId: target.id,
       },
     ],

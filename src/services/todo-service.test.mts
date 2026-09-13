@@ -5,7 +5,7 @@ import { createSeedGraph } from "../data/seed-graph.ts";
 import { reconcileCalendarBatch } from "./event-service.ts";
 import { saveNativeEvent } from "./native-event-service.ts";
 import { getLeafTasksForDate, setTaskTime } from "./task-service.ts";
-import { isTaskDone, markTaskDone, reopenTask } from "./task-completion-service.ts";
+import { isNodeDone, markNodeDone, reopenNode } from "./completion-service.ts";
 import { getTodoItemsForDate, getTodoSchedule } from "./todo-service.ts";
 import { visibleImportedEvents } from "../utils/event-calendar.ts";
 import type { CalendarConnectionSummary, ExternalCalendarEvent } from "../types/external-calendar.ts";
@@ -105,13 +105,13 @@ test("event days use inclusive all-day dates and exclude timed midnight endings"
 test("task completion and imported event updates preserve the mixed list", () => {
   let graph = addEvent(createSeedGraph(today), "Meeting", `${today}T07:00:00Z`, `${today}T08:00:00Z`);
   const taskId = getLeafTasksForDate(graph, today)[0].id;
-  graph = markTaskDone(graph, taskId, today);
+  graph = markNodeDone(graph, taskId, today);
   const tasks = getTodoItemsForDate(graph, today, connections).filter(({ type }) => type === "task");
   assert.equal(tasks.length, 2);
-  assert.equal(tasks.filter(({ id }) => isTaskDone(graph, id)).length, 1);
+  assert.equal(tasks.filter(({ id }) => isNodeDone(graph, id)).length, 1);
   const eventId = visibleImportedEvents(graph, connections)[0].id;
-  graph = addEvent(reopenTask(graph, taskId, today), "Meeting", "2026-09-14T07:00:00Z", "2026-09-14T08:00:00Z");
-  assert.equal(isTaskDone(graph, taskId), false);
+  graph = addEvent(reopenNode(graph, taskId, today), "Meeting", "2026-09-14T07:00:00Z", "2026-09-14T08:00:00Z");
+  assert.equal(isNodeDone(graph, taskId), false);
   assert.equal(visibleImportedEvents(graph, connections)[0].id, eventId);
   assert.deepEqual(getTodoItemsForDate(graph, today, connections), getLeafTasksForDate(graph, today));
 });

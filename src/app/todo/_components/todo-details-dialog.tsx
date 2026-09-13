@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { isTaskDone } from "@/services/task-completion-service";
+import { isNodeDone } from "@/services/completion-service";
 import { getParentTaskNames } from "@/services/task-service";
 import { getTodoSchedule } from "@/services/todo-service";
 import { compactDateLabel } from "@/utils/date";
@@ -74,15 +74,13 @@ export default function TodoDetailsDialog({
                 </dd>
               </div>
             ))}
-            {item.type === "task" ? (
-              <div>
-                <dt>Status</dt>
-                <dd>{isTaskDone(graph, item.id) ? "Completed" : "Open"}</dd>
-              </div>
-            ) : (
+            <div>
+              <dt>Status</dt>
+              <dd>{isNodeDone(graph, item.id) ? "Completed" : "Open"}</dd>
+            </div>
+            {item.type === "event" && (
               <>
                 <div><dt>Time zone</dt><dd>{item.properties.timeZone}</dd></div>
-                <div><dt>Status</dt><dd>View-only in ToDo</dd></div>
                 {item.properties.sourceUrl && (
                   <div>
                     <dt>Source</dt>

@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  isTaskDone,
-  markTaskDone,
-  reopenTask,
-} from "./task-completion-service.ts";
+  isNodeDone,
+  markNodeDone,
+  reopenNode,
+} from "./completion-service.ts";
 import { isGraph } from "./graph-service.ts";
 import { removeUnusedDates } from "./task-schedule-service.ts";
 import type { Graph, TaskNode } from "../types/graph.ts";
@@ -24,16 +24,16 @@ function dateValue(graph: Graph, nodeId?: string) {
 test("completion edges retain done and reopened history", () => {
   const item = task("Write tests");
   let graph: Graph = { version: 1, nodes: [item], relationships: [] };
-  graph = markTaskDone(graph, item.id, "2026-09-10");
+  graph = markNodeDone(graph, item.id, "2026-09-10");
   const completed = graph.relationships.find(
     (relationship) => relationship.type === "markedAsDone",
   )!;
 
-  assert.equal(isTaskDone(graph, item.id), true);
+  assert.equal(isNodeDone(graph, item.id), true);
   assert.equal(dateValue(graph, completed.targetId), "2026-09-10");
-  assert.equal(markTaskDone(graph, item.id, "2026-09-11"), graph);
-  graph = reopenTask(graph, item.id, "2026-09-11");
-  assert.equal(isTaskDone(graph, item.id), false);
+  assert.equal(markNodeDone(graph, item.id, "2026-09-11"), graph);
+  graph = reopenNode(graph, item.id, "2026-09-11");
+  assert.equal(isNodeDone(graph, item.id), false);
   assert.equal(dateValue(graph, graph.relationships[1].targetId), "2026-09-11");
   assert.deepEqual(
     graph.relationships.map(({ id, type, targetId }) => [id, type, targetId]),
@@ -43,8 +43,8 @@ test("completion edges retain done and reopened history", () => {
     ],
   );
 
-  graph = markTaskDone(graph, item.id, "2026-09-11");
-  assert.equal(isTaskDone(graph, item.id), true);
+  graph = markNodeDone(graph, item.id, "2026-09-11");
+  assert.equal(isNodeDone(graph, item.id), true);
   assert.equal(graph.nodes.filter((node) => node.type === "date").length, 2);
   assert.equal(isGraph(removeUnusedDates(graph)), true);
   const duplicate = structuredClone(graph);
@@ -55,7 +55,7 @@ test("completion edges retain done and reopened history", () => {
     id: crypto.randomUUID(),
   });
   assert.equal(isGraph(duplicate), false);
-  assert.throws(() => markTaskDone(graph, item.id, "not-a-date"));
+  assert.throws(() => markNodeDone(graph, item.id, "not-a-date"));
 });
 
 test("completion properties are rejected in graph and inbox tasks", () => {
@@ -76,7 +76,7 @@ test("marking a task completes every descendant but reopening does not", () => {
     nodes: [parent, child, grandchild, unrelated],
     relationships: [],
   };
-  graph = markTaskDone(graph, child.id, "2026-09-10");
+  graph = markNodeDone(graph, child.id, "2026-09-10");
   graph = {
     ...graph,
     relationships: [
@@ -88,10 +88,10 @@ test("marking a task completes every descendant but reopening does not", () => {
   const originalChildEdge = graph.relationships.find(
     (item) => item.sourceId === child.id && item.type === "markedAsDone",
   )!;
-  graph = markTaskDone(graph, parent.id, "2026-09-12");
+  graph = markNodeDone(graph, parent.id, "2026-09-12");
 
   assert.deepEqual(
-    [parent, child, grandchild, unrelated].map((item) => isTaskDone(graph, item.id)),
+    [parent, child, grandchild, unrelated].map((item) => isNodeDone(graph, item.id)),
     [true, true, true, false],
   );
   const newTargetIds = graph.relationships
@@ -108,10 +108,10 @@ test("marking a task completes every descendant but reopening does not", () => {
     ),
     originalChildEdge,
   );
-  assert.equal(markTaskDone(graph, parent.id, "2026-09-12"), graph);
-  graph = reopenTask(graph, parent.id, "2026-09-13");
+  assert.equal(markNodeDone(graph, parent.id, "2026-09-12"), graph);
+  graph = reopenNode(graph, parent.id, "2026-09-13");
   assert.deepEqual(
-    [parent, child, grandchild].map((item) => isTaskDone(graph, item.id)),
+    [parent, child, grandchild].map((item) => isNodeDone(graph, item.id)),
     [false, true, true],
   );
   assert.equal(isGraph(graph), true);

@@ -8,10 +8,10 @@ import {
   setTaskDescription,
 } from "@/services/task-service";
 import {
-  isTaskDone,
-  markTaskDone,
-  reopenTask,
-} from "@/services/task-completion-service";
+  isNodeDone,
+  markNodeDone,
+  reopenNode,
+} from "@/services/completion-service";
 import type { TaskNode } from "@/types/graph";
 import type { TaskInspectorProps } from "@/types/timeline";
 
@@ -28,7 +28,7 @@ export default function TaskInspector({
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
   );
   if (!graph) return null;
-  const done = selected ? isTaskDone(graph, selected.id) : false;
+  const done = selected ? isNodeDone(graph, selected.id) : false;
 
   function updateName(taskId: string, value: string) {
     setGraph((current) =>
@@ -40,8 +40,8 @@ export default function TaskInspector({
     setGraph((current) =>
       current
         ? done
-          ? reopenTask(current, taskId, today)
-          : markTaskDone(current, taskId, today)
+          ? reopenNode(current, taskId, today)
+          : markNodeDone(current, taskId, today)
         : current,
     );
   }

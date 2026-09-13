@@ -199,7 +199,7 @@ function useGraphState() {
         lastSaved.current = JSON.stringify(remote);
         return remote;
       }
-      return replaceImportedEventSubgraph(current, remote);
+      return replaceImportedEventSubgraph(current, remote, base);
     });
   }
 

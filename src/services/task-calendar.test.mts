@@ -13,7 +13,7 @@ import {
   setTaskDates,
   setTaskTimes,
 } from "./task-schedule-service.ts";
-import { markTaskDone } from "./task-completion-service.ts";
+import { markNodeDone } from "./completion-service.ts";
 import { calendarItem, layoutCalendarItems } from "../utils/calendar.ts";
 import { DAY_HEIGHT, droppedTimeRange } from "../utils/day-schedule.ts";
 import type { Graph, TaskNode } from "../types/graph.ts";
@@ -172,7 +172,7 @@ test("daily scheduling finds overdue incomplete tasks", () => {
   ]) {
     graph = setTaskDates(graph, taskId, date, date);
   }
-  graph = markTaskDone(graph, done.id, DAY);
+  graph = markNodeDone(graph, done.id, DAY);
 
   assert.deepEqual(
     getOverdueTasks(graph, DAY, "all").map(({ task }) => task.id),
@@ -199,7 +199,7 @@ test("daily scheduling honors task hierarchy and completed-task filtering", () =
   graph.relationships.push({ id: "child-edge", type: "child", sourceId: parent.id, targetId: child.id });
   graph = setTaskDates(graph, parent.id, DAY, DAY);
   graph = setTaskDates(graph, child.id, DAY, DAY);
-  graph = markTaskDone(graph, child.id, DAY);
+  graph = markNodeDone(graph, child.id, DAY);
 
   assert.deepEqual(
     getDaySchedule(graph, DAY, "leaf", false).events.map(({ task }) => task.id),

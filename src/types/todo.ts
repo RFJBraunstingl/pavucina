@@ -14,5 +14,5 @@ export type TodoListItemProps = {
   item: TodoItem;
   showFullTaskPath: boolean;
   onDetails: (id: string) => void;
-  onCompletion: (taskId: string, done: boolean) => void;
+  onCompletion: (itemId: string, done: boolean) => void;
 };

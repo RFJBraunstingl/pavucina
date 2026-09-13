@@ -1,3 +1,4 @@
+import { isCompletionRelationship } from "./completion-service.ts";
 import { isInboxNodes } from "./inbox-validation-service.ts";
 import {
   hasAcyclicTaskHierarchy,
@@ -166,7 +167,8 @@ export function isGraph(value: unknown): value is Graph {
       dateRelationships.add(key);
     } else {
       if (
-        source.type !== "task" ||
+        (source.type !== "task" &&
+          !(source.type === "event" && isCompletionRelationship(relationship.type))) ||
         target.type !== "date"
       ) {
         return false;

@@ -1,4 +1,4 @@
-import { isTaskDone } from "@/services/task-completion-service";
+import { isNodeDone } from "@/services/completion-service";
 import { getParentTaskNames } from "@/services/task-service";
 import { getTodoSchedule } from "@/services/todo-service";
 import { compactDateLabel } from "@/utils/date";
@@ -10,7 +10,7 @@ export default function TodoListItem({
   const { startDate, endDate, startTime, endTime, allDay } = getTodoSchedule(graph, item);
   const parentNames = item.type === "task" && showFullTaskPath
     ? getParentTaskNames(graph, item.id) : [];
-  const done = item.type === "task" && isTaskDone(graph, item.id);
+  const done = isNodeDone(graph, item.id);
 
   return (
     <li className={`todo-item${done ? " is-done" : ""}`}>
@@ -52,15 +52,13 @@ export default function TodoListItem({
           {allDay && " · All day"}
         </span>
       </span>
-      {item.type === "task" && (
-        <button
-          type="button"
-          className={`completion-button${done ? " is-reopen" : ""}`}
-          onClick={() => onCompletion(item.id, done)}
-        >
-          {done ? "Reopen" : "Mark as done"}
-        </button>
-      )}
+      <button
+        type="button"
+        className={`completion-button${done ? " is-reopen" : ""}`}
+        onClick={() => onCompletion(item.id, done)}
+      >
+        {done ? "Reopen" : "Mark as done"}
+      </button>
     </li>
   );
 }
