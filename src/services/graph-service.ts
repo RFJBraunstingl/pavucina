@@ -1,9 +1,16 @@
-import { getTaskDate } from "./task-schedule-service.ts";
 import { isInboxNodes } from "./inbox-validation-service.ts";
-import { daysBetween, isIsoDate } from "../utils/date.ts";
+import {
+  hasAcyclicTaskHierarchy,
+  hasValidGraphDateRanges,
+} from "./graph-validation.ts";
+import { isIsoDate } from "../utils/date.ts";
 import { isUuid } from "../utils/id.ts";
 import { isTime } from "../utils/time.ts";
 import { isMailTaskOrigin } from "../utils/mailbox.ts";
+import {
+  calendarEventOriginKey,
+  isEventProperties,
+} from "../utils/event.ts";
 import type {
   DateNode,
   Graph,
@@ -13,6 +20,7 @@ import type {
   RootNode,
   TaskNode,
 } from "@/types/graph";
+import type { EventNode } from "@/types/event";
 
 const RELATIONSHIP_TYPES: RelationshipType[] = [
   "child",
@@ -21,6 +29,8 @@ const RELATIONSHIP_TYPES: RelationshipType[] = [
   "markedAsDone",
   "wasMarkedAsDone",
   "markedAsReopened",
+  "eventStartDate",
+  "eventEndDate",
 ];
 const UNIQUE_DATE_RELATIONSHIPS: RelationshipType[] = [
   "plannedStartDate",
@@ -29,46 +39,10 @@ const UNIQUE_DATE_RELATIONSHIPS: RelationshipType[] = [
 ];
 
 export { isUuid } from "../utils/id.ts";
+export { ensureRootNode } from "./task-tree-service.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
-}
-
-export function ensureRootNode(graph: Graph): Graph {
-  const root = graph.nodes.find(
-    (node): node is RootNode => node.type === "root",
-  );
-  const parentedTaskIds = new Set(
-    graph.relationships
-      .filter((relationship) => relationship.type === "child")
-      .map((relationship) => relationship.targetId),
-  );
-  const topLevelTasks = graph.nodes.filter(
-    (node): node is TaskNode =>
-      node.type === "task" && !parentedTaskIds.has(node.id),
-  );
-  if (root && !topLevelTasks.length) return graph;
-
-  const nextRoot =
-    root ??
-    ({
-      id: crypto.randomUUID(),
-      type: "root",
-      properties: {},
-    } satisfies RootNode);
-  return {
-    ...graph,
-    nodes: root ? graph.nodes : [nextRoot, ...graph.nodes],
-    relationships: [
-      ...graph.relationships,
-      ...topLevelTasks.map((task) => ({
-        id: crypto.randomUUID(),
-        type: "child" as const,
-        sourceId: nextRoot.id,
-        targetId: task.id,
-      })),
-    ],
-  };
 }
 
 export function isGraph(value: unknown): value is Graph {
@@ -82,6 +56,7 @@ export function isGraph(value: unknown): value is Graph {
   }
 
   const nodes = new Map<string, GraphNode>();
+  const eventOrigins = new Set<string>();
   for (const rawNode of value.nodes) {
     if (
       !isRecord(rawNode) ||
@@ -115,6 +90,15 @@ export function isGraph(value: unknown): value is Graph {
       !("done" in properties)
     ) {
       nodes.set(rawNode.id, rawNode as TaskNode);
+    } else if (
+      rawNode.type === "event" &&
+      isEventProperties(properties)
+    ) {
+      const event = rawNode as EventNode;
+      const key = calendarEventOriginKey(event.properties.externalOrigin);
+      if (eventOrigins.has(key)) return false;
+      eventOrigins.add(key);
+      nodes.set(rawNode.id, event);
     } else if (
       rawNode.type === "date" &&
       typeof properties.value === "string" &&
@@ -170,6 +154,14 @@ export function isGraph(value: unknown): value is Graph {
       }
       parents.add(target.id);
       children.set(source.id, [...(children.get(source.id) ?? []), target.id]);
+    } else if (
+      relationship.type === "eventStartDate" ||
+      relationship.type === "eventEndDate"
+    ) {
+      if (source.type !== "event" || target.type !== "date") return false;
+      const key = `${source.id}:${relationship.type}`;
+      if (dateRelationships.has(key)) return false;
+      dateRelationships.add(key);
     } else {
       if (
         source.type !== "task" ||
@@ -187,27 +179,7 @@ export function isGraph(value: unknown): value is Graph {
     relationshipIds.add(relationship.id);
   }
 
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  const visit = (id: string): boolean => {
-    if (visiting.has(id)) return false;
-    if (visited.has(id)) return true;
-    visiting.add(id);
-    for (const child of children.get(id) ?? []) if (!visit(child)) return false;
-    visiting.delete(id);
-    visited.add(id);
-    return true;
-  };
-  for (const node of nodes.values()) {
-    if (node.type === "task" && !visit(node.id)) return false;
-  }
-
   const graph = value as Graph;
-  for (const node of nodes.values()) {
-    if (node.type !== "task") continue;
-    const start = getTaskDate(graph, node.id, "plannedStartDate");
-    const end = getTaskDate(graph, node.id, "plannedEndDate");
-    if (start && end && daysBetween(start, end) < 0) return false;
-  }
-  return true;
+  return hasAcyclicTaskHierarchy(nodes.values(), children) &&
+    hasValidGraphDateRanges(graph, nodes.values());
 }

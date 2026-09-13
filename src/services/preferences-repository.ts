@@ -47,3 +47,13 @@ export async function savePreferences(
     { upsert: true },
   );
 }
+
+export async function updateCalendarImportPreference(
+  userId: string,
+  enabled: boolean,
+) {
+  await savePreferences(userId, {
+    ...await loadPreferences(userId),
+    calendarEventImportEnabled: enabled,
+  });
+}

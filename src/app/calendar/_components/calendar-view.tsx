@@ -5,8 +5,10 @@ import { useMemo, useRef, useState } from "react";
 import CalendarControls from "./calendar-controls";
 import CalendarEditLock from "./calendar-edit-lock";
 import CalendarGrid from "./calendar-grid";
+import EventInspector from "./event-inspector";
 import ScheduleTray from "./schedule-tray";
 import { useCalendarDayCount } from "./use-calendar-day-count";
+import { useCalendarItems } from "./use-calendar-items";
 import { useExternalCalendars } from "./use-external-calendars";
 import { useTraySchedule } from "./use-tray-schedule";
 import AppHeader from "../../_components/app-header";
@@ -14,12 +16,8 @@ import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
 import TaskInspector from "../../_components/task-inspector";
 import { usePreferences } from "../../_components/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
-import {
-  getDaySchedule,
-  getOverdueTasks,
-  scheduleTaskForDay,
-} from "@/services/task-day-schedule-service";
-import { resolvedScheduleMode } from "@/services/preferences-service";
+import { useCalendarImport } from "@/providers/calendar-import-provider";
+import { scheduleTaskForDay } from "@/services/task-day-schedule-service";
 import {
   addDays,
   compactDateLabel,
@@ -37,6 +35,7 @@ export default function CalendarView() {
     syncError: preferencesError,
     retry: retryPreferences,
   } = usePreferences();
+  const calendarImport = useCalendarImport();
   const [day, setDay] = useState(today);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scheduleDate, setScheduleDate] = useState(today);
@@ -46,32 +45,14 @@ export default function CalendarView() {
   const mobile = dayCount === 1;
   const days = useMemo(
     () => makeDateRange(mobile ? day : startOfWeek(day), dayCount), [day, dayCount, mobile]);
-  const scheduleMode = preferences ? resolvedScheduleMode(preferences) : "leaf";
-  const schedules = useMemo(
-    () => graph && preferences
-      ? days.map((date) => ({
-          date,
-          ...getDaySchedule(graph, date, scheduleMode, preferences.hideDone),
-        }))
-      : [],
-    [days, graph, preferences, scheduleMode],
+  const calendars = useExternalCalendars(
+    days,
+    calendarImport.disconnect,
+    !calendarImport.enabled,
   );
-  const taskEvents = useMemo(
-    () => schedules.flatMap(({ events }, dayIndex) =>
-      events.map((event) => ({ ...event, dayIndex }))),
-    [schedules],
-  );
-  const overdue = useMemo(() => {
-    if (!graph) return [];
-    const visible = new Set(schedules.flatMap(({ events, unscheduled }) => [
-      ...events.map(({ task }) => task.id),
-      ...unscheduled.map(({ task }) => task.id),
-    ]));
-    return getOverdueTasks(graph, today, scheduleMode).filter(
-      ({ task }) => !visible.has(task.id),
-    );
-  }, [graph, scheduleMode, schedules, today]);
-  const calendars = useExternalCalendars(days);
+  const { scheduleMode, schedules, taskEvents, overdue, importedEvents } =
+    useCalendarItems(graph, preferences, days, today, calendars.data?.connections);
+  const selectedEvent = graph?.nodes.find((node) => node.id === selectedId);
   const locked = mobile && mobileLocked;
   const tray = useTraySchedule({
     days,
@@ -113,6 +94,7 @@ export default function CalendarView() {
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <GraphSyncError error={calendars.error} onRetry={() => void calendars.refresh()} />
+      <GraphSyncError error={calendarImport.error} onRetry={() => void calendarImport.syncNow()} />
       <div className="workspace">
         <section className="calendar-card" aria-labelledby="calendar-heading">
           <div className="timeline-toolbar">
@@ -123,7 +105,14 @@ export default function CalendarView() {
               </h2>
             </div>
             <div className="calendar-toolbar-actions">
-              <CalendarControls calendars={calendars} />
+              <CalendarControls
+                calendars={calendars}
+                importBusy={calendarImport.busy}
+                onRefresh={async () => {
+                  if (calendarImport.enabled) await calendarImport.syncNow();
+                  await calendars.refresh();
+                }}
+              />
               <div className="range-controls" aria-label="Calendar range">
                 <label className="done-toggle">
                   <input
@@ -179,21 +168,30 @@ export default function CalendarView() {
             days={days}
             today={today}
             taskEvents={taskEvents}
-            externalEvents={calendars.data?.events ?? []}
+            externalEvents={calendarImport.enabled ? [] : calendars.data?.events ?? []}
+            importedEvents={calendarImport.enabled ? importedEvents : []}
             selectedId={selectedId}
             locked={locked}
             bodyRef={body}
             onGraphChange={setGraph}
             onSelect={selectTask}
+            onSelectEvent={setSelectedId}
           />
         </section>
-        <TaskInspector
-          selectedId={selectedId}
-          scheduleMode={scheduleMode}
-          scheduleDate={scheduleDate}
-          helpText="Move or resize the event, or enter exact times above."
-          onDeleted={() => setSelectedId(null)}
-        />
+        {selectedEvent?.type === "event" ? (
+          <EventInspector
+            graph={graph}
+            event={selectedEvent}
+          />
+        ) : (
+          <TaskInspector
+            selectedId={selectedId}
+            scheduleMode={scheduleMode}
+            scheduleDate={scheduleDate}
+            helpText="Move or resize the event, or enter exact times above."
+            onDeleted={() => setSelectedId(null)}
+          />
+        )}
       </div>
     </main>
   );

@@ -3,6 +3,7 @@ import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 import type { Graph, TaskNode } from "./graph";
 import type { ExternalCalendarEvent } from "./external-calendar";
 import type { ScheduleMode } from "./preferences";
+import type { EventNode } from "./event";
 
 export type CalendarLayoutItem = {
   id: string;
@@ -21,6 +22,7 @@ export type CalendarItem = CalendarLayoutItem & { task: TaskNode };
 export type ExternalCalendarItem = CalendarLayoutItem & {
   event: ExternalCalendarEvent & { allDay: false };
 };
+export type ImportedCalendarItem = CalendarLayoutItem & { eventNode: EventNode };
 
 export type CalendarResizeEdge = "start" | "end";
 export type CalendarDragMode = "move" | CalendarResizeEdge;
@@ -45,11 +47,13 @@ export type CalendarGridProps = {
   today: string;
   taskEvents: CalendarItem[];
   externalEvents: ExternalCalendarEvent[];
+  importedEvents: EventNode[];
   selectedId: string | null;
   locked: boolean;
   bodyRef: RefObject<HTMLDivElement | null>;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string, date: string) => void;
+  onSelectEvent: (eventId: string) => void;
 };
 
 export type CalendarInteractionOptions = {

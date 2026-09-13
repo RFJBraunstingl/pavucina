@@ -22,6 +22,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const start = url.searchParams.get("start");
   const end = url.searchParams.get("end");
+  const includeEvents = url.searchParams.get("events") !== "false";
   const startTime = start ? Date.parse(start) : Number.NaN;
   const endTime = end ? Date.parse(end) : Number.NaN;
   if (
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
   try {
     return Response.json({
       available,
-      ...await loadExternalCalendars(session.user.id, start, end),
+      ...await loadExternalCalendars(session.user.id, start, end, includeEvents),
     });
   } catch {
     return Response.json({ error: "Could not load calendars" }, { status: 500 });

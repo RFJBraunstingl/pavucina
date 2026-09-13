@@ -7,6 +7,15 @@ import {
 
 import type { OAuthCredentials } from "@/types/oauth";
 
+export class OAuthRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(`${message} (${status})`);
+    this.status = status;
+  }
+}
+
 function key(context: string) {
   const secret = process.env.AUTH_SECRET;
   if (!secret) throw new Error("AUTH_SECRET is not configured");
@@ -79,7 +88,7 @@ export function createOAuthRequest(
     };
     let response = await send();
     if (response.status === 401) response = await send(true);
-    if (!response.ok) throw new Error(`${errorLabel} (${response.status})`);
+    if (!response.ok) throw new OAuthRequestError(errorLabel, response.status);
     return response;
   };
 }

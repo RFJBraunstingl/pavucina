@@ -18,6 +18,7 @@ export type CalendarConnectionDocument = {
   address: string;
   credentials: string;
   calendars: CalendarSelection[];
+  eventSyncStates?: CalendarEventSyncState[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -30,6 +31,16 @@ export type ProviderCalendar = {
   id: string;
   name: string;
   color: string;
+};
+
+export type CalendarEventSyncState = {
+  calendarId: string;
+  cursor: string;
+  rangeStart: string;
+  rangeEnd: string;
+  refreshAfter: string;
+  timeZone: string;
+  syncedAt: Date;
 };
 
 export type CalendarConnectionSummary = {
@@ -51,6 +62,9 @@ type ExternalCalendarEventBase = {
   start: string;
   end: string;
   url?: string;
+  description?: string;
+  location?: string;
+  providerUpdatedAt?: string;
 };
 
 export type ExternalCalendarEvent = ExternalCalendarEventBase & (
@@ -62,4 +76,29 @@ export type CalendarsResponse = {
   available: Record<CalendarSource, boolean>;
   connections: CalendarConnectionSummary[];
   events: ExternalCalendarEvent[];
+};
+
+export type CalendarEventChange =
+  | { action: "upsert"; event: ExternalCalendarEvent }
+  | { action: "delete"; eventId: string };
+
+export type CalendarProviderSync = {
+  changes: CalendarEventChange[];
+  cursor: string;
+  authoritative: boolean;
+};
+
+export type CalendarSyncBatch = {
+  connectionId: string;
+  source: CalendarSource;
+  calendar: ProviderCalendar;
+  changes: CalendarEventChange[];
+  authoritative: boolean;
+  state: CalendarEventSyncState;
+};
+
+export type CalendarImportError = {
+  connectionId: string;
+  calendarId?: string;
+  message: string;
 };

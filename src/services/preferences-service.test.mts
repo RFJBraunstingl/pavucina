@@ -26,6 +26,7 @@ const preferences = {
   mobileStartPage: "last" as const,
   desktopLastPage: "inbox" as const,
   mobileLastPage: "todo" as const,
+  calendarEventImportEnabled: true,
 };
 
 test("user preferences validate task IDs, visibility, and column width", () => {
@@ -57,6 +58,10 @@ test("user preferences validate task IDs, visibility, and column width", () => {
   );
   assert.equal(
     isUserPreferences({ ...preferences, desktopLastPage: "about" }),
+    false,
+  );
+  assert.equal(
+    isUserPreferences({ ...preferences, calendarEventImportEnabled: "yes" }),
     false,
   );
 });

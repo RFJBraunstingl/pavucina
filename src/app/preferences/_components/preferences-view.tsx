@@ -8,6 +8,7 @@ import { usePreferences } from "../../_components/use-preferences";
 import AccountLinks from "./account-links";
 import BackupRestore from "./backup-restore";
 import LegalLinks from "./legal-links";
+import CalendarImportSettings from "./calendar-import-settings";
 import StartupPageSettings from "./startup-page-settings";
 import { useGraph } from "@/providers/graph-provider";
 import { resolvedScheduleMode } from "@/services/preferences-service";
@@ -103,6 +104,7 @@ export default function PreferencesView() {
           )
         }
       />
+      <CalendarImportSettings />
       <AccountLinks />
       <BackupRestore
         graph={graph}

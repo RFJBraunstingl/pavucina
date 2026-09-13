@@ -74,6 +74,7 @@
 }
 
 .calendar-all-day a,
+.calendar-all-day button,
 .calendar-all-day > div > span {
   overflow: hidden;
   padding: 3px 5px;
@@ -85,6 +86,21 @@
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.calendar-all-day button {
+  width: 100%;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.calendar-all-day button.selected,
+.external-calendar-event.selected {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
 }
 
 .external-calendar-event {
@@ -100,6 +116,7 @@
 }
 
 .external-calendar-event a,
+.external-calendar-event button,
 .external-calendar-event > div {
   display: flex;
   width: 100%;
@@ -111,7 +128,14 @@
   text-decoration: none;
 }
 
+.external-calendar-event button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .external-calendar-event small,
+.external-calendar-event button,
 .external-calendar-event strong,
 .external-calendar-event span {
   overflow: hidden;

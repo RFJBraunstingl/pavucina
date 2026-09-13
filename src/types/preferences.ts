@@ -12,6 +12,7 @@ export type UserPreferences = {
   mobileStartPage?: StartPage;
   desktopLastPage?: AppPage;
   mobileLastPage?: AppPage;
+  calendarEventImportEnabled?: boolean;
 };
 
 export type UserSettingsDocument = {

@@ -4,6 +4,7 @@ import {
   providerText,
 } from "./calendar-event";
 import { defaultCalendarColor, isCalendarColor } from "@/utils/external-calendar";
+import { isCalendarProviderId } from "@/utils/event";
 import type {
   CalendarConnectionDocument,
   CalendarSelection,
@@ -24,7 +25,7 @@ export async function listGoogleCalendars(request: OAuthRequest) {
     for (const item of providerRecords(value, "items")) {
       const id = providerText(item, "id");
       const name = providerText(item, "summaryOverride") ?? providerText(item, "summary");
-      if (!id || !name) continue;
+      if (!isCalendarProviderId(id) || !name) continue;
       const color = providerText(item, "backgroundColor");
       calendars.push({
         id,

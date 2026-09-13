@@ -12,6 +12,7 @@ import {
 import { useSession } from "next-auth/react";
 
 import { loadGuestGraph, saveGuestGraph } from "@/services/local-graph-store";
+import { replaceImportedEventSubgraph } from "@/services/event-service";
 import {
   loadRemoteGraph,
   restoreRemoteGraph,
@@ -168,7 +169,10 @@ function useGraphState() {
         throw new Error(`Your account changed during ${action}`);
       }
       lastSaved.current = serialized;
-      setGraph(next);
+      setGraph((current) =>
+        restoring || !current || JSON.stringify(current) === serialized
+          ? next
+          : current);
       setSyncError(null);
     } catch (error) {
       if (saveGeneration.current === generation) {
@@ -185,8 +189,21 @@ function useGraphState() {
   const saveGraphNow = (next: Graph) => persistGraph(next, false);
   const restoreGraph = (next: Graph) => persistGraph(next, true);
 
+  function adoptImportedGraph(remote: Graph, base: Graph) {
+    const serializedBase = JSON.stringify(base);
+    setGraph((current) => {
+      if (!current) return remote;
+      if (JSON.stringify(current) === serializedBase) {
+        lastSaved.current = JSON.stringify(remote);
+        return remote;
+      }
+      return replaceImportedEventSubgraph(current, remote);
+    });
+  }
+
   return {
-    graph, setGraph, saveGraphNow, restoreGraph, today, hydrated, syncError, retry,
+    graph, setGraph, saveGraphNow, restoreGraph, adoptImportedGraph,
+    today, hydrated, syncError, retry,
   };
 }
 

@@ -36,6 +36,7 @@ export function isUserPreferences(value: unknown): value is UserPreferences {
           "mobileStartPage",
           "desktopLastPage",
           "mobileLastPage",
+          "calendarEventImportEnabled",
         ].includes(key),
     ) ||
     typeof preferences.hideDone !== "boolean" ||
@@ -54,7 +55,9 @@ export function isUserPreferences(value: unknown): value is UserPreferences {
     (preferences.desktopLastPage !== undefined &&
       !isAppPage(preferences.desktopLastPage)) ||
     (preferences.mobileLastPage !== undefined &&
-      !isAppPage(preferences.mobileLastPage))
+      !isAppPage(preferences.mobileLastPage)) ||
+    (preferences.calendarEventImportEnabled !== undefined &&
+      typeof preferences.calendarEventImportEnabled !== "boolean")
   ) {
     return false;
   }

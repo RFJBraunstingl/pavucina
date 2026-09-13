@@ -3,6 +3,7 @@ import "server-only";
 import { getMongoDatabase } from "./mongodb";
 import type {
   CalendarConnectionDocument,
+  CalendarEventSyncState,
   CalendarSelection,
   CalendarSource,
 } from "@/types/external-calendar";
@@ -85,6 +86,24 @@ export async function updateCalendarSelections(
   return (await connections()).updateOne(
     { _id: connectionId, userId },
     { $set: { calendars, updatedAt: new Date() } },
+  );
+}
+
+export async function updateCalendarEventSyncStates(
+  userId: string,
+  connectionId: string,
+  eventSyncStates: CalendarEventSyncState[],
+) {
+  return (await connections()).updateOne(
+    { _id: connectionId, userId },
+    { $set: { eventSyncStates, updatedAt: new Date() } },
+  );
+}
+
+export async function clearCalendarEventSyncStates(userId: string) {
+  return (await connections()).updateMany(
+    { userId },
+    { $set: { eventSyncStates: [], updatedAt: new Date() } },
   );
 }
 

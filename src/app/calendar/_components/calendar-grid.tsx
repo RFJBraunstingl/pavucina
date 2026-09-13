@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect, useMemo, useRef } from "react";
 import CalendarEvent from "./calendar-event";
 import CalendarAllDay from "./calendar-all-day";
 import ExternalCalendarEvent from "./external-calendar-event";
+import ImportedCalendarEvent from "./imported-calendar-event";
 import { useCalendarSchedule } from "./use-calendar-schedule";
 import {
   CALENDAR_HEIGHT,
@@ -12,6 +13,7 @@ import {
 } from "@/utils/calendar";
 import { dayLabel, dayOfMonth, isWeekend } from "@/utils/date";
 import { externalCalendarItems } from "@/utils/external-calendar";
+import { importedCalendarItems } from "@/utils/event-calendar";
 import type { CalendarGridProps } from "@/types/calendar";
 
 export default function CalendarGrid({
@@ -21,19 +23,22 @@ export default function CalendarGrid({
   today,
   taskEvents,
   externalEvents,
+  importedEvents,
   selectedId,
   locked,
   bodyRef,
   onGraphChange,
   onSelect,
+  onSelectEvent,
 }: CalendarGridProps) {
   const scroll = useRef<HTMLDivElement>(null);
   const items = useMemo(
     () => layoutCalendarItems([
       ...taskEvents,
+      ...importedCalendarItems(graph, importedEvents, days),
       ...externalCalendarItems(externalEvents, days),
     ]),
-    [days, externalEvents, taskEvents],
+    [days, externalEvents, graph, importedEvents, taskEvents],
   );
   const schedule = useCalendarSchedule({
     graph,
@@ -69,7 +74,14 @@ export default function CalendarGrid({
             </div>
           ))}
         </div>
-        <CalendarAllDay days={days} events={externalEvents} />
+        <CalendarAllDay
+          days={days}
+          externalEvents={externalEvents}
+          importedEvents={importedEvents}
+          graph={graph}
+          selectedId={selectedId}
+          onSelect={onSelectEvent}
+        />
         <div className="calendar-body">
           <div className="calendar-times" style={{ height: CALENDAR_HEIGHT }}>
             {HOUR_LABELS.map((time) => <span key={time}>{time}</span>)}
@@ -102,6 +114,14 @@ export default function CalendarGrid({
                 onPointerMove={schedule.continueDrag}
                 onPointerEnd={schedule.endDrag}
                 onKeyDown={(event, mode) => schedule.handleArrow(event, item, mode)}
+              />
+            ) : "eventNode" in item ? (
+              <ImportedCalendarEvent
+                item={item}
+                dayCount={days.length}
+                selected={selectedId === item.eventNode.id}
+                onSelect={() => onSelectEvent(item.eventNode.id)}
+                key={item.id}
               />
             ) : (
               <ExternalCalendarEvent

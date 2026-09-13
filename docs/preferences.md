@@ -21,9 +21,20 @@ access to Pavucina's legal information.
 Mailbox and calendar connections are managed from the Inbox and Calendar pages,
 not from Preferences.
 
+## Calendar event import
+
+Calendar connections are read-only overlays by default. Authenticated users can
+opt in to storing events in the knowledge graph. The setting imports every
+calendar exposed by each connected Google or Outlook account, regardless of its
+display toggle, and synchronizes at app startup, hourly while the app is open,
+and on manual refresh. Turning the setting off deletes the imported events and
+their revision history. Calendar credentials and sync cursors are never included
+in workspace backups.
+
 ## Backup and restore
 
-- Download tasks, relationships, scratchpad items, and settings as a ZIP file.
+- Download graph nodes (including imported events), relationships, scratchpad
+  items, and settings as a ZIP file.
 - Restore a previous ZIP backup after confirming that it will replace the
   current tasks, relationships, and settings.
 - Backups do not contain sign-in identities or mailbox and calendar credentials.

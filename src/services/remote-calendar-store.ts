@@ -5,8 +5,13 @@ import type {
   CalendarsResponse,
 } from "@/types/external-calendar";
 
-export async function loadCalendars(start: string, end: string, signal?: AbortSignal) {
-  const query = new URLSearchParams({ start, end });
+export async function loadCalendars(
+  start: string,
+  end: string,
+  signal?: AbortSignal,
+  includeEvents = true,
+) {
+  const query = new URLSearchParams({ start, end, events: String(includeEvents) });
   const response = await fetch(`/api/calendars?${query}`, {
     cache: "no-store",
     signal,
@@ -41,4 +46,5 @@ export async function disconnectCalendar(connectionId: string) {
     method: "DELETE",
   });
   await requireSuccess(response, "Could not disconnect calendar");
+  return response.json() as Promise<import("@/types/calendar-import").CalendarImportResponse>;
 }

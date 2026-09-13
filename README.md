@@ -7,6 +7,8 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 
 ## Data model
 - tasks are nodes in the knowledge graph
+- imported calendar events are first-class, read-only event nodes
+- event nodes use separate start-date and end-date relationships to date nodes
 - marking a task as done also marks all of its descendants as done
 - tasks have a variable set of properties (only the property "name" is mandatory)
 - properties can have data types such as
@@ -43,10 +45,12 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 - tasks are indented based on their position in the hierarchy
 - a new child task can be added by clicking on a plus icon at the task
 
-## Calender view
+## Calendar view
 - page which shows an editable calendar
 - tasks are displayed in the calendar with their planned start date and time and their planned end date and time
 - tasks can be "scheduled" by dragging them to a new position in the calendar
+- connected Google and Outlook calendars can be shown as temporary read-only overlays
+- users can explicitly opt in to storing calendar events as read-only graph nodes; import uses provider sync cursors and covers about 30 days in the past and one year ahead
 
 ## ToDo list view
 - shows a checklist of tasks for the current day
@@ -73,6 +77,12 @@ Authenticated data uses seven shared collections:
 - `settings` stores one settings document per user
 - `mailboxes` stores encrypted Gmail and Outlook mailbox connections
 - `calendar_connections` stores encrypted calendar connections and display choices
+
+When calendar event import is enabled, event nodes and their start/end date
+relationships are stored in `nodes` and `edges`; provider synchronization
+cursors are stored in `calendar_connections`. Imported event revisions are
+purged when events are updated, removed upstream, leave the import window, the
+connection is removed, or import is disabled.
 
 Every data document is scoped and indexed by its internal user ID. Saving inserts
 changed node revisions before inserting the edge snapshot that makes the version

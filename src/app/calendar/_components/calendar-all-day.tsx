@@ -1,22 +1,34 @@
 import type { CSSProperties } from "react";
 
 import { allDayEventsForDay } from "@/utils/external-calendar";
+import { importedAllDayEvents } from "@/utils/event-calendar";
 import type { ExternalCalendarEvent } from "@/types/external-calendar";
+import type { EventNode } from "@/types/event";
+import type { Graph } from "@/types/graph";
 
 export default function CalendarAllDay({
   days,
-  events,
+  externalEvents,
+  importedEvents,
+  graph,
+  selectedId,
+  onSelect,
 }: {
   days: string[];
-  events: ExternalCalendarEvent[];
+  externalEvents: ExternalCalendarEvent[];
+  importedEvents: EventNode[];
+  graph: Graph;
+  selectedId: string | null;
+  onSelect: (eventId: string) => void;
 }) {
-  if (!events.some(({ allDay }) => allDay)) return null;
+  if (!externalEvents.some(({ allDay }) => allDay) &&
+    !importedEvents.some(({ properties }) => properties.allDay)) return null;
   return (
     <div className="calendar-all-day">
       <span>All day</span>
       {days.map((day) => (
         <div key={day}>
-          {allDayEventsForDay(events, day).map((event) => (
+          {allDayEventsForDay(externalEvents, day).map((event) => (
             event.url ? (
               <a
                 href={event.url}
@@ -36,6 +48,19 @@ export default function CalendarAllDay({
                 {event.title}
               </span>
             )
+          ))}
+          {importedAllDayEvents(graph, importedEvents, day).map((event) => (
+            <button
+              type="button"
+              className={selectedId === event.id ? "selected" : undefined}
+              style={{
+                "--external-calendar-color": event.properties.calendarColor,
+              } as CSSProperties}
+              onClick={() => onSelect(event.id)}
+              key={event.id}
+            >
+              {event.properties.name}
+            </button>
           ))}
         </div>
       ))}

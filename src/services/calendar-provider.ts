@@ -82,26 +82,42 @@ async function refreshedCredentials(
   return next;
 }
 
-export async function loadCalendarProvider(
+export function createCalendarRequest(
   connection: CalendarConnectionDocument,
-  start: string,
-  end: string,
 ) {
-  const request = createOAuthRequest(
+  return createOAuthRequest(
     openCalendarCredentials(connection.credentials),
     (credentials) => refreshedCredentials(connection, credentials),
     "Could not access calendar",
   );
-  const calendars = connection.source === "google"
-    ? await listGoogleCalendars(request)
-    : await listOutlookCalendars(request);
+}
+
+export function listProviderCalendars(
+  connection: CalendarConnectionDocument,
+  request: ReturnType<typeof createCalendarRequest>,
+) {
+  return connection.source === "google"
+    ? listGoogleCalendars(request)
+    : listOutlookCalendars(request);
+}
+
+export async function loadCalendarProvider(
+  connection: CalendarConnectionDocument,
+  start: string,
+  end: string,
+  includeEvents = true,
+) {
+  const request = createCalendarRequest(connection);
+  const calendars = await listProviderCalendars(connection, request);
   const names = new Map(calendars.map(({ id, name }) => [id, name]));
   const selected = connection.calendars
     .filter(({ id, visible }) => visible && names.has(id))
     .map((calendar) => ({ ...calendar, name: names.get(calendar.id)! }));
-  const groups = await Promise.all(selected.map((calendar) =>
-    connection.source === "google"
-      ? loadGoogleCalendarEvents(connection, calendar, request, start, end)
-      : loadOutlookCalendarEvents(connection, calendar, request, start, end)));
+  const groups = includeEvents
+    ? await Promise.all(selected.map((calendar) =>
+        connection.source === "google"
+          ? loadGoogleCalendarEvents(connection, calendar, request, start, end)
+          : loadOutlookCalendarEvents(connection, calendar, request, start, end)))
+    : [];
   return { calendars, events: groups.flat() };
 }

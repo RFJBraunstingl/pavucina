@@ -76,6 +76,7 @@ test("Google and Outlook events normalize to one safe shape", () => {
   );
   assert.equal(outlook?.title, "(Busy)");
   assert.equal(outlook?.allDay, true);
+  assert.equal(outlook?.start, "2026-09-08");
   assert.equal(outlook?.url, undefined);
 });
 

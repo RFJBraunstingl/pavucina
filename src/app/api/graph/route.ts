@@ -1,13 +1,12 @@
 import { auth } from "@/auth";
 import { isGraph } from "@/services/graph-service";
+import { MAX_GRAPH_BYTES } from "@/services/graph-size";
 import {
   loadLatestGraph,
   restoreGraphVersion,
   saveGraphVersion,
 } from "@/services/graph-repository";
 import type { Graph } from "@/types/graph";
-
-const MAX_GRAPH_BYTES = 1024 * 1024;
 
 export const runtime = "nodejs";
 

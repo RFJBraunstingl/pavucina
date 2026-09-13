@@ -85,6 +85,21 @@
   color: var(--ink);
 }
 
+.calendar-import-toggle {
+  display: flex;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.calendar-import-toggle input { accent-color: var(--green); }
+.calendar-import-toggle span { display: grid; color: var(--muted); gap: 4px; font-size: 13px; line-height: 1.45; }
+.calendar-import-toggle strong { color: var(--ink); }
+.calendar-import-note { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.calendar-import-error { color: #7a2920; font-size: 12px; }
+
 .startup-page-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

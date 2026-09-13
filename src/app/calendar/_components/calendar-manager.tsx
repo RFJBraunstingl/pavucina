@@ -159,7 +159,8 @@ export default function CalendarManager({
         message={
           <>
             Pavucina will delete its stored connection to {disconnecting?.address}.
-            {" "}Your provider permission will not be revoked.
+            {" "}Imported events from this account will also be deleted. Your
+            provider permission will not be revoked.
           </>
         }
         confirmLabel="Disconnect"

@@ -14,7 +14,11 @@ import type {
   CalendarsResponse,
 } from "@/types/external-calendar";
 
-export function useExternalCalendars(days: string[]) {
+export function useExternalCalendars(
+  days: string[],
+  disconnectRemote: (connectionId: string) => Promise<unknown> = disconnectCalendar,
+  includeEvents = true,
+) {
   const { status } = useSession();
   const range = useMemo(() => calendarRange(days), [days]);
   const [data, setData] = useState<CalendarsResponse | null>(null);
@@ -25,14 +29,14 @@ export function useExternalCalendars(days: string[]) {
     setBusy("refresh");
     setError(null);
     try {
-      setData(await loadCalendars(range.start, range.end, signal));
+      setData(await loadCalendars(range.start, range.end, signal, includeEvents));
     } catch (value) {
       if (value instanceof DOMException && value.name === "AbortError") return;
       setError(value instanceof Error ? value.message : "Could not load calendars");
     } finally {
       setBusy((current) => current === "refresh" ? null : current);
     }
-  }, [range.end, range.start]);
+  }, [includeEvents, range.end, range.start]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -41,12 +45,13 @@ export function useExternalCalendars(days: string[]) {
     return () => controller.abort();
   }, [refresh, status]);
 
-  async function update(key: string, operation: () => Promise<void>) {
+  async function update<T>(key: string, operation: () => Promise<T>) {
     setBusy(key);
     setError(null);
     try {
-      await operation();
-      setData(await loadCalendars(range.start, range.end));
+      const result = await operation();
+      setData(await loadCalendars(range.start, range.end, undefined, includeEvents));
+      return result;
     } catch (value) {
       setError(value instanceof Error ? value.message : "Could not update calendars");
     } finally {
@@ -59,7 +64,7 @@ export function useExternalCalendars(days: string[]) {
   }
 
   function disconnect(connectionId: string) {
-    return update(connectionId, () => disconnectCalendar(connectionId));
+    return update(connectionId, () => disconnectRemote(connectionId));
   }
 
   async function connect(source: CalendarSource) {

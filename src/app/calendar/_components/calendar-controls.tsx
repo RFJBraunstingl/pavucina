@@ -14,7 +14,15 @@ function selectedCalendars(connection: NonNullable<CalendarsState["data"]>["conn
     }));
 }
 
-export default function CalendarControls({ calendars }: { calendars: CalendarsState }) {
+export default function CalendarControls({
+  calendars,
+  onRefresh,
+  importBusy = false,
+}: {
+  calendars: CalendarsState;
+  onRefresh?: () => Promise<void>;
+  importBusy?: boolean;
+}) {
   const [managerOpen, setManagerOpen] = useState(() =>
     typeof window !== "undefined" &&
     new URL(window.location.href).searchParams.get("calendar") === "return");
@@ -60,8 +68,9 @@ export default function CalendarControls({ calendars }: { calendars: CalendarsSt
       </button>
       <button
         type="button"
-        disabled={Boolean(calendars.busy)}
-        onClick={() => void calendars.refresh()}
+        disabled={Boolean(calendars.busy) || importBusy}
+        onClick={() =>
+          void (onRefresh?.() ?? calendars.refresh()).catch(() => undefined)}
       >
         Refresh
       </button>

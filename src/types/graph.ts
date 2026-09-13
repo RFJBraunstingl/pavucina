@@ -1,4 +1,5 @@
 import type { MailTaskOrigin } from "./mailbox";
+import type { EventNode } from "./event";
 
 export type TimeProperty = "plannedStartTime" | "plannedEndTime";
 
@@ -28,8 +29,9 @@ export type DateNode = {
   properties: { value: string };
 };
 
-export type GraphNode = RootNode | TaskNode | DateNode;
+export type GraphNode = RootNode | TaskNode | DateNode | EventNode;
 export type DateRelationshipType = "plannedStartDate" | "plannedEndDate";
+export type EventDateRelationshipType = "eventStartDate" | "eventEndDate";
 export type CompletionRelationshipType =
   | "markedAsDone"
   | "wasMarkedAsDone"
@@ -37,6 +39,7 @@ export type CompletionRelationshipType =
 export type RelationshipType =
   | "child"
   | DateRelationshipType
+  | EventDateRelationshipType
   | CompletionRelationshipType;
 export type TaskPlacement = "before" | "inside" | "after";
 

@@ -3,6 +3,7 @@ import {
   deleteCalendarConnection,
   updateCalendarSelections,
 } from "@/services/calendar-repository";
+import { removeCalendarConnectionEvents } from "@/services/calendar-import-service";
 import { parseCalendarSelections } from "@/utils/external-calendar";
 import { isUuid } from "@/utils/id";
 
@@ -54,6 +55,9 @@ export async function DELETE(
   if (!session?.user.id) return new Response(null, { status: 401 });
   const id = await connectionId(context);
   if (!id) return Response.json({ error: "Invalid connection" }, { status: 400 });
+  const graph = await removeCalendarConnectionEvents(session.user.id, id);
   const result = await deleteCalendarConnection(session.user.id, id);
-  return new Response(null, { status: result.deletedCount ? 204 : 404 });
+  return result.deletedCount
+    ? Response.json(graph)
+    : new Response(null, { status: 404 });
 }

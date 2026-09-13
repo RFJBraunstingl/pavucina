@@ -1,4 +1,5 @@
 import { isIsoDate } from "../utils/date.ts";
+import { isCalendarProviderId } from "../utils/event.ts";
 import type {
   CalendarConnectionDocument,
   CalendarSelection,
@@ -14,6 +15,10 @@ function record(value: unknown) {
 export function providerRecords(value: unknown, key: string) {
   const parent = record(value);
   return parent && Array.isArray(parent[key]) ? parent[key] as unknown[] : [];
+}
+
+export function providerObject(value: unknown, key: string) {
+  return record(record(value)?.[key]);
 }
 
 export function providerText(value: unknown, key: string) {
@@ -48,6 +53,11 @@ function eventBase(
   id: string,
   title: unknown,
   url: unknown,
+  details: {
+    description?: unknown;
+    location?: unknown;
+    providerUpdatedAt?: unknown;
+  } = {},
 ) {
   return {
     id,
@@ -57,6 +67,13 @@ function eventBase(
     title: typeof title === "string" && title.trim() ? title.trim() : "(Busy)",
     color: calendar.color,
     url: httpsUrl(url),
+    description: typeof details.description === "string"
+      ? details.description
+      : undefined,
+    location: typeof details.location === "string"
+      ? details.location
+      : undefined,
+    providerUpdatedAt: timedValue(details.providerUpdatedAt) ?? undefined,
   };
 }
 
@@ -68,10 +85,14 @@ export function normalizeGoogleCalendarEvent(
   const event = record(value);
   const start = record(event?.start);
   const end = record(event?.end);
-  if (!event || event.status === "cancelled" || typeof event.id !== "string") {
+  if (!event || event.status === "cancelled" || !isCalendarProviderId(event.id)) {
     return null;
   }
-  const base = eventBase(connection, calendar, event.id, event.summary, event.htmlLink);
+  const base = eventBase(connection, calendar, event.id, event.summary, event.htmlLink, {
+    description: event.description,
+    location: event.location,
+    providerUpdatedAt: event.updated,
+  });
   if (
     typeof start?.date === "string" &&
     typeof end?.date === "string" &&
@@ -92,16 +113,24 @@ export function normalizeOutlookCalendarEvent(
   value: unknown,
 ): ExternalCalendarEvent | null {
   const event = record(value);
-  if (!event || event.isCancelled === true || typeof event.id !== "string") {
+  if (!event || event.isCancelled === true || !isCalendarProviderId(event.id)) {
     return null;
+  }
+  const base = eventBase(connection, calendar, event.id, event.subject, event.webLink, {
+      description: record(event.body)?.content,
+      location: record(event.location)?.displayName,
+      providerUpdatedAt: event.lastModifiedDateTime,
+  });
+  if (event.isAllDay === true) {
+    const start = providerText(event.start, "dateTime")?.slice(0, 10);
+    const end = providerText(event.end, "dateTime")?.slice(0, 10);
+    return start && end && isIsoDate(start) && isIsoDate(end) && start < end
+      ? { ...base, allDay: true, start, end }
+      : null;
   }
   const start = outlookTime(event.start);
   const end = outlookTime(event.end);
-  if (!start || !end || start >= end) return null;
-  return {
-    ...eventBase(connection, calendar, event.id, event.subject, event.webLink),
-    allDay: event.isAllDay === true,
-    start,
-    end,
-  };
+  return start && end && start < end
+    ? { ...base, allDay: false, start, end }
+    : null;
 }

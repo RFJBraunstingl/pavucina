@@ -1,4 +1,39 @@
-import type { FlatTask, Graph, TaskNode } from "@/types/graph";
+import type { FlatTask, Graph, RootNode, TaskNode } from "@/types/graph";
+
+export function ensureRootNode(graph: Graph): Graph {
+  const root = graph.nodes.find(
+    (node): node is RootNode => node.type === "root",
+  );
+  const parentedTaskIds = new Set(
+    graph.relationships
+      .filter((relationship) => relationship.type === "child")
+      .map((relationship) => relationship.targetId),
+  );
+  const topLevelTasks = graph.nodes.filter(
+    (node): node is TaskNode =>
+      node.type === "task" && !parentedTaskIds.has(node.id),
+  );
+  if (root && !topLevelTasks.length) return graph;
+
+  const nextRoot = root ?? {
+    id: crypto.randomUUID(),
+    type: "root",
+    properties: {},
+  } satisfies RootNode;
+  return {
+    ...graph,
+    nodes: root ? graph.nodes : [nextRoot, ...graph.nodes],
+    relationships: [
+      ...graph.relationships,
+      ...topLevelTasks.map((task) => ({
+        id: crypto.randomUUID(),
+        type: "child" as const,
+        sourceId: nextRoot.id,
+        targetId: task.id,
+      })),
+    ],
+  };
+}
 
 export function flattenTasks(
   graph: Graph,

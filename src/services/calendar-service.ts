@@ -12,11 +12,12 @@ export async function loadExternalCalendars(
   userId: string,
   start: string,
   end: string,
+  includeEvents = true,
 ) {
   const connections = await listCalendarConnections(userId);
   const results = await Promise.all(connections.map(async (connection) => {
     try {
-      const loaded = await loadCalendarProvider(connection, start, end);
+      const loaded = await loadCalendarProvider(connection, start, end, includeEvents);
       const selected = new Map(connection.calendars.map((item) => [item.id, item]));
       const calendars: CalendarOption[] = loaded.calendars.map((calendar) => {
         const saved = selected.get(calendar.id);
