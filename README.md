@@ -64,9 +64,10 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 - nodes are stored as JSON objects due to their dynamic schema
 - edges are stored as graph object which holds all relation types and the IDs of referenced nodes
 
-> TODO (remove after 2026-09-26): delete the temporary `done` property
-> validation and load/restore migration once existing workspaces have been
-> converted to completion relationships.
+Legacy `done` task properties and null optional event fields are no longer
+converted when loading data. Existing databases must be cleaned before upgrading.
+Older browser workspaces and backups must first be converted with a compatible
+older release; unsupported browser data is left intact and reported as an error.
 
 Authenticated data uses seven shared collections:
 

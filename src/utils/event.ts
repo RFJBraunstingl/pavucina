@@ -2,7 +2,6 @@ import { isCalendarColor, isCalendarSource } from "./external-calendar.ts";
 import { isUuid } from "./id.ts";
 import { isTime } from "./time.ts";
 import type { CalendarEventOrigin, EventProperties } from "../types/event.ts";
-import type { GraphNode } from "../types/graph.ts";
 
 export const EVENT_TEXT_LIMITS = {
   name: 512,
@@ -52,24 +51,6 @@ export function calendarEventOriginKey(origin: CalendarEventOrigin) {
     origin.calendarId,
     origin.eventId,
   ]);
-}
-
-const OPTIONAL_EVENT_PROPERTIES = [
-  "description",
-  "startTime",
-  "endTime",
-  "location",
-  "sourceUrl",
-  "providerUpdatedAt",
-] as const;
-
-export function normalizeStoredEventNode(node: GraphNode): GraphNode {
-  if (node.type !== "event") return node;
-  const properties = { ...node.properties } as Record<string, unknown>;
-  for (const key of OPTIONAL_EVENT_PROPERTIES) {
-    if (properties[key] === null) delete properties[key];
-  }
-  return { ...node, properties: properties as EventProperties };
 }
 
 export function isEventProperties(value: Record<string, unknown>): value is EventProperties {

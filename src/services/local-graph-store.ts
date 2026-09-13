@@ -1,21 +1,23 @@
-import { createSeedGraph } from "@/data/seed-graph";
+import { createSeedGraph } from "../data/seed-graph.ts";
 import { ensureRootNode, isGraph } from "./graph-service.ts";
 import type { Graph } from "@/types/graph";
 
 const STORAGE_KEY = "pavucina.graph.v1";
+const INVALID_GRAPH_MESSAGE =
+  "The saved browser graph is invalid or unsupported. Restore a compatible backup in Preferences.";
 
 export function loadGuestGraph(today: string) {
   if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === null) return createSeedGraph(today);
+  let parsed: unknown;
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed: unknown = JSON.parse(stored);
-      if (isGraph(parsed)) return ensureRootNode(parsed);
-    }
+    parsed = JSON.parse(stored);
   } catch {
-    // A bad browser value should not prevent the application from opening.
+    throw new Error(INVALID_GRAPH_MESSAGE);
   }
-  return createSeedGraph(today);
+  if (!isGraph(parsed)) throw new Error(INVALID_GRAPH_MESSAGE);
+  return ensureRootNode(parsed);
 }
 
 export function saveGuestGraph(graph: Graph) {

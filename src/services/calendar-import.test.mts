@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { BSON } from "mongodb";
 
 import { createSeedGraph } from "../data/seed-graph.ts";
 import {
@@ -8,7 +9,6 @@ import {
   replaceImportedEventSubgraph,
 } from "./event-service.ts";
 import { isGraph } from "./graph-service.ts";
-import { normalizeStoredEventNode } from "../utils/event.ts";
 import type {
   CalendarSyncBatch,
   ExternalCalendarEvent,
@@ -68,6 +68,7 @@ test("calendar events become stable first-class graph nodes", () => {
   assert.equal(getEventDate(imported, event.id, "eventStartDate"), "2026-09-13");
   assert.equal(getEventDate(imported, event.id, "eventEndDate"), "2026-09-13");
   assert.equal(isGraph(imported), true);
+  assert.equal(isGraph(BSON.deserialize(BSON.serialize(imported, { ignoreUndefined: true }))), true);
 
   const repeated = reconcileCalendarBatch(
     imported,
@@ -136,19 +137,8 @@ test("all-day provider end dates become inclusive event date edges", () => {
   assert.equal(event.properties.startTime, undefined);
   assert.equal(getEventDate(graph, event.id, "eventStartDate"), "2026-09-20");
   assert.equal(getEventDate(graph, event.id, "eventEndDate"), "2026-09-22");
-  const storedEvent = { ...event, properties: {
-    ...event.properties,
-    description: null,
-    location: null,
-    startTime: null,
-    endTime: null,
-  }} as unknown as typeof event;
-  const stored = {
-    ...graph,
-    nodes: graph.nodes.map((node) => node.id === event.id ? storedEvent : node),
-  };
-  assert.equal(isGraph(stored), false);
-  assert.equal(isGraph({ ...stored, nodes: stored.nodes.map(normalizeStoredEventNode) }), true);
+  assert.equal(isGraph(BSON.deserialize(BSON.serialize(graph, { ignoreUndefined: true }))), true);
+  assert.equal(isGraph(BSON.deserialize(BSON.serialize(graph, { ignoreUndefined: false }))), false);
 });
 
 test("event validation requires both date edges and unique origins", () => {

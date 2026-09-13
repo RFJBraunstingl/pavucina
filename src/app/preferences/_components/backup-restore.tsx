@@ -6,7 +6,6 @@ import {
   createBackupArchive,
   readBackupArchive,
 } from "@/services/backup-service";
-import { todayIso } from "@/utils/date";
 import type { BackupRestoreProps } from "@/types/backup";
 
 export default function BackupRestore({ graph, preferences, onRestore }: BackupRestoreProps) {
@@ -43,7 +42,6 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
     try {
       pendingBackup.current = readBackupArchive(
         new Uint8Array(await file.arrayBuffer()),
-        todayIso(),
       );
       restoreDialog.current?.showModal();
     } catch (error) {

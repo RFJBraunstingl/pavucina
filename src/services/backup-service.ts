@@ -2,7 +2,6 @@ import { unzipSync, zipSync } from "fflate";
 
 import { isGraph } from "./graph-service.ts";
 import { parseUserPreferences } from "./preferences-service.ts";
-import { migrateTaskCompletion } from "./task-completion-service.ts";
 import type { Graph } from "@/types/graph";
 import type { UserPreferences } from "@/types/preferences";
 
@@ -36,7 +35,7 @@ export function createBackupArchive(
   });
 }
 
-export function readBackupArchive(archive: Uint8Array, today: string) {
+export function readBackupArchive(archive: Uint8Array) {
   if (!archive.length || archive.byteLength > MAX_BACKUP_BYTES) {
     invalidBackup("file is empty or too large");
   }
@@ -86,7 +85,7 @@ export function readBackupArchive(archive: Uint8Array, today: string) {
   const parsedPreferences = parseUserPreferences(preferences);
   if (!parsedPreferences) invalidBackup("settings are invalid");
   return {
-    graph: migrateTaskCompletion(graph, today),
+    graph,
     preferences: parsedPreferences,
   };
 }
