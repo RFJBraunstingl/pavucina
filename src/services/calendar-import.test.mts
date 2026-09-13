@@ -8,6 +8,7 @@ import {
   replaceImportedEventSubgraph,
 } from "./event-service.ts";
 import { isGraph } from "./graph-service.ts";
+import { normalizeStoredEventNode } from "../utils/event.ts";
 import type {
   CalendarSyncBatch,
   ExternalCalendarEvent,
@@ -135,6 +136,19 @@ test("all-day provider end dates become inclusive event date edges", () => {
   assert.equal(event.properties.startTime, undefined);
   assert.equal(getEventDate(graph, event.id, "eventStartDate"), "2026-09-20");
   assert.equal(getEventDate(graph, event.id, "eventEndDate"), "2026-09-22");
+  const storedEvent = { ...event, properties: {
+    ...event.properties,
+    description: null,
+    location: null,
+    startTime: null,
+    endTime: null,
+  }} as unknown as typeof event;
+  const stored = {
+    ...graph,
+    nodes: graph.nodes.map((node) => node.id === event.id ? storedEvent : node),
+  };
+  assert.equal(isGraph(stored), false);
+  assert.equal(isGraph({ ...stored, nodes: stored.nodes.map(normalizeStoredEventNode) }), true);
 });
 
 test("event validation requires both date edges and unique origins", () => {

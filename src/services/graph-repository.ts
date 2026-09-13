@@ -4,6 +4,7 @@ import { ObjectId, type Collection } from "mongodb";
 
 import { createNodeRevisionPlan } from "./graph-version-service";
 import { getMongoDatabase } from "./mongodb";
+import { normalizeStoredEventNode } from "../utils/event";
 import type { Graph, TaskNode } from "@/types/graph";
 import type {
   EdgeVersionDocument,
@@ -49,7 +50,10 @@ async function revisionMap(
   if (revisions.length !== revisionIds.length) {
     throw new Error("Graph version references missing node revisions");
   }
-  return new Map(revisions.map((revision) => [revision._id, revision]));
+  return new Map(revisions.map((revision) => [revision._id, {
+    ...revision,
+    node: normalizeStoredEventNode(revision.node),
+  }]));
 }
 
 export async function loadLatestGraph(userId: string): Promise<Graph | null> {
