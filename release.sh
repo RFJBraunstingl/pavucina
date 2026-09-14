@@ -4,6 +4,7 @@ RELEASE_MESSAGES=$(git log --reverse --format=%s "${LAST_TAG}..HEAD") || exit 1
 RELEASE_MESSAGES=$(awk '!/^Merge / && !seen[$0]++' <<< "$RELEASE_MESSAGES")
 VERSION="${1:-$(node -p 'const [major, minor, patch] = require("./package.json").version.split("."); `${major}.${minor}.${Number(patch) + 1}`')}"
 VERSION="$VERSION" perl -pi -e 's/^  "version": "[^"]*",/  "version": "$ENV{VERSION}",/' package.json
+npm install
 npm update
 git add package.json
 git add package-lock.json
