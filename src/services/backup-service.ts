@@ -1,5 +1,6 @@
 import { unzipSync, zipSync } from "fflate";
 
+import { MAX_BACKUP_BYTES } from "./graph-size.ts";
 import { isGraph } from "./graph-service.ts";
 import { parseUserPreferences } from "./preferences-service.ts";
 import type { Graph } from "@/types/graph";
@@ -11,7 +12,7 @@ const REQUIRED_FILE_NAMES = [
   "settings.json",
 ] as const;
 const FILE_NAMES = [...REQUIRED_FILE_NAMES, "inbox.json"] as const;
-const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 

@@ -7,9 +7,7 @@ import {
   deleteTask,
   flattenTasks,
   getLeafTasksForDate,
-  renameTask,
 } from "./task-service.ts";
-import { createNodeRevisionPlan } from "./graph-version-service.ts";
 import {
   getTaskDate,
   getTaskTime,
@@ -28,7 +26,6 @@ import type { TaskNode } from "../types/graph.ts";
 
 test("task graph operations preserve relationships and schedules", () => {
   let graph = createSeedGraph("2026-03-29");
-  const userId = "00000000-0000-4000-8000-000000000099";
   const taskId = (name: string) => {
     const task = graph.nodes.find(
       (node): node is TaskNode =>
@@ -51,27 +48,6 @@ test("task graph operations preserve relationships and schedules", () => {
     [...graph.nodes, ...graph.relationships].every((item) => isUuid(item.id)),
     true,
   );
-  const firstVersion = createNodeRevisionPlan(userId, graph.nodes, []);
-  const unchangedVersion = createNodeRevisionPlan(
-    userId,
-    graph.nodes,
-    firstVersion.inserted,
-  );
-  assert.equal(firstVersion.inserted.length, graph.nodes.length);
-  assert.equal(firstVersion.inserted[0].userId, userId);
-  assert.equal(unchangedVersion.inserted.length, 0);
-  assert.deepEqual(unchangedVersion.nodeRevisionIds, firstVersion.nodeRevisionIds);
-  const renamedVersion = createNodeRevisionPlan(
-    userId,
-    renameTask(graph, projectId, "Renamed project").nodes,
-    firstVersion.inserted,
-  );
-  assert.equal(renamedVersion.inserted.length, 1);
-  assert.notDeepEqual(
-    createNodeRevisionPlan(userId, graph.nodes, []).nodeRevisionIds,
-    firstVersion.nodeRevisionIds,
-  );
-
   const childId = crypto.randomUUID();
   graph = addChildTask(graph, projectId, childId);
   assert.deepEqual(

@@ -36,6 +36,7 @@ export default function CalendarControls({
 
   return (
     <div className="external-calendar-controls">
+      {calendars.conflictDialog}
       <div className="calendar-toggles">
         {calendars.data?.connections.flatMap((connection) =>
           connection.calendars.filter(({ selected }) => selected).map((calendar) => (

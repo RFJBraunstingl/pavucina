@@ -1,45 +1,40 @@
 import { auth } from "@/auth";
 import { isUserPreferences } from "@/services/preferences-service";
-import {
-  loadPreferences,
-  savePreferences,
-} from "@/services/preferences-repository";
-
-const MAX_PREFERENCES_BYTES = 1024 * 1024;
+import { loadPreferences, preferenceChanges, patchPreferences, savePreferences } from "@/services/preferences-repository";
+import { isSettingsPatch } from "@/services/settings-patch-service";
+import { GraphConflictError } from "@/services/graph-patch-service";
+import { readBoundedJson } from "@/services/request-json";
 
 export const runtime = "nodejs";
-
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user.id) return new Response(null, { status: 401 });
+  const after = new URL(request.url).searchParams.get("after");
+  if (after !== null) {
+    if (!Number.isSafeInteger(Number(after)) || Number(after) < -1) return new Response(null, { status: 400 });
+    return Response.json(await preferenceChanges(session.user.id, Number(after)));
+  }
   return Response.json(await loadPreferences(session.user.id));
 }
-
+export async function PATCH(request: Request) {
+  const session = await auth();
+  if (!session?.user.id) return new Response(null, { status: 401 });
+  const body = await readBoundedJson(request, 1024 * 1024);
+  if (body instanceof Response) return body;
+  if (!isSettingsPatch(body)) return Response.json({ error: "Invalid preferences patch" }, { status: 400 });
+  try { await patchPreferences(session.user.id, body); return new Response(null, { status: 204 }); }
+  catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Could not save preferences",
+      ...(error instanceof GraphConflictError && { conflicts: error.conflicts }) }, { status: error instanceof GraphConflictError ? 409 : 400 });
+  }
+}
 export async function PUT(request: Request) {
   const session = await auth();
   if (!session?.user.id) return new Response(null, { status: 401 });
-  if (!request.headers.get("content-type")?.startsWith("application/json")) {
-    return Response.json({ error: "Expected JSON" }, { status: 415 });
-  }
-  if (Number(request.headers.get("content-length")) > MAX_PREFERENCES_BYTES) {
-    return Response.json({ error: "Preferences are too large" }, { status: 413 });
-  }
-
-  const body = await request.text();
-  if (Buffer.byteLength(body) > MAX_PREFERENCES_BYTES) {
-    return Response.json({ error: "Preferences are too large" }, { status: 413 });
-  }
-
-  let value: unknown;
-  try {
-    value = JSON.parse(body);
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-  if (!isUserPreferences(value)) {
-    return Response.json({ error: "Invalid preferences" }, { status: 400 });
-  }
-
-  await savePreferences(session.user.id, value);
+  if (request.headers.get("x-pavucina-restore") !== "true") return Response.json({ error: "Reload Pavucina to use incremental settings saves." }, { status: 426 });
+  const body = await readBoundedJson(request, 1024 * 1024);
+  if (body instanceof Response) return body;
+  if (!isUserPreferences(body)) return new Response(null, { status: 400 });
+  await savePreferences(session.user.id, body);
   return new Response(null, { status: 204 });
 }

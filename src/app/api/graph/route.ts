@@ -1,69 +1,47 @@
 import { auth } from "@/auth";
 import { isGraph } from "@/services/graph-service";
-import { MAX_GRAPH_BYTES } from "@/services/graph-size";
-import {
-  loadLatestGraph,
-  restoreGraphVersion,
-  saveGraphVersion,
-} from "@/services/graph-repository";
-import type { Graph } from "@/types/graph";
+import { MAX_MUTATION_BYTES, MAX_SNAPSHOT_BYTES } from "@/services/graph-size";
+import { loadGraphSnapshot, patchGraph, replaceGraph } from "@/services/graph-repository";
+import { GraphConflictError } from "@/services/graph-patch-service";
+import { isGraphPatch } from "@/services/graph-sync-validation";
+import { readBoundedJson } from "@/services/request-json";
 
 export const runtime = "nodejs";
-
 export async function GET() {
   const session = await auth();
   if (!session?.user.id) return new Response(null, { status: 401 });
-
-  const graph = await loadLatestGraph(session.user.id);
-  return graph ? Response.json(graph) : new Response(null, { status: 404 });
-}
-
-async function readGraph(request: Request): Promise<Graph | Response> {
-  if (!request.headers.get("content-type")?.startsWith("application/json")) {
-    return Response.json({ error: "Expected JSON" }, { status: 415 });
-  }
-  if (Number(request.headers.get("content-length")) > MAX_GRAPH_BYTES) {
-    return Response.json({ error: "Graph is too large" }, { status: 413 });
-  }
-
-  const body = await request.text();
-  if (Buffer.byteLength(body) > MAX_GRAPH_BYTES) {
-    return Response.json({ error: "Graph is too large" }, { status: 413 });
-  }
-
-  let value: unknown;
   try {
-    value = JSON.parse(body);
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    const snapshot = await loadGraphSnapshot(session.user.id);
+    return snapshot ? Response.json(snapshot) : new Response(null, { status: 404 });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Could not load graph" }, { status: 500 });
   }
-  if (!isGraph(value)) {
-    return Response.json({ error: "Invalid graph" }, { status: 400 });
-  }
-  return value;
 }
-
-export async function PUT(request: Request) {
+export async function PATCH(request: Request) {
   const session = await auth();
   if (!session?.user.id) return new Response(null, { status: 401 });
-  const graph = await readGraph(request);
-  if (graph instanceof Response) return graph;
-  if (
-    request.headers.get("if-none-match") === "*" &&
-    (await loadLatestGraph(session.user.id))
-  ) {
-    return new Response(null, { status: 412 });
+  const body = await readBoundedJson(request, MAX_MUTATION_BYTES);
+  if (body instanceof Response) return body;
+  if (!isGraphPatch(body)) return Response.json({ error: "Invalid graph patch" }, { status: 400 });
+  try { return Response.json({ revision: await patchGraph(session.user.id, body) }); }
+  catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Could not save graph",
+      ...(error instanceof GraphConflictError && { conflicts: error.conflicts }) },
+    { status: error instanceof GraphConflictError ? 409 : 500 });
   }
-
-  const versionId = await saveGraphVersion(session.user.id, graph);
-  return Response.json({ versionId }, { status: 201 });
 }
-
-export async function POST(request: Request) {
+async function snapshotWrite(request: Request, creating: boolean) {
   const session = await auth();
   if (!session?.user.id) return new Response(null, { status: 401 });
-  const graph = await readGraph(request);
-  if (graph instanceof Response) return graph;
-  const versionId = await restoreGraphVersion(session.user.id, graph);
-  return Response.json({ versionId }, { status: 201 });
+  if (creating && request.headers.get("if-none-match") !== "*") {
+    return Response.json({ error: "Reload Pavucina to use incremental saves." }, { status: 426 });
+  }
+  const body = await readBoundedJson(request, MAX_SNAPSHOT_BYTES);
+  if (body instanceof Response) return body;
+  if (!isGraph(body)) return Response.json({ error: "Invalid graph" }, { status: 400 });
+  if (creating && await loadGraphSnapshot(session.user.id)) return new Response(null, { status: 412 });
+  const revision = await replaceGraph(session.user.id, body, creating);
+  return revision ? Response.json({ revision }, { status: 201 }) : new Response(null, { status: 412 });
 }
+export const PUT = (request: Request) => snapshotWrite(request, true);
+export const POST = (request: Request) => snapshotWrite(request, false);

@@ -2,6 +2,7 @@
 // node --experimental-strip-types scripts/backup-recovery-smoke.mjs [app URL] [Chrome URL]
 // Every API request is mocked inside a new, disposable browser context.
 import assert from "node:assert/strict";
+import { incrementalFixture } from "./incremental-browser-fixture.mjs";
 import { createSeedGraph } from "../src/data/seed-graph.ts";
 import { createBackupArchive } from "../src/services/backup-service.ts";
 import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
@@ -14,11 +15,13 @@ const restoredGraph = createSeedGraph(todayIso());
 const archive = Buffer.from(createBackupArchive(restoredGraph, DEFAULT_USER_PREFERENCES)).toString("base64");
 let userId = crypto.randomUUID();
 let graph = { invalid: true };
+const fixture = incrementalFixture(restoredGraph);
 let graphStatus = 200;
 let restoreStatus = 201;
 let preferencesStatus = 200;
 let holdRestore = false;
 let releaseRestore;
+let completedRestores = 0;
 const writes = [];
 const mockErrors = [];
 const requests = [];
@@ -33,18 +36,28 @@ async function respond({ requestId, request }) {
   const path = new URL(request.url).pathname;
   requests.push(`${request.method} ${path}`);
   const requestUserId = userId;
+  fixture.userId = userId;
+  if (path === "/api/calendars") return fixture.respond(browser, { requestId, request });
+  if (path === "/api/graph/changes" || (path === "/api/graph" && request.method === "PATCH")) {
+    if (request.method === "PATCH") writes.push({ method: "PATCH", userId });
+    await fixture.respond(browser, { requestId, request });
+    graph = fixture.graph;
+    return;
+  }
   let status = 200;
   let value = {};
   if (path === "/api/auth/session") {
     value = userId ? { user: { id: userId }, expires: "2099-01-01T00:00:00.000Z" } : null;
   } else if (path === "/api/preferences") {
-    value = DEFAULT_USER_PREFERENCES;
+    value = new URL(request.url).searchParams.has("after")
+      ? { revision: 0, fields: Object.fromEntries(Object.entries(DEFAULT_USER_PREFERENCES).map(([key, after]) => [key, { after }])) }
+      : DEFAULT_USER_PREFERENCES;
     if (request.method === "PUT") status = preferencesStatus;
   } else if (path === "/api/account-links") {
     value = { accounts: [], request: null };
   } else if (path === "/api/graph") {
     if (request.method === "GET") {
-      value = graph;
+      value = graph.invalid ? graph : fixture.snapshot;
       status = graphStatus;
     } else {
       writes.push({ method: request.method, graph: JSON.parse(request.postData), userId: requestUserId });
@@ -52,14 +65,16 @@ async function respond({ requestId, request }) {
         await new Promise((resolve) => { releaseRestore = resolve; });
       }
       status = request.method === "POST" ? restoreStatus : 201;
-      if (status === 201 && userId === requestUserId) graph = JSON.parse(request.postData);
+      if (status === 201 && userId === requestUserId) { graph = JSON.parse(request.postData); graphStatus = 200; fixture.edit(graph, true); }
     }
   }
+  if (status >= 400) value = { error: "Could not restore your graph" };
   await browser.send("Fetch.fulfillRequest", {
     requestId, responseCode: status,
     responseHeaders: [{ name: "content-type", value: "application/json" }],
     body: Buffer.from(JSON.stringify(value)).toString("base64"),
   });
+  if (path === "/api/graph" && request.method === "POST") completedRestores++;
 }
 
 const evaluate = (expression) => browser.evaluate(expression);
@@ -80,6 +95,7 @@ async function confirm() {
   await click(".backup-restore .dialog-danger");
 }
 async function openRecovery(status = 200) {
+  userId = crypto.randomUUID();
   graph = { invalid: true };
   graphStatus = status;
   await browser.send("Page.navigate", { url: `${appUrl}/preferences` });
@@ -108,6 +124,7 @@ try {
   await wait("!document.querySelector('.backup-restore dialog[open]')");
   assert.equal(writes.length, 0);
 
+  await evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
   restoreStatus = 500;
   await confirm();
   await wait("document.querySelector('.backup-message')?.textContent.includes('Could not restore your graph')");
@@ -121,7 +138,7 @@ try {
   await click('a[href="/todo"]');
   await wait("Boolean(document.querySelector('.completion-button'))");
   await click(".completion-button");
-  await waitFor(() => writes.some(({ method }) => method === "PUT"), "edits persist after restore");
+  await waitFor(() => writes.some(({ method }) => method === "PATCH"), "edits persist after restore");
 
   await openRecovery(500);
   preferencesStatus = 500;
@@ -139,8 +156,11 @@ try {
   await evaluate("document.dispatchEvent(new Event('visibilitychange'))");
   await waitFor(() => requests.filter((request) => request === "GET /api/graph").length > graphLoads, "new account graph load");
   await wait("document.querySelector('.sync-error')?.textContent.includes('The saved graph is invalid')");
+  const completedBeforeRelease = completedRestores;
   releaseRestore();
-  await wait("document.querySelector('.sync-error')?.textContent.includes('Your account changed during restore')");
+  await waitFor(() => completedRestores > completedBeforeRelease, "old account restore completes");
+  await evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await wait("document.querySelector('.sync-error')?.textContent.includes('The saved graph is invalid')");
   assert.equal(writes.at(-1).userId, previousUser);
   assert.equal(await evaluate("document.querySelector('.backup-actions button').disabled"), true);
   holdRestore = false;
@@ -155,7 +175,8 @@ try {
   await wait("Boolean(document.querySelector('.backup-actions'))");
   await confirm();
   await wait("document.querySelector('.backup-message')?.textContent === 'Backup restored.'");
-  assert.deepEqual(await evaluate("JSON.parse(localStorage.getItem('pavucina.graph.v1'))"), restoredGraph);
+  await browser.send("Page.navigate", { url: `${appUrl}/todo` });
+  await wait("Boolean(document.querySelector('.completion-button'))");
   assert.deepEqual(mockErrors, []);
   console.log("PASS: recovery navigation, disabled controls, ZIP validation, cancellation, failed requests, restore, autosave, account switch, guest restore");
 } catch (error) {

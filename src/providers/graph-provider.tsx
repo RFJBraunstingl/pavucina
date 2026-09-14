@@ -1,222 +1,54 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
-
-import { loadGuestGraph, saveGuestGraph } from "@/services/local-graph-store";
-import { replaceImportedEventSubgraph } from "@/services/event-service";
-import {
-  loadRemoteGraph,
-  restoreRemoteGraph,
-  saveRemoteGraph,
-} from "@/services/remote-graph-store";
+import { GraphSyncController } from "@/services/graph-sync-controller";
 import { todayIso } from "@/utils/date";
+import SyncConflictDialog from "@/app/_components/sync-conflict-dialog";
 import type { Graph } from "@/types/graph";
-
-const subscribe = () => () => {};
+import type { GraphSyncView } from "@/types/graph-sync-controller";
 
 function useGraphState() {
   const { data: session, status } = useSession();
   const [today] = useState(todayIso);
-  const [graph, setGraph] = useState<Graph | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [loadAttempt, setLoadAttempt] = useState(0);
-  const [saveAttempt, setSaveAttempt] = useState(0);
-  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
-  const loadedScope = useRef<string | null>(null);
-  const lastSaved = useRef<string | null>(null);
-  const saveQueue = useRef(Promise.resolve());
-  const saveGeneration = useRef(0);
-  const userId = session?.user.id;
-  const scope = status === "authenticated" ? `user:${userId}` : "guest";
-
+  const [state, setState] = useState<GraphSyncView>({ graph: null, error: null, conflicts: [] });
+  const [hydrated, setHydrated] = useState(false);
+  const controller = useRef<GraphSyncController | null>(null);
+  const scope = status === "authenticated" ? `user:${session?.user.id}` : "guest";
   useEffect(() => {
-    if (!hydrated || status === "loading") return;
-
-    let cancelled = false;
-    loadedScope.current = null;
-    lastSaved.current = null;
-
-    void (async () => {
-      await Promise.resolve();
-      if (cancelled) return;
-      setGraph(null);
-      setSyncError(null);
-
-      try {
-        if (status === "unauthenticated") {
-          const loaded = loadGuestGraph(today);
-          loadedScope.current = "guest";
-          lastSaved.current = loaded ? JSON.stringify(loaded) : null;
-          setGraph(loaded);
-          return;
-        }
-
-        let loaded = await loadRemoteGraph();
-        if (!loaded) {
-          if (cancelled) return;
-          loaded = loadGuestGraph(today)!;
-          if (!(await saveRemoteGraph(loaded, true))) {
-            loaded = await loadRemoteGraph();
-            if (!loaded) throw new Error("Could not load your saved graph");
-          }
-        }
-        if (cancelled) return;
-        loadedScope.current = scope;
-        lastSaved.current = JSON.stringify(loaded);
-        setGraph(loaded);
-      } catch (error) {
-        if (!cancelled) {
-          // A failed load still belongs to this account and can be restored.
-          loadedScope.current = scope;
-          setSyncError(
-            error instanceof Error ? error.message : "Could not load your graph",
-          );
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [hydrated, status, userId, scope, today, loadAttempt]);
-
+    if (status === "loading") return;
+    const sync = new GraphSyncController(scope, setState);
+    controller.current = sync;
+    void Promise.resolve().then(() => { setState({ graph: null, error: null, conflicts: [] }); setHydrated(true); return sync.open(today); });
+    const refresh = () => { if (document.visibilityState === "visible") void sync.flush().catch(() => undefined); };
+    window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
+    return () => { sync.active = false; window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); };
+  }, [scope, status, today]);
   useEffect(() => {
-    if (!hydrated || !graph || loadedScope.current !== scope) return;
-    const serialized = JSON.stringify(graph);
-    if (serialized === lastSaved.current) return;
-
-    if (status === "unauthenticated") {
-      saveGuestGraph(graph);
-      lastSaved.current = serialized;
-      return;
-    }
-    if (status !== "authenticated") return;
-
-    const generation = saveGeneration.current;
-    const timeout = window.setTimeout(() => {
-      saveQueue.current = saveQueue.current
-        .catch(() => undefined)
-        .then(async () => {
-          if (
-            loadedScope.current !== scope ||
-            saveGeneration.current !== generation
-          ) return;
-          try {
-            await saveRemoteGraph(graph);
-            if (
-              loadedScope.current !== scope ||
-              saveGeneration.current !== generation
-            ) return;
-            lastSaved.current = serialized;
-            setSyncError(null);
-          } catch (error: unknown) {
-            if (loadedScope.current !== scope) return;
-            setSyncError(
-              error instanceof Error ? error.message : "Could not save your graph",
-            );
-          }
-        });
-    }, 500);
-    return () => window.clearTimeout(timeout);
-  }, [graph, hydrated, scope, status, saveAttempt]);
-
-  function retry() {
-    if (graph && loadedScope.current === scope) {
-      setSaveAttempt((attempt) => attempt + 1);
-    } else {
-      setLoadAttempt((attempt) => attempt + 1);
-    }
-  }
-
-  async function persistGraph(next: Graph, restoring: boolean) {
-    const action = restoring ? "restore" : "save";
-    const serialized = JSON.stringify(next);
-    const restoreScope = scope;
-    const generation = ++saveGeneration.current;
-    if (
-      !restoring &&
-      loadedScope.current === restoreScope &&
-      lastSaved.current === serialized
-    ) return;
-    try {
-      if (status === "unauthenticated") {
-        if (!saveGuestGraph(next)) {
-          throw new Error(`Could not ${action} your graph`);
-        }
-      } else if (status === "authenticated") {
-        const operation = saveQueue.current
-          .catch(() => undefined)
-          .then(async () => {
-            if (loadedScope.current !== restoreScope) {
-              throw new Error(`Your account changed during ${action}`);
-            }
-            if (restoring) await restoreRemoteGraph(next);
-            else await saveRemoteGraph(next);
-          });
-        saveQueue.current = operation.catch(() => undefined);
-        await operation;
-      } else {
-        throw new Error("Your data is still loading");
-      }
-      if (loadedScope.current !== restoreScope) {
-        throw new Error(`Your account changed during ${action}`);
-      }
-      lastSaved.current = serialized;
-      setGraph((current) =>
-        restoring || !current || JSON.stringify(current) === serialized
-          ? next
-          : current);
-      setSyncError(null);
-    } catch (error) {
-      if (saveGeneration.current === generation) {
-        setSaveAttempt((attempt) => attempt + 1);
-      }
-      const message = error instanceof Error
-        ? error.message
-        : `Could not ${action} your graph`;
-      setSyncError(message);
-      throw new Error(message);
-    }
-  }
-
-  const saveGraphNow = (next: Graph) => persistGraph(next, false);
-  const restoreGraph = (next: Graph) => persistGraph(next, true);
-
-  function adoptImportedGraph(remote: Graph, base: Graph) {
-    const serializedBase = JSON.stringify(base);
-    setGraph((current) => {
-      if (!current) return remote;
-      if (JSON.stringify(current) === serializedBase) {
-        lastSaved.current = JSON.stringify(remote);
-        return remote;
-      }
-      return replaceImportedEventSubgraph(current, remote, base);
-    });
-  }
-
+    if (!controller.current?.hasPending) return;
+    const timer = window.setTimeout(() => void controller.current?.flush().catch(() => undefined), 500);
+    return () => window.clearTimeout(timer);
+  }, [state.graph]);
+  const setGraph = (next: Graph | null | ((current: Graph | null) => Graph | null)) => controller.current?.change(next);
+  const saveGraphNow = async (next: Graph) => { controller.current?.change(next); await controller.current?.flush(); };
   return {
-    graph, setGraph, saveGraphNow, restoreGraph, adoptImportedGraph,
-    today, hydrated, syncError, retry,
+    graph: state.graph, setGraph, today, hydrated, syncError: state.error,
+    retry: () => void (state.graph ? controller.current?.flush() : controller.current?.open(today))?.catch(() => undefined),
+    saveGraphNow,
+    restoreGraph: async (graph: Graph) => { if (!controller.current) throw new Error("Workspace is loading"); await controller.current.restore(graph); },
+    adoptImportedGraph: async () => { await controller.current?.flush(); },
+    conflicts: state.conflicts,
+    resolveConflict: async (keepMine: boolean) => { await controller.current?.resolve(keepMine); },
   };
 }
-
 const GraphContext = createContext<ReturnType<typeof useGraphState> | null>(null);
-
 export function GraphProvider({ children }: { children: ReactNode }) {
-  return (
-    <GraphContext.Provider value={useGraphState()}>{children}</GraphContext.Provider>
-  );
+  const value = useGraphState();
+  return <GraphContext.Provider value={value}>{children}
+    <SyncConflictDialog conflicts={value.conflicts} onResolve={value.resolveConflict} />
+  </GraphContext.Provider>;
 }
-
 export function useGraph() {
   const value = useContext(GraphContext);
   if (!value) throw new Error("useGraph must be used inside GraphProvider");

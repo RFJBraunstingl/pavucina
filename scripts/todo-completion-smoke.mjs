@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createSeedGraph } from "../src/data/seed-graph.ts";
 import { saveNativeEvent } from "../src/services/native-event-service.ts";
 import { isNodeDone } from "../src/services/completion-service.ts";
-import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
+import { incrementalFixture } from "./incremental-browser-fixture.mjs";
 import { todayIso } from "../src/utils/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
@@ -23,29 +23,15 @@ const imported = graph.nodes.find((node) => node.properties.name === "Imported m
 imported.properties.externalOrigin = {
   kind: "calendar", source: "google", connectionId, calendarId: "work", eventId: "meeting",
 };
+const fixture = incrementalFixture(graph);
+fixture.connections = [{ id: connectionId, source: "google", address: "test@example.com", status: "connected",
+  calendars: [{ id: "work", name: "Work", color: "#4285f4", selected: true, visible: true }] }];
 const errors = [];
 const browser = await connectChrome(process.argv[3] ?? "http://127.0.0.1:9225", (event) => {
   if (event.method === "Runtime.exceptionThrown") errors.push(event.params);
-  if (event.method === "Fetch.requestPaused") void respond(event.params).catch((error) => errors.push(error));
+  if (event.method === "Fetch.requestPaused") void fixture.respond(browser, event.params).catch((error) => errors.push(error));
 });
 const ui = calendarInteractions(browser);
-async function respond({ requestId, request }) {
-  const path = new URL(request.url).pathname;
-  let value = {};
-  if (path === "/api/auth/session") value = { user: { id: connectionId }, expires: "2099-01-01T00:00:00Z" };
-  if (path === "/api/preferences") value = DEFAULT_USER_PREFERENCES;
-  if (path === "/api/calendars") value = { available: {}, events: [], connections: [{
-    id: connectionId, source: "google", address: "test@example.com", status: "connected",
-    calendars: [{ id: "work", name: "Work", color: "#4285f4", selected: true, visible: true }],
-  }] };
-  if (path === "/api/graph") {
-    if (request.method !== "GET") graph = JSON.parse(request.postData);
-    value = graph;
-  }
-  await browser.send("Fetch.fulfillRequest", { requestId, responseCode: 200,
-    responseHeaders: [{ name: "content-type", value: "application/json" }],
-    body: Buffer.from(JSON.stringify(value)).toString("base64") });
-}
 
 try {
   await browser.send("Runtime.enable");
@@ -59,7 +45,7 @@ try {
     await ui.evaluate(`document.querySelector(${JSON.stringify(selector)}).closest('li').querySelector('.completion-button').focus()`);
     await ui.key("Enter", 13);
     const id = graph.nodes.find((node) => node.properties.name === name).id;
-    await waitFor(() => isNodeDone(graph, id), `${name} completion persisted`);
+    await waitFor(() => isNodeDone(fixture.graph, id), `${name} completion persisted`);
     await ui.wait(`document.querySelector('.todo-count').textContent === '${index + 1} of 4 done'`);
     assert.equal(await ui.evaluate(`document.querySelector(${JSON.stringify(selector)}).closest('li').classList.contains('is-done')`), true);
     await ui.click(selector);
@@ -78,10 +64,10 @@ try {
     return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
   })()`);
   await ui.touch(position);
-  await waitFor(() => !isNodeDone(graph, imported.id), "mobile reopen persisted");
+  await waitFor(() => !isNodeDone(fixture.graph, imported.id), "mobile reopen persisted");
   await ui.wait("document.querySelector('.todo-count').textContent === '1 of 4 done'");
   await ui.touch(position);
-  await waitFor(() => isNodeDone(graph, imported.id), "mobile completion persisted");
+  await waitFor(() => isNodeDone(fixture.graph, imported.id), "mobile completion persisted");
   assert.deepEqual(errors, []);
   console.log("PASS: native/imported completion, keyboard, styling, details, counts, reload, mobile reopen/complete");
 } finally {

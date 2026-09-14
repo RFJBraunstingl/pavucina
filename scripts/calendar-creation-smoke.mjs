@@ -6,45 +6,29 @@ import { writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { saveNativeEvent } from "../src/services/native-event-service.ts";
-import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
+import { incrementalFixture } from "./incremental-browser-fixture.mjs";
 import { todayIso } from "../src/utils/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
 
 const appUrl = process.argv[2] ?? "http://127.0.0.1:3004";
 const day = todayIso();
-let userId = crypto.randomUUID();
 let graph = { version: 1, nodes: [{ id: crypto.randomUUID(), type: "root", properties: {} }], relationships: [] };
 for (const [name, startTime, endTime] of [["Earlier", "08:00", "09:00"], ["Later", "09:30", "10:00"]]) {
   graph = saveNativeEvent(graph, crypto.randomUUID(), { name, startTime, endTime,
     startDate: day, endDate: day, timeZone: "Europe/Vienna", location: "", description: "" }, true);
 }
-let writes = 0;
+const fixture = incrementalFixture(graph);
 const errors = [];
 const browser = await connectChrome(process.argv[3] ?? "http://127.0.0.1:9223", (event) => {
   if (event.method === "Runtime.exceptionThrown") errors.push(event.params);
-  if (event.method === "Fetch.requestPaused") void respond(event.params).catch((error) => errors.push(error));
+  if (event.method === "Fetch.requestPaused") void fixture.respond(browser, event.params).catch((error) => errors.push(error));
 });
 const ui = calendarInteractions(browser);
 const opened = "Boolean(document.querySelector('.event-dialog[open]'))";
 const closed = "!document.querySelector('.event-dialog[open]')";
-const saved = (name) => graph.nodes.some((node) => node.type === "event" && node.properties.name === name);
+const saved = (name) => fixture.graph.nodes.some((node) => node.type === "event" && node.properties.name === name);
 
-async function respond({ requestId, request }) {
-  const path = new URL(request.url).pathname;
-  let value = {};
-  if (path === "/api/auth/session") value = userId
-    ? { user: { id: userId }, expires: "2099-01-01T00:00:00Z" } : null;
-  if (path === "/api/preferences") value = DEFAULT_USER_PREFERENCES;
-  if (path === "/api/calendars") value = { available: {}, connections: [], events: [] };
-  if (path === "/api/graph") {
-    if (request.method !== "GET") { graph = JSON.parse(request.postData); writes++; }
-    value = graph;
-  }
-  await browser.send("Fetch.fulfillRequest", { requestId, responseCode: 200,
-    responseHeaders: [{ name: "content-type", value: "application/json" }],
-    body: Buffer.from(JSON.stringify(value)).toString("base64") });
-}
 
 try {
   await browser.send("Runtime.enable");
@@ -55,7 +39,7 @@ try {
   const position = await ui.point(9 * 60 + 10);
   await ui.mouse(position);
   await ui.wait("document.querySelector('.calendar-create-preview')?.textContent.includes('09:00 – 09:30')");
-  assert.equal(writes, 0);
+  assert.equal(fixture.writes.length, 0);
   const screenshot = await browser.send("Page.captureScreenshot");
   await writeFile(join(tmpdir(), "pavucina-calendar-create-preview.png"), Buffer.from(screenshot.data, "base64"));
   await ui.mouse(position, true);
@@ -67,7 +51,7 @@ try {
   await ui.field("endTime", "08:00");
   await ui.click(".event-dialog button[type=submit]");
   await ui.wait("document.querySelector('.event-error')?.textContent.includes('end after')");
-  assert.equal(writes, 0);
+  assert.equal(fixture.writes.length, 0);
   await ui.field("endTime", "09:30");
   await ui.click(".event-dialog button[type=submit]");
   await ui.wait(closed);
@@ -96,8 +80,8 @@ try {
   await ui.wait("document.querySelectorAll('dialog[open]').length === 2");
   await ui.click("dialog[open]:not(.event-dialog) button[type=submit]");
   await waitFor(() => !saved("Updated meeting"), "event deletion saved");
-  await ui.evaluate("[...document.querySelectorAll('button')].find(button => button.textContent.includes('New event')).focus()");
-  assert.equal(await ui.evaluate("document.activeElement.textContent.trim()"), "+ New event");
+  await ui.evaluate("document.querySelector('.calendar-days').focus()");
+  assert.equal(await ui.evaluate("document.activeElement.className"), "calendar-days");
   await ui.key("Enter", 13);
   await ui.wait(opened);
   await ui.key("Escape", 27);
@@ -130,15 +114,17 @@ try {
   assert.equal(await ui.evaluate(closed), true);
   assert.equal(await ui.evaluate("Boolean(document.querySelector('.calendar-create-preview'))"), false);
 
-  userId = null;
+  fixture.userId = null;
   await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
   await ui.wait("Boolean(document.querySelector('.calendar-edit-lock'))");
   await ui.click(".calendar-edit-lock");
-  await ui.evaluate("[...document.querySelectorAll('button')].find(button => button.textContent.includes('New event')).click()");
+  await ui.touch(await ui.point(12 * 60));
   await ui.wait(opened);
   await ui.field("name", "Guest event");
   await ui.click(".event-dialog button[type=submit]");
-  await ui.wait("JSON.parse(localStorage.getItem('pavucina.graph.v1')).nodes.some(node => node.properties.name === 'Guest event')");
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
+  await ui.wait("document.body.innerText.includes('Guest event')");
   assert.deepEqual(errors, []);
   console.log("PASS: hover preview, click, validation, create/edit/delete, reload, keyboard, mobile lock/tap/scroll, guest persistence");
 } catch (error) {

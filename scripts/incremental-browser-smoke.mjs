@@ -1,0 +1,95 @@
+// node --experimental-strip-types scripts/incremental-browser-smoke.mjs [app URL] [Chrome URL]
+import assert from "node:assert/strict";
+import { createSeedGraph } from "../src/data/seed-graph.ts";
+import { saveNativeEvent, nativeEventInput } from "../src/services/native-event-service.ts";
+import { isNodeDone } from "../src/services/completion-service.ts";
+import { createBackupArchive } from "../src/services/backup-service.ts";
+import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
+import { todayIso } from "../src/utils/date.ts";
+import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
+import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
+import { incrementalFixture } from "./incremental-browser-fixture.mjs";
+const app = process.argv[2] ?? "http://127.0.0.1:3004";
+const day = todayIso(), eventId = crypto.randomUUID();
+const initial = saveNativeEvent(createSeedGraph(day), eventId, { name: "Native event", description: "", location: "", timeZone: "UTC", startDate: day, endDate: day, startTime: "09:00", endTime: "10:00" }, true);
+const fixture = incrementalFixture(initial);
+const errors = [];
+const browser = await connectChrome(process.argv[3] ?? "http://127.0.0.1:9225", (event) => {
+  if (event.method === "Runtime.exceptionThrown") errors.push(event.params);
+  if (event.method === "Fetch.requestPaused") void fixture.respond(browser, event.params).catch((error) => errors.push(error));
+});
+const ui = calendarInteractions(browser);
+const eventRow = "document.querySelector('[aria-label=\"Show details for Native event\"]')?.closest('li')";
+const syncRetry = async () => {
+  await ui.evaluate("document.querySelector('.sync-error button').focus()");
+  await ui.key("Enter", 13);
+};
+try {
+  await browser.send("Runtime.enable");
+  await browser.send("Fetch.enable", { patterns: [{ urlPattern: "*/api/*" }] });
+  await browser.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
+  await browser.send("Page.navigate", { url: `${app}/todo` });
+  await ui.wait("document.querySelectorAll('.todo-item').length === 3");
+  fixture.loseAcknowledgement = true;
+  await ui.evaluate(`${eventRow}.querySelector('.completion-button').focus()`); await ui.key("Enter", 13);
+  await ui.wait("document.body.innerText.includes('Simulated lost acknowledgement')");
+  assert.equal(isNodeDone(fixture.graph, eventId), true);
+  const revision = fixture.snapshot.revision.sequence;
+  const mutationId = fixture.writes.at(-1).body.mutationId;
+  await syncRetry();
+  await ui.wait("!document.querySelector('.sync-error')");
+  assert.equal(fixture.snapshot.revision.sequence, revision);
+  assert.equal(fixture.writes.at(-1).body.mutationId, mutationId);
+  assert.ok(JSON.stringify(fixture.writes.at(-1).body).length < 2048);
+  assert.ok(fixture.writes.every((write) => write.method === "PATCH"));
+  await browser.send("Page.navigate", { url: `${app}/calendar` });
+  await ui.wait("Boolean(document.querySelector('.external-calendar-event'))");
+  await ui.selectEvent("Native event"); await ui.wait("Boolean(document.querySelector('.event-dialog[open]'))");
+  const event = fixture.graph.nodes.find((node) => node.id === eventId);
+  fixture.edit(saveNativeEvent(fixture.graph, eventId, { ...nativeEventInput(fixture.graph, event), name: "Remote event" }, false));
+  await ui.field("name", "Local event"); await ui.field("description", "Independent notes");
+  await ui.click(".event-dialog button[type=submit]");
+  await ui.wait("Boolean(document.querySelector('.sync-conflict-dialog[open]')) && document.body.innerText.includes('Use saved')");
+  await ui.evaluate("[...document.querySelectorAll('dialog[open] button')].find(button => button.textContent === 'Use saved').focus()"); await ui.key("Enter", 13);
+  await waitFor(() => fixture.graph.nodes.find((node) => node.id === eventId).properties.description === "Independent notes", "independent edit preserved through resolution");
+  assert.equal(fixture.graph.nodes.find((node) => node.id === eventId).properties.name, "Remote event");
+  await ui.wait("!document.querySelector('dialog[open]')");
+  await ui.selectEvent("Remote event"); await ui.wait("Boolean(document.querySelector('.event-dialog[open]'))");
+  fixture.failWrites = true;
+  await ui.field("name", "Pending event"); await ui.click(".event-dialog button[type=submit]");
+  await ui.wait("document.body.innerText.includes('Simulated offline save')");
+  const pendingId = fixture.writes.at(-1).body.mutationId;
+  await browser.send("Page.navigate", { url: `${app}/calendar` });
+  await ui.wait("document.body.innerText.includes('Simulated offline save') && document.body.innerText.includes('Pending event')");
+  fixture.failWrites = false; await syncRetry();
+  await waitFor(() => fixture.graph.nodes.find((node) => node.id === eventId).properties.name === "Pending event", "pending edit survives reload");
+  assert.equal(fixture.writes.at(-1).body.mutationId, pendingId);
+
+  fixture.userId = null;
+  const legacy = JSON.stringify(initial);
+  await ui.evaluate(`localStorage.setItem('pavucina.graph.v1', ${JSON.stringify(legacy)})`);
+  await browser.send("Page.navigate", { url: `${app}/todo` });
+  await ui.wait("document.querySelectorAll('.todo-item').length === 3");
+  await browser.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await browser.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+  const position = await ui.evaluate(`(() => { const button = ${eventRow}.querySelector('.completion-button'); button.scrollIntoView({block:'center'}); const rect = button.getBoundingClientRect(); return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}; })()`);
+  await ui.touch(position);
+  await ui.wait(`${eventRow}.classList.contains('is-done')`);
+  await ui.wait("!document.querySelector('.sync-error')");
+  await new Promise((resolve) => setTimeout(resolve, 800));
+  await browser.send("Page.navigate", { url: `${app}/todo` });
+  await ui.wait(`${eventRow}?.classList.contains('is-done')`);
+  assert.equal(await ui.evaluate("localStorage.getItem('pavucina.graph.v1')"), legacy);
+
+  fixture.userId = crypto.randomUUID(); fixture.invalid = true;
+  await browser.send("Page.navigate", { url: `${app}/preferences` });
+  await ui.wait("Boolean(document.querySelector('.backup-actions')) && Boolean(document.querySelector('.sync-error'))");
+  const archive = Buffer.from(createBackupArchive(initial, DEFAULT_USER_PREFERENCES)).toString("base64");
+  await ui.evaluate(`(() => { const transfer = new DataTransfer(); transfer.items.add(new File([Uint8Array.from(atob(${JSON.stringify(archive)}), c => c.charCodeAt(0))], 'backup.zip')); const input=document.querySelector('input[type=file]');input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true})); })()`);
+  await ui.wait("Boolean(document.querySelector('.backup-restore dialog[open]'))"); await ui.click(".backup-restore .dialog-danger");
+  await ui.wait("document.querySelector('.backup-message')?.textContent === 'Backup restored.'");
+  assert.equal(fixture.writes.at(-1).method, "POST");
+  assert.deepEqual(errors, []);
+  console.log("PASS: incremental payload, lost acknowledgement, conflict resolution, pending reload, guest IndexedDB migration, mobile completion, invalid-graph backup recovery");
+} catch (error) { console.error(await ui.evaluate("document.body.innerText"), errors); throw error; }
+finally { await browser.close(); }

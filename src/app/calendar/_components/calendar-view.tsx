@@ -27,9 +27,6 @@ import {
   startOfWeek,
 } from "@/utils/date";
 import type { UserPreferences } from "@/types/preferences";
-import { defaultCalendarEvent } from "@/utils/calendar-creation";
-import { externalCalendarItems } from "@/utils/external-calendar";
-import { importedCalendarItems } from "@/utils/event-calendar";
 
 export default function CalendarView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
@@ -124,17 +121,13 @@ export default function CalendarView() {
                 locked={locked} hideDone={preferences.hideDone}
                 onToggleLock={() => setMobileLocked((current) => !current)}
                 onHideDone={(hideDone) => updatePreferences({ hideDone })}
-                onShowDay={showDay}
-                onCreate={() => editor.create(defaultCalendarEvent([
-                  ...taskEvents, ...importedCalendarItems(graph, graphEvents, days),
-                  ...externalCalendarItems(externalEvents, days),
-                ], day))} />
+                onShowDay={showDay} />
             </div>
           </div>
           <p className="calendar-hint">
             {locked
-              ? "Editing is locked. Unlock to create events, or drag and resize tasks."
-              : "Click or tap free time to create an event. Drag tasks or their edges to reschedule them."}
+              ? "Editing is locked. Unlock to create events, or drag and resize tasks and events."
+              : "Click or tap free time to create an event. Drag tasks and events or their edges to reschedule them."}
           </p>
           <ScheduleTray
             days={schedules.map(({ date, unscheduled }) => ({

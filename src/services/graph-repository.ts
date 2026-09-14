@@ -1,124 +1,97 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { pruneImportedHistory } from "./graph-pruning-service";
+import { loadLegacyGraph } from "./legacy-graph-repository";
+import { graphCollections, latestCommit, publishedRecords, publishCommit, cleanUnpublishedRecords } from "./graph-commit-store";
+import { changedGraphRecords, recordsGraph } from "./graph-record-service";
+import { applyGraphOperations, diffGraph, GraphConflictError } from "./graph-patch-service";
+import { isGraph } from "./graph-service";
+import type { Graph } from "../types/graph";
+import type { GraphPatch, GraphSnapshot } from "../types/graph-sync";
 
-import { ObjectId, type Collection } from "mongodb";
+const empty: Graph = { version: 1, nodes: [], relationships: [], inboxNodes: [] };
+const revision = (generation: string, sequence: number) => ({ generation, sequence });
+const duplicate = (error: unknown) => Boolean(error && typeof error === "object" && "code" in error && error.code === 11000);
 
-import { purgeHistoricalEvents } from "./event-history-service";
-import { createNodeRevisionPlan } from "./graph-version-service";
-import { getMongoDatabase } from "./mongodb";
-import type { Graph, TaskNode } from "@/types/graph";
-import type {
-  EdgeVersionDocument,
-  NodeRevisionDocument,
-} from "@/types/graph-storage";
-
-let indexesPromise: Promise<unknown> | undefined;
-
-async function collections() {
-  const database = await getMongoDatabase();
-  const edges = database.collection<EdgeVersionDocument>("edges");
-  const nodes = database.collection<NodeRevisionDocument>("nodes");
-  indexesPromise ??= Promise.all([
-    nodes.createIndex({ userId: 1, "node.id": 1 }),
-    nodes.createIndex({ userId: 1, "node.type": 1 }),
-    edges.createIndex({ userId: 1, createdAt: -1, _id: -1 }),
-    edges.createIndex({ userId: 1, "edges.id": 1 }),
-    edges.createIndex({ userId: 1, nodeRevisionIds: 1 }),
-  ]).catch((error) => {
-    indexesPromise = undefined;
-    throw error;
-  });
-  await indexesPromise;
-  return { edges, nodes };
-}
-
-async function latestVersion(
-  edges: Collection<EdgeVersionDocument>,
-  userId: string,
-) {
-  return edges.findOne({ userId }, { sort: { createdAt: -1, _id: -1 } });
-}
-
-async function revisionMap(
-  nodes: Collection<NodeRevisionDocument>,
-  userId: string,
-  revisionIds: string[],
-) {
-  if (!revisionIds.length) return new Map<string, NodeRevisionDocument>();
-  const revisions = await nodes
-    .find({ userId, _id: { $in: revisionIds } })
-    .toArray();
-  if (revisions.length !== revisionIds.length) {
-    throw new Error("Graph version references missing node revisions");
+export async function loadGraphSnapshot(userId: string): Promise<GraphSnapshot | null> {
+  for (let retry = 0; retry < 5; retry++) {
+    const head = await latestCommit(userId);
+    if (!head) {
+      const legacy = await loadLegacyGraph(userId);
+      if (!legacy) return null;
+      if (!isGraph(legacy)) throw new Error("The saved graph is invalid. Restore a backup in Preferences.");
+      await replaceGraph(userId, legacy, true);
+      continue;
+    }
+    const records = await publishedRecords(userId, head);
+    if ((await latestCommit(userId))?._id === head._id) return { revision: revision(head.generation, head.sequence), records };
   }
-  return new Map(revisions.map((revision) => [revision._id, revision]));
+  throw new Error("The workspace is changing. Please retry loading it.");
 }
-
 export async function loadLatestGraph(userId: string): Promise<Graph | null> {
-  const { edges, nodes } = await collections();
-  const version = await latestVersion(edges, userId);
-  if (!version) return null;
-
-  const revisionIds = [
-    ...version.nodeRevisionIds,
-    ...version.inboxNodeRevisionIds,
-  ];
-  const revisions = await revisionMap(nodes, userId, revisionIds);
-  return {
-    version: version.graphSchemaVersion,
-    nodes: version.nodeRevisionIds.map((id) => revisions.get(id)!.node),
-    relationships: version.edges,
-    inboxNodes: version.inboxNodeRevisionIds.map(
-      (id) => revisions.get(id)!.node as TaskNode,
-    ),
-  };
+  const snapshot = await loadGraphSnapshot(userId);
+  return snapshot ? recordsGraph(snapshot.records) : null;
 }
 
-async function writeGraphVersion(
-  userId: string,
-  graph: Graph,
-  previousRevisions: Map<string, NodeRevisionDocument>,
-) {
-  const { edges, nodes } = await collections();
-  const mainPlan = createNodeRevisionPlan(
-    userId,
-    graph.nodes,
-    previousRevisions.values(),
-  );
-  const inboxPlan = createNodeRevisionPlan(
-    userId,
-    graph.inboxNodes ?? [],
-    previousRevisions.values(),
-  );
-  const inserted = [...mainPlan.inserted, ...inboxPlan.inserted];
-  if (inserted.length) await nodes.insertMany(inserted);
-
-  const versionId = new ObjectId();
-  await edges.insertOne({
-    _id: versionId,
-    userId,
-    createdAt: new Date(),
-    graphSchemaVersion: graph.version,
-    nodeRevisionIds: mainPlan.nodeRevisionIds,
-    inboxNodeRevisionIds: inboxPlan.nodeRevisionIds,
-    edges: graph.relationships,
-  });
-  await purgeHistoricalEvents(edges, nodes, userId);
-  return versionId.toHexString();
+async function write(userId: string, graph: Graph, base: GraphSnapshot | null, mutationId: string, digest: string, replacement = false) {
+  if (!isGraph(graph)) throw new Error("Invalid graph");
+  const sequence = (base?.revision.sequence ?? 0) + 1;
+  const generation = replacement ? crypto.randomUUID() : base?.revision.generation ?? crypto.randomUUID();
+  const oldGraph = base ? recordsGraph(base.records) : empty;
+  const importedIds = new Set([...graph.nodes, ...oldGraph.nodes].flatMap((node) =>
+    node.type === "event" && node.properties.externalOrigin ? [node.id] : []));
+  for (const edge of [...oldGraph.relationships, ...graph.relationships]) {
+    if (importedIds.has(edge.sourceId)) importedIds.add(edge.id);
+  }
+  const changed = changedGraphRecords(replacement ? [] : base?.records ?? [], graph);
+  await publishCommit({ _id: crypto.randomUUID(), userId, generation, sequence, mutationId, digest, createdAt: new Date() },
+    changed, importedIds);
+  // Publication succeeded; cleanup failure must not turn a committed mutation into a failed save.
+  await pruneImportedHistory(userId, revision(generation, sequence), changed.filter((record) => importedIds.has(record.id)).map((record) => record.id), replacement).catch((error) => console.error("Could not prune imported history", error));
+  await cleanUnpublishedRecords(userId).catch((error) => console.error("Could not clean unpublished records", error));
+  return revision(generation, sequence);
 }
 
-export async function saveGraphVersion(userId: string, graph: Graph) {
-  const { edges, nodes } = await collections();
-  const previousVersion = await latestVersion(edges, userId);
-  const previousIds = previousVersion
-    ? [
-        ...previousVersion.nodeRevisionIds,
-        ...previousVersion.inboxNodeRevisionIds,
-      ]
-    : [];
-  const previousRevisions = await revisionMap(nodes, userId, previousIds);
-  return writeGraphVersion(userId, graph, previousRevisions);
+export async function patchGraph(userId: string, patch: GraphPatch) {
+  const digest = createHash("sha256").update(JSON.stringify(patch)).digest("hex");
+  const { commits } = await graphCollections();
+  for (let retry = 0; retry < 5; retry++) {
+    const previous = await commits.findOne({ userId, mutationId: patch.mutationId });
+    if (previous) {
+      if (previous.digest !== digest) throw new Error("Mutation ID was reused with different changes.");
+      return revision(previous.generation, previous.sequence);
+    }
+    const base = await loadGraphSnapshot(userId);
+    if (!base || base.revision.generation !== patch.baseRevision.generation) {
+      throw new GraphConflictError([{ id: "graph", field: "workspace replaced", mine: patch.operations }]);
+    }
+    const next = applyGraphOperations(recordsGraph(base.records), patch.operations);
+    try { return await write(userId, next, base, patch.mutationId, digest); }
+    catch (error) { if (!duplicate(error)) throw error; }
+  }
+  throw new Error("The workspace is busy. Please retry saving.");
 }
 
-export function restoreGraphVersion(userId: string, graph: Graph) {
-  return writeGraphVersion(userId, graph, new Map());
+export async function replaceGraph(userId: string, graph: Graph, onlyIfMissing = false) {
+  const head = await latestCommit(userId);
+  if (onlyIfMissing && head) return null;
+  const base = head ? { revision: revision(head.generation, head.sequence), records: [] } : null;
+  try { return await write(userId, graph, base, crypto.randomUUID(), "snapshot", true); }
+  catch (error) {
+    if (duplicate(error) && onlyIfMissing) return null;
+    throw error;
+  }
 }
+export async function updateGraphVersion(userId: string, update: (graph: Graph) => Graph) {
+  for (let retry = 0; retry < 5; retry++) {
+    const base = await loadGraphSnapshot(userId);
+    if (!base) throw new Error("Workspace not found");
+    const graph = recordsGraph(base.records);
+    const next = update(graph);
+    if (!diffGraph(graph, next).length) return base.revision;
+    try { return await write(userId, next, base, crypto.randomUUID(), "calendar import"); }
+    catch (error) { if (!duplicate(error)) throw error; }
+  }
+  throw new Error("The workspace is busy. Please retry importing.");
+}
+export const restoreGraphVersion = (userId: string, graph: Graph) => replaceGraph(userId, graph);

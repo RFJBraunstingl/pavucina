@@ -58,37 +58,23 @@ The knowledge graph is a directed graph where nodes represent objects (such as t
 - tasks can be marked as done or reopened with an action button
 
 ## Storage
-- pavucina can store the graph data in localStorage without an account (this also means the data is not synchronized)
-- if the user is logged in, the data is stored in a MongoDB database backend
-- in general the data consists of nodes and edges
-- nodes are stored as JSON objects due to their dynamic schema
-- edges are stored as graph object which holds all relation types and the IDs of referenced nodes
 
-Legacy `done` task properties and null optional event fields are no longer
-converted when loading data. Existing databases must be cleaned before upgrading.
-Older browser workspaces and backups must first be converted with a compatible
-older release; unsupported browser data is left intact and reported as an error.
+Guest workspaces use IndexedDB, with one record per node or relationship.
+Valid legacy localStorage data migrates automatically; the original is left intact.
+Signed-in workspaces use standalone MongoDB. Edits send field and item changes,
+and saves write only changed records before publishing a small atomic commit marker.
+Independent edits merge; conflicting edits offer **Keep mine** or **Use saved**.
+Pending edits persist in an account-scoped browser outbox across reloads.
 
-Authenticated data uses seven shared collections:
+`graph_records` and `graph_commits` hold graph revisions. Legacy `nodes` and
+`edges` collections remain readable for migration and native history. Other
+collections hold users, account links, settings, mailboxes, and calendar connections.
+Imported calendar payload history is pruned; deletion markers remain for synchronization.
+Preferences and calendar selections also update incrementally.
 
-- `users` maps each OAuth provider identity to a random internal user UUID
-- `account_link_requests` stores short-lived account-link confirmations
-- `nodes` stores versioned graph and inbox nodes
-- `edges` stores whole-graph edge snapshots and their referenced node revisions
-- `settings` stores one settings document per user
-- `mailboxes` stores encrypted Gmail and Outlook mailbox connections
-- `calendar_connections` stores encrypted calendar connections and display choices
-
-When calendar event import is enabled, event nodes and their start/end date
-relationships are stored in `nodes` and `edges`; provider synchronization
-cursors are stored in `calendar_connections`. Imported event revisions are
-purged when events are updated, removed upstream, leave the import window, the
-connection is removed, or import is disabled.
-
-Every data document is scoped and indexed by its internal user ID. Saving inserts
-changed node revisions before inserting the edge snapshot that makes the version
-current. Restoring inserts fresh node revisions and then one new edge snapshot;
-it does not require MongoDB transaction support. Settings are restored last.
+Full snapshots are used for initial loads, workspace creation, and explicit backup
+restores. Invalid saved graphs still allow access to Preferences and backup import.
+See [synchronization](docs/synchronization.md) for limits, migration, and checks.
 
 ## OAuth login
 

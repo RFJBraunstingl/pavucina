@@ -1,8 +1,8 @@
 import type { CalendarImportError } from "./external-calendar";
-import type { Graph } from "./graph";
+import type { GraphRevision } from "./graph-sync";
 
 export type CalendarImportResponse = {
-  graph: Graph;
+  revision: GraphRevision;
   errors: CalendarImportError[];
   syncedAt: string;
 };

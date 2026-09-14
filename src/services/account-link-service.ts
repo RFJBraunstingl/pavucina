@@ -41,6 +41,8 @@ async function deleteWorkspace(userId: string) {
   await Promise.all([
     database.collection("calendar_connections").deleteMany({ userId }),
     database.collection("edges").deleteMany({ userId }),
+    database.collection("graph_records").deleteMany({ userId }),
+    database.collection("graph_commits").deleteMany({ userId }),
     database.collection("mailboxes").deleteMany({ userId }),
     database.collection("nodes").deleteMany({ userId }),
     database.collection("settings").deleteMany({ userId }),

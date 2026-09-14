@@ -6,6 +6,7 @@ import ExternalCalendarEvent from "./external-calendar-event";
 import GraphCalendarEvent from "./graph-calendar-event";
 import { useCalendarSchedule } from "./use-calendar-schedule";
 import { useCalendarCreation } from "./use-calendar-creation";
+import { calendarResizeEdges } from "@/services/calendar-schedule-service";
 import {
   CALENDAR_HEIGHT,
   HOUR_HEIGHT,
@@ -13,6 +14,7 @@ import {
   layoutCalendarItems,
 } from "@/utils/calendar";
 import { dayLabel, dayOfMonth, isWeekend } from "@/utils/date";
+import { defaultCalendarEvent } from "@/utils/calendar-creation";
 import { externalCalendarItems } from "@/utils/external-calendar";
 import { importedCalendarItems } from "@/utils/event-calendar";
 import { minutesBetweenDateTimes, timeToMinutes } from "@/utils/time";
@@ -53,6 +55,8 @@ export default function CalendarGrid({
     bodyRef,
     onGraphChange,
     onSelect,
+    onOpenEvent: onSelectEvent,
+    locked,
   });
 
   useEffect(() => {
@@ -98,10 +102,25 @@ export default function CalendarGrid({
             style={{ height: CALENDAR_HEIGHT }}
             role="region"
             aria-label={`24 hour calendar from ${days[0]} to ${days.at(-1)}`}
-            onPointerMove={creation.move}
+            tabIndex={locked ? -1 : 0}
+            aria-keyshortcuts="Enter"
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" || event.target !== event.currentTarget ||
+                event.repeat || locked || creating) return;
+              event.preventDefault();
+              onCreateEvent(defaultCalendarEvent(items, days.includes(today) ? today : days[0]));
+            }}
+            onPointerMove={(event) => {
+              schedule.continueDrag(event);
+              creation.move(event);
+            }}
+            onPointerUp={schedule.endDrag}
             onPointerDown={creation.begin}
             onPointerLeave={creation.leave}
-            onPointerCancel={creation.clear}
+            onPointerCancel={(event) => {
+              schedule.endDrag(event);
+              creation.clear();
+            }}
             onClick={creation.click}
           >
             {days.map((day) => (
@@ -125,13 +144,16 @@ export default function CalendarGrid({
                 <span>{preview.startTime} – {preview.endTime}</span>
               </div>
             )}
-            {items.map((item) => "task" in item ? (
+            {items.map((item) => "task" in item ||
+              ("eventNode" in item && !item.eventNode.properties.externalOrigin) ? (
               <CalendarEvent
                 item={item}
                 dayCount={days.length}
-                selected={selectedId === item.task.id}
+                selected={selectedId === ("task" in item ? item.task.id : item.eventNode.id)}
                 locked={locked}
-                onSelect={() => onSelect(item.task.id, item.startDate)}
+                onSelect={() => onSelect("task" in item ? item.task.id : item.eventNode.id, item.startDate)}
+                onOpen={"eventNode" in item ? () => onSelectEvent(item.eventNode.id) : undefined}
+                {...calendarResizeEdges(graph, item)}
                 key={item.id}
                 onDragStart={(event, mode) => schedule.beginDrag(event, item, mode)}
                 onPointerMove={schedule.continueDrag}

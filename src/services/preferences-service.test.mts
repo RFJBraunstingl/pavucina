@@ -7,10 +7,6 @@ import {
   resolvedScheduleMode,
 } from "./preferences-service.ts";
 import {
-  loadGuestPreferences,
-  saveGuestPreferences,
-} from "./local-preferences-store.ts";
-import {
   loadRemotePreferences,
   saveRemotePreferences,
 } from "./remote-preferences-store.ts";
@@ -80,33 +76,9 @@ test("removed schedule destinations are discarded from stored preferences", () =
   assert.equal(isUserPreferences({ ...preferences, desktopStartPage: "schedule" }), false);
 });
 
-test("guest preferences persist locally and resolve legacy defaults", () => {
-  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
-  const values = new Map<string, string>();
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      getItem: (key: string) => values.get(key) ?? null,
-      setItem: (key: string, value: string) => values.set(key, value),
-    },
-  });
-
-  try {
-    assert.equal(saveGuestPreferences(preferences), true);
-    assert.deepEqual(loadGuestPreferences(), preferences);
-    values.set(
-      "pavucina.preferences.v1",
-      JSON.stringify(legacyPreferences),
-    );
-    const loaded = loadGuestPreferences();
-    assert.equal(resolvedScheduleMode(loaded), "leaf");
-    assert.equal(loaded.showFullTaskPath, false);
-    assert.equal(loaded.desktopStartPage, "last");
-    assert.equal(loaded.mobileStartPage, "last");
-  } finally {
-    if (descriptor) Object.defineProperty(globalThis, "localStorage", descriptor);
-    else Reflect.deleteProperty(globalThis, "localStorage");
-  }
+test("legacy preference defaults remain compatible with browser migration", () => {
+  assert.equal(resolvedScheduleMode(parseUserPreferences(legacyPreferences)!), "leaf");
+  assert.deepEqual(parseUserPreferences(JSON.parse(JSON.stringify(preferences))), preferences);
 });
 
 test("remote preferences load and save the complete preference object", async () => {

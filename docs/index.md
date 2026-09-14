@@ -16,6 +16,10 @@ Pavucina server.
 - [ToDo](todo.md) — complete the leaf tasks scheduled for today.
 - [Preferences](preferences.md) — configure scheduling, accounts, and backups.
 
+## Storage
+
+- [Synchronization](synchronization.md) — incremental saves, recovery, and transfer limits.
+
 ## Legal
 
 - [Privacy Policy](https://pavucina.rfj.dev/privacy)

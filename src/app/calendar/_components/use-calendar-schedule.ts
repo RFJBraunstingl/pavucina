@@ -1,21 +1,22 @@
 import { type KeyboardEvent, type PointerEvent, useRef } from "react";
 
-import { isTaskSchedulable } from "@/services/task-schedule-mode-service";
-import { moveTaskWithinDay } from "@/services/task-day-schedule-service";
-import { setTaskTimes } from "@/services/task-schedule-service";
+import {
+  canRescheduleCalendarItem,
+  moveCalendarItem,
+  resizeCalendarItem,
+} from "@/services/calendar-schedule-service";
 import {
   CALENDAR_END,
   CALENDAR_RESIZE_STEP,
   CALENDAR_START,
   HOUR_HEIGHT,
-  resizeTimeRange,
 } from "@/utils/calendar";
 import { minutesToTime, timeToMinutes } from "@/utils/time";
 import type {
   CalendarDragMode,
   CalendarDragState,
   CalendarInteractionOptions,
-  CalendarItem,
+  EditableCalendarItem,
 } from "@/types/calendar";
 
 export function useCalendarSchedule({
@@ -25,60 +26,60 @@ export function useCalendarSchedule({
   bodyRef,
   onGraphChange,
   onSelect,
+  onOpenEvent,
+  locked,
 }: CalendarInteractionOptions) {
   const drag = useRef<CalendarDragState | null>(null);
 
   function beginDrag(
     event: PointerEvent<HTMLButtonElement>,
-    item: CalendarItem,
+    item: EditableCalendarItem,
     mode: CalendarDragMode,
   ) {
     if (
-      event.button !== 0 ||
-      !isTaskSchedulable(graph, item.task.id, scheduleMode)
+      event.button !== 0 || locked ||
+      !canRescheduleCalendarItem(graph, item, scheduleMode)
     ) {
       return;
     }
     event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    onSelect(item.task.id, item.startDate);
+    // Native events can gain or lose day segments; capture on the stable grid.
+    const capture = "eventNode" in item ? bodyRef.current : event.currentTarget;
+    if (!capture) return;
+    capture.setPointerCapture(event.pointerId);
+    onSelect("task" in item ? item.task.id : item.eventNode.id, item.startDate);
     drag.current = {
       pointerId: event.pointerId,
-      taskId: item.task.id,
+      item,
       mode,
       originX: event.clientX,
       originY: event.clientY,
       originGraph: graph,
       startDayIndex: item.dayIndex,
       startTime: item.startTime,
-      endTime: item.endTime,
       lastTarget:
         mode === "move"
           ? `${item.startDate}:${timeToMinutes(item.startTime)}`
-          : `${item.startTime}:${item.endTime}`,
+          : "0",
+      moved: false,
     };
   }
 
-  function continueDrag(event: PointerEvent<HTMLButtonElement>) {
+  function continueDrag(event: PointerEvent<HTMLElement>) {
     const active = drag.current;
-    if (!active || active.pointerId !== event.pointerId) return;
+    if (!active || active.pointerId !== event.pointerId || locked) return;
+    if (Math.hypot(event.clientX - active.originX, event.clientY - active.originY) > 5) {
+      active.moved = true;
+    }
     const offsetY = event.clientY - active.originY;
 
     if (active.mode !== "move") {
       const amount =
         Math.round(offsetY / (HOUR_HEIGHT / 4)) * CALENDAR_RESIZE_STEP;
-      const times = resizeTimeRange(
-        active.startTime,
-        active.endTime,
-        active.mode,
-        amount,
-        CALENDAR_START,
-        CALENDAR_END,
-      );
-      const target = times.join(":");
+      const target = String(amount);
       if (target === active.lastTarget) return;
       drag.current = { ...active, lastTarget: target };
-      onGraphChange(setTaskTimes(active.originGraph, active.taskId, ...times));
+      onGraphChange(resizeCalendarItem(active.originGraph, active.item, active.mode, amount));
       return;
     }
 
@@ -104,37 +105,37 @@ export function useCalendarSchedule({
     if (target === active.lastTarget) return;
     drag.current = { ...active, lastTarget: target };
     onGraphChange(
-      moveTaskWithinDay(
+      moveCalendarItem(
         active.originGraph,
-        active.taskId,
+        active.item,
         days[dayIndex],
         minutesToTime(minutes),
       ),
     );
   }
 
-  function endDrag(event: PointerEvent<HTMLButtonElement>) {
-    if (drag.current?.pointerId === event.pointerId) drag.current = null;
+  function endDrag(event: PointerEvent<HTMLElement>) {
+    const active = drag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    drag.current = null;
+    if (event.type === "pointerup" && !locked && !active.moved &&
+      active.mode === "move" && "eventNode" in active.item) {
+      onOpenEvent(active.item.eventNode.id);
+    }
   }
 
   function handleArrow(
     event: KeyboardEvent<HTMLButtonElement>,
-    item: CalendarItem,
+    item: EditableCalendarItem,
     mode: CalendarDragMode,
   ) {
-    if (!isTaskSchedulable(graph, item.task.id, scheduleMode)) return;
+    if (locked || !canRescheduleCalendarItem(graph, item, scheduleMode)) return;
     if (mode !== "move") {
       if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
       event.preventDefault();
-      const times = resizeTimeRange(
-        item.startTime,
-        item.endTime,
-        mode,
+      onGraphChange(resizeCalendarItem(graph, item, mode,
         event.key === "ArrowUp" ? -CALENDAR_RESIZE_STEP : CALENDAR_RESIZE_STEP,
-        CALENDAR_START,
-        CALENDAR_END,
-      );
-      onGraphChange(setTaskTimes(graph, item.task.id, ...times));
+      ));
       return;
     }
 
@@ -159,9 +160,9 @@ export function useCalendarSchedule({
       ),
     );
     onGraphChange(
-      moveTaskWithinDay(
+      moveCalendarItem(
         graph,
-        item.task.id,
+        item,
         targetDate,
         minutesToTime(minutes),
       ),

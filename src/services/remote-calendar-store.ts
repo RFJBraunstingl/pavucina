@@ -1,3 +1,5 @@
+import { diffCalendarSelections } from "./calendar-selection-patch";
+import { GraphConflictError } from "./graph-patch-service";
 import { requireSuccess } from "./remote-response";
 import type {
   CalendarSelection,
@@ -32,12 +34,17 @@ export async function beginCalendarConnection(source: CalendarSource) {
 export async function saveCalendarSelections(
   connectionId: string,
   calendars: CalendarSelection[],
+  before: CalendarSelection[],
 ) {
   const response = await fetch(`/api/calendars/${connectionId}`, {
-    method: "PUT",
+    method: "PATCH",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ calendars }),
+    body: JSON.stringify(diffCalendarSelections(before, calendars)),
   });
+  if (response.status === 409) {
+    const body = await response.json();
+    throw new GraphConflictError(body.conflicts);
+  }
   await requireSuccess(response, "Could not save calendar settings");
 }
 

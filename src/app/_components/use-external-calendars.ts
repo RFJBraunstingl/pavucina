@@ -1,4 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { createElement, useCallback, useEffect, useMemo, useState } from "react";
+import SyncConflictDialog from "./sync-conflict-dialog";
+import { GraphConflictError } from "@/services/graph-patch-service";
+import { diffCalendarSelections, applyCalendarSelectionChanges } from "@/services/calendar-selection-patch";
+import type { CalendarSelectionChange } from "@/types/calendar-selection-patch";
+import type { SyncConflict } from "@/types/graph-sync";
 import { signIn, useSession } from "next-auth/react";
 
 import {
@@ -23,6 +28,8 @@ export function useExternalCalendars(
   const range = useMemo(() => calendarRange(days), [days]);
   const [data, setData] = useState<CalendarsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [conflicts, setConflicts] = useState<SyncConflict[]>([]);
+  const [pending, setPending] = useState<{ id: string; changes: CalendarSelectionChange[] } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
@@ -53,6 +60,7 @@ export function useExternalCalendars(
       setData(await loadCalendars(range.start, range.end, undefined, includeEvents));
       return result;
     } catch (value) {
+      if (value instanceof GraphConflictError) setConflicts(value.conflicts);
       setError(value instanceof Error ? value.message : "Could not update calendars");
     } finally {
       setBusy(null);
@@ -60,7 +68,10 @@ export function useExternalCalendars(
   }
 
   function save(connectionId: string, calendars: CalendarSelection[]) {
-    return update(connectionId, () => saveCalendarSelections(connectionId, calendars));
+    const before = data?.connections.find(({ id }) => id === connectionId)?.calendars.filter((calendar) => calendar.selected)
+      .map(({ id, name, color, visible }) => ({ id, name, color, visible })) ?? [];
+    setPending({ id: connectionId, changes: diffCalendarSelections(before, calendars) });
+    return update(connectionId, () => saveCalendarSelections(connectionId, calendars, before));
   }
 
   function disconnect(connectionId: string) {
@@ -81,5 +92,24 @@ export function useExternalCalendars(
     }
   }
 
-  return { data, error, busy, refresh, save, disconnect, connect };
+  async function resolveConflict(keepMine: boolean) {
+    const latest = await loadCalendars(range.start, range.end, undefined, includeEvents);
+    setData(latest);
+    if (pending) {
+      const before = latest.connections.find(({ id }) => id === pending.id)?.calendars.filter((calendar) => calendar.selected)
+        .map(({ id, name, color, visible }) => ({ id, name, color, visible })) ?? [];
+      const changes = keepMine ? pending.changes : pending.changes.flatMap((change) => {
+        const affected = conflicts.filter((conflict) => conflict.id === change.id);
+        if (!affected.length) return [change];
+        if (change.kind !== "update" || affected.some(({ field }) => field === "calendar deselected")) return [];
+        return [{ ...change, fields: Object.fromEntries(Object.entries(change.fields)
+          .filter(([key]) => !affected.some(({ field }) => field === key))) }];
+      });
+      await saveCalendarSelections(pending.id, applyCalendarSelectionChanges(before, changes, keepMine), before);
+      await refresh();
+    }
+    setConflicts([]); setPending(null); setError(null);
+  }
+  const conflictDialog = createElement(SyncConflictDialog, { conflicts, onResolve: resolveConflict });
+  return { data, error, busy, refresh, save, disconnect, connect, conflictDialog };
 }

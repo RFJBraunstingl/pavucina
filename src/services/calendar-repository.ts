@@ -4,7 +4,6 @@ import { getMongoDatabase } from "./mongodb";
 import type {
   CalendarConnectionDocument,
   CalendarEventSyncState,
-  CalendarSelection,
   CalendarSource,
 } from "@/types/external-calendar";
 
@@ -78,26 +77,24 @@ export async function updateCalendarCredentials(
   );
 }
 
-export async function updateCalendarSelections(
-  userId: string,
-  connectionId: string,
-  calendars: CalendarSelection[],
-) {
-  return (await connections()).updateOne(
-    { _id: connectionId, userId },
-    { $set: { calendars, updatedAt: new Date() } },
-  );
-}
-
 export async function updateCalendarEventSyncStates(
   userId: string,
   connectionId: string,
-  eventSyncStates: CalendarEventSyncState[],
+  before: CalendarEventSyncState[],
+  after: CalendarEventSyncState[],
 ) {
-  return (await connections()).updateOne(
-    { _id: connectionId, userId },
-    { $set: { eventSyncStates, updatedAt: new Date() } },
-  );
+  const collection = await connections();
+  for (const calendarId of new Set([...before, ...after].map((state) => state.calendarId))) {
+    const previous = before.find((state) => state.calendarId === calendarId);
+    const next = after.find((state) => state.calendarId === calendarId);
+    if (JSON.stringify(previous) === JSON.stringify(next)) continue;
+    const filter = { _id: connectionId, userId, eventSyncStates: previous
+      ? { $elemMatch: previous } : { $not: { $elemMatch: { calendarId } } } };
+    // A concurrent refresh won: leave its cursor intact and refresh again next time.
+    if (!next) await collection.updateOne(filter, { $pull: { eventSyncStates: { calendarId } } });
+    else if (previous) await collection.updateOne(filter, { $set: { "eventSyncStates.$": next } });
+    else await collection.updateOne(filter, { $push: { eventSyncStates: next } });
+  }
 }
 
 export async function clearCalendarEventSyncStates(userId: string) {

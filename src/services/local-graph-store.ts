@@ -1,31 +1,34 @@
 import { createSeedGraph } from "../data/seed-graph.ts";
 import { ensureRootNode, isGraph } from "./graph-service.ts";
-import type { Graph } from "@/types/graph";
+import { readBrowserGraph, writeBrowserGraph } from "./browser-database.ts";
+import { changedGraphRecords, recordsGraph } from "./graph-record-service.ts";
+import type { Graph } from "../types/graph.ts";
 
 const STORAGE_KEY = "pavucina.graph.v1";
-const INVALID_GRAPH_MESSAGE =
-  "The saved browser graph is invalid or unsupported. Restore a compatible backup in Preferences.";
-
-export function loadGuestGraph(today: string) {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === null) return createSeedGraph(today);
-  let parsed: unknown;
+export function parseLegacyGraph(stored: string, today: string) {
   try {
-    parsed = JSON.parse(stored);
-  } catch {
-    throw new Error(INVALID_GRAPH_MESSAGE);
-  }
-  if (!isGraph(parsed)) throw new Error(INVALID_GRAPH_MESSAGE);
-  return ensureRootNode(parsed);
+    const parsed: unknown = JSON.parse(stored);
+    if (isGraph(parsed)) return ensureRootNode(parsed);
+  } catch { /* Keep the original available for recovery. */ }
+  throw new Error(`The saved browser graph is invalid or unsupported. Restore a compatible backup in Preferences. (${today})`);
 }
-
-export function saveGuestGraph(graph: Graph) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(graph));
-    return true;
-  } catch {
-    // Keep the in-memory app usable when browser storage is unavailable or full.
-    return false;
+export async function loadGuestGraph(today: string) {
+  const saved = await readBrowserGraph("guest");
+  if (saved) {
+    const graph = recordsGraph(saved.snapshot.records);
+    if (!isGraph(graph)) throw new Error("The saved browser graph is invalid. Restore a backup in Preferences.");
+    return graph;
   }
+  const stored = localStorage.getItem(STORAGE_KEY);
+  const graph = stored === null ? createSeedGraph(today) : parseLegacyGraph(stored, today);
+  await saveGuestGraph(graph);
+  return graph;
+}
+export async function saveGuestGraph(graph: Graph, replacement = false) {
+  if (!isGraph(graph)) throw new Error("Invalid graph");
+  const previous = await readBrowserGraph("guest");
+  const records = changedGraphRecords([], graph);
+  await writeBrowserGraph("guest", { records,
+    revision: { generation: replacement ? crypto.randomUUID() : previous?.snapshot.revision.generation ?? crypto.randomUUID(), sequence: (previous?.snapshot.revision.sequence ?? 0) + 1 } }, []);
+  return true;
 }

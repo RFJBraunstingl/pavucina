@@ -1,10 +1,12 @@
 import { auth } from "@/auth";
 import {
   deleteCalendarConnection,
-  updateCalendarSelections,
 } from "@/services/calendar-repository";
 import { removeCalendarConnectionEvents } from "@/services/calendar-import-service";
-import { parseCalendarSelections } from "@/utils/external-calendar";
+import { isCalendarSelectionChanges } from "@/services/calendar-selection-patch";
+import { patchCalendarSelections } from "@/services/calendar-selection-repository";
+import { GraphConflictError } from "@/services/graph-patch-service";
+import { readBoundedJson } from "@/services/request-json";
 import { isUuid } from "@/utils/id";
 
 const MAX_BODY_BYTES = 256 * 1024;
@@ -16,7 +18,7 @@ async function connectionId(context: { params: Promise<{ connectionId: string }>
   return isUuid(id) ? id : null;
 }
 
-export async function PUT(
+export async function PATCH(
   request: Request,
   context: { params: Promise<{ connectionId: string }> },
 ) {
@@ -24,27 +26,16 @@ export async function PUT(
   if (!session?.user.id) return new Response(null, { status: 401 });
   const id = await connectionId(context);
   if (!id) return Response.json({ error: "Invalid connection" }, { status: 400 });
-  if (!request.headers.get("content-type")?.startsWith("application/json")) {
-    return Response.json({ error: "Expected JSON" }, { status: 415 });
-  }
-  const body = await request.text();
-  if (Buffer.byteLength(body) > MAX_BODY_BYTES) {
-    return Response.json({ error: "Calendar settings are too large" }, { status: 413 });
-  }
-  let value: unknown;
+  const body = await readBoundedJson(request, MAX_BODY_BYTES);
+  if (body instanceof Response) return body;
+  if (!isCalendarSelectionChanges(body)) return Response.json({ error: "Invalid calendar changes" }, { status: 400 });
   try {
-    value = JSON.parse(body);
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    const matched = await patchCalendarSelections(session.user.id, id, body);
+    return new Response(null, { status: matched ? 204 : 404 });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Could not save calendar settings",
+      ...(error instanceof GraphConflictError && { conflicts: error.conflicts }) }, { status: error instanceof GraphConflictError ? 409 : 400 });
   }
-  const calendars = value && typeof value === "object" && "calendars" in value
-    ? parseCalendarSelections(value.calendars)
-    : null;
-  if (!calendars) {
-    return Response.json({ error: "Invalid calendar settings" }, { status: 400 });
-  }
-  const result = await updateCalendarSelections(session.user.id, id, calendars);
-  return new Response(null, { status: result.matchedCount ? 204 : 404 });
 }
 
 export async function DELETE(

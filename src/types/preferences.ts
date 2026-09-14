@@ -18,4 +18,6 @@ export type UserPreferences = {
 export type UserSettingsDocument = {
   userId: string;
   settings: UserPreferences;
+  revision?: number;
+  fieldRevisions?: Record<string, number>;
 };

@@ -16,11 +16,16 @@ overlays from Google Calendar and Outlook Calendar.
 
 ## Adjusting scheduled work
 
-- Drag tasks between days and times.
-- Drag either edge of a task to change its start or end time.
+- Drag tasks and native events between days and times. Moving a native event
+  preserves its full duration, including events spanning midnight.
+- Drag either edge to change the start or end. Multi-day events expose handles
+  only at their actual start and end, including an end at midnight.
+- Moves snap in 30-minute steps and edge adjustments in 15-minute steps.
+  Arrow keys on a block or edge provide the same adjustments. Events retain a
+  minimum duration of 15 minutes when resizing; imported events remain read-only.
 - Select a task to edit its name, description, dates, and times; mark it done or
   reopen it; or delete it in the inspector.
-- On mobile, task gestures are locked by default so the day can be scrolled
+- On mobile, task and event gestures are locked by default so the day can be scrolled
   safely. Use the lock button to enable or disable dragging and resizing;
   deliberate inspector edits remain available while locked.
 
@@ -29,7 +34,8 @@ overlays from Google Calendar and Outlook Calendar.
 - Unlock editing on mobile, then tap free time to create a native Pavucina event.
   Desktop editing is always unlocked; hovering over free time previews the event
   with a plus, and one click opens its form.
-- Use **+ New event** for keyboard access, then enter the date and time in the form.
+- Focus the calendar and press **Enter** for keyboard access, then enter the
+  date and time in the form.
 - Suggestions fill free gaps of up to one hour. In longer gaps, the start snaps
   to a quarter hour and the suggested duration stops at one hour, the next visible
   timed item, or midnight. Hidden calendars and all-day entries do not block suggestions.

@@ -45,7 +45,7 @@ function useCalendarImportState() {
       try {
         await saveGraphNow(base);
         const result = await operation();
-        adoptImportedGraph(result.graph, base);
+        await adoptImportedGraph();
         setLastSyncedAt(result.syncedAt);
         if (result.errors.length) {
           setError(result.errors.map(({ message }) => message).join("; "));

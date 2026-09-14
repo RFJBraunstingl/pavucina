@@ -23,6 +23,7 @@ export type ExternalCalendarItem = CalendarLayoutItem & {
   event: ExternalCalendarEvent & { allDay: false };
 };
 export type ImportedCalendarItem = CalendarLayoutItem & { eventNode: EventNode };
+export type EditableCalendarItem = CalendarItem | ImportedCalendarItem;
 
 export type GraphCalendarEventProps = {
   item: ImportedCalendarItem;
@@ -36,15 +37,15 @@ export type CalendarDragMode = "move" | CalendarResizeEdge;
 
 export type CalendarDragState = {
   pointerId: number;
-  taskId: string;
+  item: EditableCalendarItem;
   mode: CalendarDragMode;
   originX: number;
   originY: number;
   originGraph: Graph;
   startDayIndex: number;
   startTime: string;
-  endTime: string;
   lastTarget: string;
+  moved: boolean;
 };
 
 export type CalendarGridProps = {
@@ -74,7 +75,6 @@ export type CalendarRangeControlsProps = {
   onToggleLock: () => void;
   onHideDone: (hidden: boolean) => void;
   onShowDay: (date: string) => void;
-  onCreate: () => void;
 };
 
 export type CalendarCreationOptions = {
@@ -101,14 +101,19 @@ export type CalendarInteractionOptions = {
   bodyRef: RefObject<HTMLDivElement | null>;
   onGraphChange: (graph: Graph) => void;
   onSelect: (taskId: string, date: string) => void;
+  onOpenEvent: (eventId: string) => void;
+  locked: boolean;
 };
 
 export type CalendarEventProps = {
-  item: CalendarItem;
+  item: EditableCalendarItem;
   selected: boolean;
   locked: boolean;
   dayCount?: number;
   onSelect: () => void;
+  onOpen?: () => void;
+  resizeStart?: boolean;
+  resizeEnd?: boolean;
   onDragStart: (
     event: PointerEvent<HTMLButtonElement>,
     mode: CalendarDragMode,

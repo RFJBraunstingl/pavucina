@@ -7,9 +7,6 @@ export default function CalendarRangeControls(props: CalendarRangeControlsProps)
   const period = mobile ? "day" : "week";
   return (
     <div className="range-controls" aria-label="Calendar range">
-      <button type="button" disabled={props.locked} onClick={props.onCreate}>
-        + New event
-      </button>
       <label className="done-toggle">
         <input type="checkbox" checked={props.hideDone}
           onChange={(event) => props.onHideDone(event.target.checked)} />

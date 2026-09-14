@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { compactDateLabel } from "@/utils/date";
 import type { CalendarEventProps } from "@/types/calendar";
 
@@ -7,13 +9,15 @@ export default function CalendarEvent({
   locked,
   dayCount = 7,
   onSelect,
+  onOpen,
+  resizeStart = true,
+  resizeEnd = true,
   onDragStart,
   onPointerMove,
   onPointerEnd,
   onKeyDown,
 }: CalendarEventProps) {
   const {
-    task,
     startDate,
     endDate,
     startTime,
@@ -24,13 +28,14 @@ export default function CalendarEvent({
     top,
     height,
   } = item;
+  const node = "task" in item ? item.task : item.eventNode;
   const laneWidth = 100 / (dayCount * laneCount);
   const endLabel =
     startDate === endDate ? endTime : `${compactDateLabel(endDate)} ${endTime}`;
 
   return (
     <div
-      className={`calendar-event${selected ? " selected" : ""}${
+      className={`calendar-event${"eventNode" in item ? " external-calendar-event" : ""}${selected ? " selected" : ""}${
         locked ? " locked" : ""
       }`}
       onFocus={onSelect}
@@ -39,13 +44,14 @@ export default function CalendarEvent({
         height,
         left: `calc(${dayIndex * (100 / dayCount) + laneIndex * laneWidth}% + 4px)`,
         width: `calc(${laneWidth}% - 8px)`,
-      }}
+        ...("eventNode" in item && { "--external-calendar-color": item.eventNode.properties.calendarColor }),
+      } as CSSProperties}
     >
-      {!locked && (
+      {!locked && resizeStart && (
         <button
           type="button"
           className="calendar-resize-handle start"
-          aria-label={`Change start time of ${task.properties.name}`}
+          aria-label={`Change start time of ${node.properties.name}`}
           onPointerDown={(event) => onDragStart(event, "start")}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerEnd}
@@ -56,23 +62,23 @@ export default function CalendarEvent({
       <button
         type="button"
         className="calendar-event-body"
-        aria-label={`${locked ? "Select" : "Move"} ${task.properties.name}`}
-        title={`${task.properties.name}: ${startDate} ${startTime} to ${endDate} ${endTime}`}
-        onClick={onSelect}
+        aria-label={`${locked ? "Select" : "Move"} ${node.properties.name}`}
+        title={`${node.properties.name}: ${startDate} ${startTime} to ${endDate} ${endTime}`}
+        onClick={onOpen ?? onSelect}
         onPointerDown={locked ? undefined : (event) => onDragStart(event, "move")}
         onPointerMove={locked ? undefined : onPointerMove}
         onPointerUp={locked ? undefined : onPointerEnd}
         onPointerCancel={locked ? undefined : onPointerEnd}
         onKeyDown={locked ? undefined : (event) => onKeyDown(event, "move")}
       >
-        <strong>{task.properties.name}</strong>
-        <span>{startTime} – {endLabel}</span>
+        <strong>{node.properties.name}</strong>
+        {("task" in item || height >= 48) && <span>{startTime} – {endLabel}</span>}
       </button>
-      {!locked && (
+      {!locked && resizeEnd && (
         <button
           type="button"
           className="calendar-resize-handle end"
-          aria-label={`Change end time of ${task.properties.name}`}
+          aria-label={`Change end time of ${node.properties.name}`}
           onPointerDown={(event) => onDragStart(event, "end")}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerEnd}

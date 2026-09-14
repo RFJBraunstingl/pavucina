@@ -1,177 +1,40 @@
 "use client";
-
-import {
-  createContext,
-  createElement,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, createElement, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
-
-import {
-  loadGuestPreferences,
-  saveGuestPreferences,
-} from "@/services/local-preferences-store";
-import {
-  loadRemotePreferences,
-  saveRemotePreferences,
-} from "@/services/remote-preferences-store";
+import { PreferencesSyncController } from "@/services/preferences-sync-controller";
+import SyncConflictDialog from "./sync-conflict-dialog";
 import type { UserPreferences } from "@/types/preferences";
+import type { PreferencesView } from "@/types/preferences-sync";
 
 function usePreferencesState() {
   const { data: session, status } = useSession();
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [loadAttempt, setLoadAttempt] = useState(0);
-  const [saveAttempt, setSaveAttempt] = useState(0);
-  const loadedScope = useRef<string | null>(null);
-  const lastSaved = useRef<string | null>(null);
-  const saveQueue = useRef(Promise.resolve());
-  const userId = session?.user.id;
-  const scope = status === "authenticated" ? `user:${userId}` : "guest";
-
+  const [state, setState] = useState<PreferencesView>({ preferences: null, error: null, conflicts: [] });
+  const controller = useRef<PreferencesSyncController | null>(null);
+  const scope = status === "authenticated" ? `user:${session?.user.id}` : "guest";
   useEffect(() => {
     if (status === "loading") return;
-    let cancelled = false;
-    loadedScope.current = null;
-    lastSaved.current = null;
-
-    void (async () => {
-      await Promise.resolve();
-      if (cancelled) return;
-      setPreferences(null);
-      setSyncError(null);
-
-      if (status === "unauthenticated") {
-        const next = loadGuestPreferences();
-        loadedScope.current = "guest";
-        lastSaved.current = JSON.stringify(next);
-        setPreferences(next);
-        return;
-      }
-
-      try {
-        const next = await loadRemotePreferences();
-        if (cancelled) return;
-        loadedScope.current = scope;
-        lastSaved.current = JSON.stringify(next);
-        setPreferences(next);
-      } catch (error: unknown) {
-        if (!cancelled) {
-          setSyncError(
-            error instanceof Error ? error.message : "Could not load your preferences",
-          );
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [status, userId, scope, loadAttempt]);
-
-  useEffect(() => {
-    if (!preferences || loadedScope.current !== scope) {
-      return;
-    }
-    const serialized = JSON.stringify(preferences);
-    if (serialized === lastSaved.current) return;
-    if (status === "unauthenticated") {
-      saveGuestPreferences(preferences);
-      lastSaved.current = serialized;
-      return;
-    }
-    if (status !== "authenticated") return;
-    const saveScope = scope;
-    saveQueue.current = saveQueue.current
-      .catch(() => undefined)
-      .then(async () => {
-        if (loadedScope.current !== saveScope) return;
-        try {
-          await saveRemotePreferences(preferences);
-          if (loadedScope.current !== saveScope) return;
-          lastSaved.current = serialized;
-          setSyncError(null);
-        } catch (error: unknown) {
-          if (loadedScope.current !== saveScope) return;
-          setSyncError(
-            error instanceof Error ? error.message : "Could not save your preferences",
-          );
-        }
-      });
-  }, [preferences, scope, status, saveAttempt]);
-
-  function retry() {
-    if (preferences) setSaveAttempt((attempt) => attempt + 1);
-    else setLoadAttempt((attempt) => attempt + 1);
-  }
-
-  async function restorePreferences(next: UserPreferences) {
-    const serialized = JSON.stringify(next);
-    const restoreScope = scope;
-    try {
-      if (status === "unauthenticated") {
-        if (!saveGuestPreferences(next)) {
-          throw new Error("Could not restore your settings");
-        }
-      } else if (status === "authenticated") {
-        const operation = saveQueue.current
-          .catch(() => undefined)
-          .then(async () => {
-            if (loadedScope.current !== restoreScope) {
-              throw new Error("Your account changed during restore");
-            }
-            await saveRemotePreferences(next);
-          });
-        saveQueue.current = operation.catch(() => undefined);
-        await operation;
-      } else {
-        throw new Error("Your settings are still loading");
-      }
-      if (loadedScope.current !== restoreScope) {
-        throw new Error("Your account changed during restore");
-      }
-      lastSaved.current = serialized;
-      setPreferences(next);
-      setSyncError(null);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Could not restore your settings";
-      setSyncError(message);
-      throw new Error(message);
-    }
-  }
-
-  return {
-    preferences,
-    setPreferences,
-    restorePreferences,
-    syncError,
-    retry,
+    const sync = new PreferencesSyncController(scope, setState);
+    controller.current = sync;
+    void Promise.resolve().then(() => sync.open());
+    const refresh = () => { if (document.visibilityState === "visible") void sync.flush().catch(() => undefined); };
+    window.addEventListener("focus", refresh); window.addEventListener("online", refresh);
+    return () => { sync.active = false; window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); };
+  }, [scope, status]);
+  return { preferences: state.preferences, syncError: state.error,
+    setPreferences: (next: UserPreferences | null | ((current: UserPreferences | null) => UserPreferences | null)) => controller.current?.change(next),
+    retry: () => void controller.current?.flush().catch(() => undefined),
+    restorePreferences: async (next: UserPreferences) => { if (!controller.current) throw new Error("Settings are loading"); await controller.current.restore(next); },
+    conflicts: state.conflicts, resolveConflict: async (keep: boolean) => { await controller.current?.resolve(keep); },
   };
 }
-
-const PreferencesContext = createContext<ReturnType<
-  typeof usePreferencesState
-> | null>(null);
-
+const PreferencesContext = createContext<ReturnType<typeof usePreferencesState> | null>(null);
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  return createElement(
-    PreferencesContext.Provider,
-    { value: usePreferencesState() },
-    children,
-  );
+  const value = usePreferencesState();
+  return createElement(PreferencesContext.Provider, { value }, children,
+    createElement(SyncConflictDialog, { conflicts: value.conflicts, onResolve: value.resolveConflict }));
 }
-
 export function usePreferences() {
   const value = useContext(PreferencesContext);
-  if (!value) {
-    throw new Error("usePreferences must be used inside PreferencesProvider");
-  }
+  if (!value) throw new Error("usePreferences must be used inside PreferencesProvider");
   return value;
 }
