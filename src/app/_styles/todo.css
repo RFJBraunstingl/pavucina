@@ -30,10 +30,11 @@
 .todo-heading-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
-.todo-path-toggle {
+.todo-heading-toggle {
   min-height: 36px;
   border: 1px solid var(--line);
   border-radius: 10px;

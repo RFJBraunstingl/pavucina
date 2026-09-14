@@ -12,7 +12,7 @@ overlays from Google Calendar and Outlook Calendar.
 - View only tasks with a valid single-day time slot in the calendar grid.
 - Move through weeks on desktop or individual days on mobile, and return to
   today at any time.
-- Hide completed tasks with **Hide done**.
+- Hide completed tasks and stored calendar events with **Hide done**.
 
 ## Adjusting scheduled work
 

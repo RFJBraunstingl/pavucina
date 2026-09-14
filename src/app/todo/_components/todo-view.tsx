@@ -53,6 +53,9 @@ export default function TodoView() {
 
   const items = getTodoItemsForDate(graph, today, calendars.data?.connections);
   const doneCount = items.filter((item) => isNodeDone(graph, item.id)).length;
+  const visibleItems = preferences.hideDone
+    ? items.filter((item) => !isNodeDone(graph, item.id))
+    : items;
   const detailsItem = items.find((item) => item.id === detailsItemId) ?? null;
   const calendarError = calendars.error || calendars.data?.connections
     .map((connection) => connection.error).filter(Boolean).join("; ") || null;
@@ -92,7 +95,17 @@ export default function TodoView() {
             </h2>
           </div>
           <div className="todo-heading-actions">
-            <label className="done-toggle todo-path-toggle">
+            <label className="done-toggle todo-heading-toggle">
+              <input
+                type="checkbox"
+                checked={preferences.hideDone}
+                onChange={(event) =>
+                  updatePreferences({ hideDone: event.target.checked })
+                }
+              />
+              Hide done
+            </label>
+            <label className="done-toggle todo-heading-toggle">
               <input
                 type="checkbox"
                 checked={preferences.showFullTaskPath ?? false}
@@ -111,9 +124,9 @@ export default function TodoView() {
         {loadingEvents && (
           <p className="todo-empty" role="status">Loading calendar events…</p>
         )}
-        {items.length > 0 ? (
+        {visibleItems.length > 0 ? (
           <ul className="todo-list">
-            {items.map((item) => (
+            {visibleItems.map((item) => (
               <TodoListItem
                 key={item.id}
                 graph={graph}
@@ -125,7 +138,11 @@ export default function TodoView() {
             ))}
           </ul>
         ) : !loadingEvents && !calendarError && !calendarImport.error && (
-          <p className="todo-empty">No tasks or events are scheduled for today.</p>
+          <p className="todo-empty">
+            {items.length > 0
+              ? "All tasks and events scheduled for today are done."
+              : "No tasks or events are scheduled for today."}
+          </p>
         )}
       </section>
       <TodoDetailsDialog

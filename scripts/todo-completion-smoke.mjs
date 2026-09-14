@@ -24,6 +24,7 @@ imported.properties.externalOrigin = {
   kind: "calendar", source: "google", connectionId, calendarId: "work", eventId: "meeting",
 };
 const fixture = incrementalFixture(graph);
+fixture.preferences.hideDone = false;
 fixture.connections = [{ id: connectionId, source: "google", address: "test@example.com", status: "connected",
   calendars: [{ id: "work", name: "Work", color: "#4285f4", selected: true, visible: true }] }];
 const errors = [];
@@ -47,7 +48,7 @@ try {
     const id = graph.nodes.find((node) => node.properties.name === name).id;
     await waitFor(() => isNodeDone(fixture.graph, id), `${name} completion persisted`);
     await ui.wait(`document.querySelector('.todo-count').textContent === '${index + 1} of 4 done'`);
-    assert.equal(await ui.evaluate(`document.querySelector(${JSON.stringify(selector)}).closest('li').classList.contains('is-done')`), true);
+    await ui.wait(`document.querySelector(${JSON.stringify(selector)})?.closest('li').classList.contains('is-done')`);
     await ui.click(selector);
     await ui.wait("document.querySelector('dialog[open]')?.textContent.includes('Completed')");
     await ui.key("Escape", 27);
@@ -68,8 +69,13 @@ try {
   await ui.wait("document.querySelector('.todo-count').textContent === '1 of 4 done'");
   await ui.touch(position);
   await waitFor(() => isNodeDone(fixture.graph, imported.id), "mobile completion persisted");
+  await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
+  const nativeVisible = "[...document.querySelectorAll('.calendar-event strong')].some(node => node.textContent === 'Native meeting')";
+  await ui.wait(nativeVisible);
+  await ui.click(".done-toggle input");
+  await ui.wait(`!(${nativeVisible})`);
   assert.deepEqual(errors, []);
-  console.log("PASS: native/imported completion, keyboard, styling, details, counts, reload, mobile reopen/complete");
+  console.log("PASS: native/imported completion, keyboard, styling, details, counts, reload, mobile, calendar hide done");
 } finally {
   await browser.close();
 }

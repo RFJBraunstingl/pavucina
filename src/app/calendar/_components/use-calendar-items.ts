@@ -4,6 +4,7 @@ import {
   getDaySchedule,
   getOverdueTasks,
 } from "@/services/task-day-schedule-service";
+import { isNodeDone } from "@/services/completion-service";
 import { resolvedScheduleMode } from "@/services/preferences-service";
 import { visibleCalendarEvents } from "@/utils/event-calendar";
 import type { CalendarConnectionSummary } from "@/types/external-calendar";
@@ -43,8 +44,11 @@ export function useCalendarItems(
     );
   }, [graph, scheduleMode, schedules, today]);
   const graphEvents = useMemo(
-    () => visibleCalendarEvents(graph, connections, preferences?.calendarEventImportEnabled),
-    [graph, connections, preferences?.calendarEventImportEnabled]);
+    () => graph
+      ? visibleCalendarEvents(graph, connections, preferences?.calendarEventImportEnabled)
+        .filter(({ id }) => !preferences?.hideDone || !isNodeDone(graph, id))
+      : [],
+    [graph, connections, preferences?.calendarEventImportEnabled, preferences?.hideDone]);
 
   return { scheduleMode, schedules, taskEvents, overdue, graphEvents };
 }
