@@ -9,5 +9,5 @@ git add package.json
 git add package-lock.json
 git commit -m "release v$VERSION" -m "$RELEASE_MESSAGES"
 git push
-git tag -s "$VERSION" -m "release v$VERSION"
+git tag "$VERSION" -m "release v$VERSION"
 git push --tags
