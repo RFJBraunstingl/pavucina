@@ -14,7 +14,7 @@ import {
   setTaskTimes,
 } from "./task-schedule-service.ts";
 import { markNodeDone } from "./completion-service.ts";
-import { calendarItem, layoutCalendarItems } from "../utils/calendar.ts";
+import { calendarItem, HOUR_HEIGHT, layoutCalendarItems } from "../utils/calendar.ts";
 import { DAY_HEIGHT, droppedTimeRange } from "../utils/day-schedule.ts";
 import type { Graph, TaskNode } from "../types/graph.ts";
 
@@ -98,7 +98,7 @@ test("calendar layout gives overlapping events separate lanes", () => {
       item(tasks[0], "00:00", "01:00").top,
       item(tasks[0], "23:30", "23:59").height,
     ],
-    [0, 32],
+    [0, (29 / 60) * HOUR_HEIGHT],
   );
 });
 

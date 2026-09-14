@@ -20,7 +20,7 @@ import {
 } from "./task-schedule-service.ts";
 import { ensureRootNode, isGraph, isUuid } from "./graph-service.ts";
 import { createSeedGraph } from "../data/seed-graph.ts";
-import { calendarItem, resizeTimeRange } from "../utils/calendar.ts";
+import { calendarItem, HOUR_HEIGHT, resizeTimeRange } from "../utils/calendar.ts";
 import { addDays, makeDateRange } from "../utils/date.ts";
 import type { TaskNode } from "../types/graph.ts";
 
@@ -94,12 +94,12 @@ test("task graph operations preserve relationships and schedules", () => {
   assert.equal(
     calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "12:00", "2026-04-06")
       ?.top,
-    704,
+    11 * HOUR_HEIGHT,
   );
   assert.equal(
     calendarItem(project, "2026-04-06", "2026-04-27", "11:00", "13:00", "2026-04-06")
       ?.height,
-    128,
+    2 * HOUR_HEIGHT,
   );
   assert.deepEqual(
     [

@@ -23,8 +23,9 @@ export function calendarInteractions(browser) {
   async function point(minute) {
     await evaluate(`(() => {
       const scroll = document.querySelector('.calendar-scroll');
+      const body = document.querySelector('.calendar-days');
       scroll.scrollIntoView({ block: 'start' });
-      scroll.scrollTop = Math.max(0, ${minute} / 60 * 64 - 100);
+      scroll.scrollTop = Math.max(0, ${minute} / 1440 * body.offsetHeight - 100);
     })()`);
     await delay(150);
     return evaluate(`(() => {
@@ -33,7 +34,7 @@ export function calendarInteractions(browser) {
       const count = body.querySelectorAll('.calendar-day').length;
       const header = document.querySelector('.calendar-days-header');
       const index = [...header.children].indexOf(header.querySelector('.today')) - 1;
-      return { x: rect.left + (index + 0.5) * rect.width / count, y: rect.top + ${minute} / 60 * 64 };
+      return { x: rect.left + (index + 0.5) * rect.width / count, y: rect.top + ${minute} / 1440 * rect.height };
     })()`);
   }
 

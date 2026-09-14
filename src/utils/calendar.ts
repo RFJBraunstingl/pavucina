@@ -10,7 +10,7 @@ import type { TaskNode } from "@/types/graph";
 export const CALENDAR_START = 0;
 export const CALENDAR_END = 24 * 60 - 1;
 export const CALENDAR_RESIZE_STEP = 15;
-export const HOUR_HEIGHT = 64;
+export const HOUR_HEIGHT = 128;
 export const CALENDAR_HEIGHT = 24 * HOUR_HEIGHT;
 export const HOUR_LABELS = Array.from(
   { length: 25 },
