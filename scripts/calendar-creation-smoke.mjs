@@ -36,6 +36,11 @@ try {
   await browser.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
   await ui.wait("document.querySelectorAll('.external-calendar-event').length === 2");
+  await ui.wait("Boolean(document.querySelector('.calendar-current-time'))");
+  await ui.click('[aria-label="Next week"]');
+  await ui.wait("!document.querySelector('.calendar-current-time')");
+  await ui.click(".today-button");
+  await ui.wait("Boolean(document.querySelector('.calendar-current-time'))");
   await ui.click(`[aria-label="Create all-day event on ${day}"]`);
   await ui.wait(opened);
   assert.equal(await ui.evaluate("document.querySelector('[name=allDay]').checked"), true);

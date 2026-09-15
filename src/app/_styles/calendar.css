@@ -119,6 +119,14 @@
   background: #e8ede9;
 }
 
+.calendar-current-time {
+  position: absolute;
+  z-index: 5;
+  height: 2px;
+  background: var(--green);
+  pointer-events: none;
+}
+
 .calendar-event {
   position: absolute;
   z-index: 4;

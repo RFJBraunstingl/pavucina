@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 
 import CalendarEvent from "./calendar-event";
 import CalendarAllDay from "./calendar-all-day";
@@ -9,6 +9,7 @@ import { useCalendarCreation } from "./use-calendar-creation";
 import { calendarResizeEdges } from "@/services/calendar-schedule-service";
 import {
   CALENDAR_HEIGHT,
+  calendarCurrentTimePosition,
   HOUR_HEIGHT,
   HOUR_LABELS,
   layoutCalendarItems,
@@ -38,6 +39,8 @@ export default function CalendarGrid({
   creating,
 }: CalendarGridProps) {
   const scroll = useRef<HTMLDivElement>(null);
+  const [loadedAt] = useState(() => new Date());
+  const currentTimePosition = calendarCurrentTimePosition(days, loadedAt);
   const items = useMemo(
     () => layoutCalendarItems([
       ...taskEvents,
@@ -60,14 +63,13 @@ export default function CalendarGrid({
   });
 
   useEffect(() => {
-    const now = new Date();
     if (scroll.current) {
       scroll.current.scrollTop = Math.max(
         0,
-        ((now.getHours() * 60 + now.getMinutes()) / 60 - 1) * HOUR_HEIGHT,
+        ((loadedAt.getHours() * 60 + loadedAt.getMinutes()) / 60 - 1) * HOUR_HEIGHT,
       );
     }
-  }, []);
+  }, [loadedAt]);
 
   return (
     <div className="calendar-scroll" ref={scroll} onScroll={creation.clear}>
@@ -137,6 +139,13 @@ export default function CalendarGrid({
             {HOUR_LABELS.map((time, index) => (
               <div className="calendar-hour-line" style={{ top: index * HOUR_HEIGHT }} key={time} />
             ))}
+            {currentTimePosition && (
+              <div
+                className="calendar-current-time"
+                style={currentTimePosition}
+                aria-hidden="true"
+              />
+            )}
             {preview && (
               <div className="calendar-create-preview" aria-hidden="true" style={{
                 top: timeToMinutes(preview.startTime) / 60 * HOUR_HEIGHT,

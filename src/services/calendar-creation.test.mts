@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calendarPosition, layoutCalendarItems } from "../utils/calendar.ts";
+import {
+  calendarCurrentTimePosition,
+  calendarPosition,
+  layoutCalendarItems,
+} from "../utils/calendar.ts";
 import { calendarFreeGaps, defaultCalendarEvent, suggestCalendarEvent } from "../utils/calendar-creation.ts";
 
 const day = "2026-09-13";
@@ -8,6 +12,19 @@ const item = (start: string, end: string, endDate = day) =>
   calendarPosition(crypto.randomUUID(), day, endDate, start, end, day)!;
 const times = (range: ReturnType<typeof suggestCalendarEvent>) =>
   range && [range.startTime, range.endTime];
+
+test("current time is positioned only inside its visible day", () => {
+  const current = new Date(2026, 8, 13, 10, 30);
+  assert.deepEqual(
+    calendarCurrentTimePosition(["2026-09-12", day, "2026-09-14"], current),
+    { top: 10.5 * 128, left: `${1 / 3 * 100}%`, width: `${100 / 3}%` },
+  );
+  assert.deepEqual(
+    calendarCurrentTimePosition([day], current),
+    { top: 10.5 * 128, left: "0%", width: "100%" },
+  );
+  assert.equal(calendarCurrentTimePosition(["2026-09-14"], current), null);
+});
 
 test("creation fills short free gaps and caps longer suggestions at one hour", () => {
   const items = [item("08:00", "09:00"), item("09:30", "10:00")];

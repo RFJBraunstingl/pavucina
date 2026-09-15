@@ -1,4 +1,4 @@
-import { daysBetween } from "./date.ts";
+import { daysBetween, todayIso } from "./date.ts";
 import { minutesToTime, timeToMinutes } from "./time.ts";
 import type {
   CalendarItem,
@@ -16,6 +16,17 @@ export const HOUR_LABELS = Array.from(
   { length: 25 },
   (_, hour) => `${String(hour).padStart(2, "0")}:00`,
 );
+
+export function calendarCurrentTimePosition(days: string[], time: Date) {
+  const dayIndex = days.indexOf(todayIso(time));
+  if (dayIndex < 0) return null;
+  const minutes = time.getHours() * 60 + time.getMinutes() + time.getSeconds() / 60;
+  return {
+    top: minutes / 60 * HOUR_HEIGHT,
+    left: `${dayIndex / days.length * 100}%`,
+    width: `${100 / days.length}%`,
+  };
+}
 
 export function calendarItemEnd(item: CalendarLayoutItem) {
   if (item.endDate > item.startDate) return 24 * 60;
