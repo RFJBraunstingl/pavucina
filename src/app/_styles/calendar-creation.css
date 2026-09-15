@@ -54,6 +54,13 @@
   font-size: 16px;
 }
 
+.event-dialog .event-all-day {
+  display: flex;
+  align-items: center;
+}
+
+.event-dialog .event-all-day input { width: auto; }
+
 .event-date-time {
   display: grid;
   grid-template-columns: 1fr 1fr;

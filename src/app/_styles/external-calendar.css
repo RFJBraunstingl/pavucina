@@ -97,6 +97,18 @@
   text-align: left;
 }
 
+.calendar-all-day .calendar-all-day-create {
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--muted);
+  text-align: center;
+}
+
+.calendar-all-day .calendar-all-day-create:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .calendar-all-day button.selected,
 .external-calendar-event.selected {
   outline: 2px solid var(--green);

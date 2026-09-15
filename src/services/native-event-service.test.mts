@@ -49,6 +49,34 @@ test("native events create, update, back up, and delete without damaging shared 
   assert.deepEqual(deleteNativeEvent(edited, id), base);
 });
 
+test("native all-day events use inclusive dates and omit times", () => {
+  const id = crypto.randomUUID();
+  const sameDay = { ...input, name: "Planning", allDay: true };
+  let graph = saveNativeEvent(createSeedGraph(day), id, sameDay, true);
+  let event = graph.nodes.find((node) => node.id === id)!;
+  assert.ok(event.type === "event");
+  assert.equal(event.properties.startTime, undefined);
+  assert.equal(event.properties.endTime, undefined);
+  assert.deepEqual(nativeEventInput(graph, event), sameDay);
+
+  graph = saveNativeEvent(graph, id, { ...sameDay, endDate: "2026-09-14" }, false);
+  event = graph.nodes.find((node) => node.id === id)!;
+  assert.ok(event.type === "event");
+  assert.equal(isGraph(graph), true);
+  assert.equal(nativeEventInput(graph, event).endDate, "2026-09-14");
+  assert.throws(() => saveNativeEvent(graph, id, {
+    ...sameDay, startDate: "2026-09-14", endDate: day,
+  }, false), /on or after/);
+
+  const timed = saveNativeEvent(graph, id, {
+    ...nativeEventInput(graph, event), allDay: false,
+  }, false);
+  const timedEvent = timed.nodes.find((node) => node.id === id)!;
+  assert.ok(timedEvent.type === "event");
+  assert.equal(timedEvent.properties.allDay, false);
+  assert.equal(timedEvent.properties.startTime, "09:00");
+});
+
 test("native validation rejects bad input and imported edits, but allows longer overlaps", () => {
   const base = createSeedGraph(day);
   const id = crypto.randomUUID();

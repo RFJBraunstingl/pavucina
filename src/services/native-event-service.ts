@@ -16,12 +16,16 @@ export function validateNativeEvent(input: NativeEventInput) {
     throw new Error("The description or location is too long.");
   }
   if (!isIsoDate(input.startDate) || !isIsoDate(input.endDate) ||
-    !isTime(input.startTime) || !isTime(input.endTime) || !isTimeZone(input.timeZone)) {
+    !isTimeZone(input.timeZone) || (!input.allDay &&
+      (!isTime(input.startTime) || !isTime(input.endTime)))) {
     throw new Error("Enter valid dates, times, and a time zone.");
   }
-  if (minutesBetweenDateTimes(input.startDate, input.startTime,
-    input.endDate, input.endTime) <= 0) {
-    throw new Error("The event must end after it starts.");
+  if (input.allDay ? input.endDate < input.startDate
+    : minutesBetweenDateTimes(input.startDate, input.startTime,
+      input.endDate, input.endTime) <= 0) {
+    throw new Error(input.allDay
+      ? "The event must end on or after it starts."
+      : "The event must end after it starts.");
   }
 }
 
@@ -33,8 +37,9 @@ export function nativeEventInput(graph: Graph, event: EventNode): NativeEventInp
     timeZone: event.properties.timeZone,
     startDate: getEventDate(graph, event.id, "eventStartDate")!,
     endDate: getEventDate(graph, event.id, "eventEndDate")!,
-    startTime: event.properties.startTime!,
-    endTime: event.properties.endTime!,
+    startTime: event.properties.startTime ?? "09:00",
+    endTime: event.properties.endTime ?? "10:00",
+    ...(event.properties.allDay && { allDay: true }),
   };
 }
 
@@ -52,8 +57,9 @@ export function saveNativeEvent(
     id, type: "event",
     properties: {
       name: input.name.trim(), description: input.description.trim() || undefined,
-      location: input.location.trim() || undefined, allDay: false,
-      startTime: input.startTime, endTime: input.endTime, timeZone: input.timeZone,
+      location: input.location.trim() || undefined, allDay: Boolean(input.allDay),
+      ...(!input.allDay && { startTime: input.startTime, endTime: input.endTime }),
+      timeZone: input.timeZone,
       calendarName: "Pavucina", calendarColor: "#167a54",
     },
   };

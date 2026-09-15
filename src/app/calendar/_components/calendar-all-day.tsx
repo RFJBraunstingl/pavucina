@@ -12,22 +12,29 @@ export default function CalendarAllDay({
   importedEvents,
   graph,
   selectedId,
+  locked,
+  creating,
   onSelect,
+  onCreate,
 }: {
   days: string[];
   externalEvents: ExternalCalendarEvent[];
   importedEvents: EventNode[];
   graph: Graph;
   selectedId: string | null;
+  locked: boolean;
+  creating: boolean;
   onSelect: (eventId: string) => void;
+  onCreate: (date: string) => void;
 }) {
-  if (!externalEvents.some(({ allDay }) => allDay) &&
-    !importedEvents.some(({ properties }) => properties.allDay)) return null;
   return (
     <div className="calendar-all-day">
       <span>All day</span>
       {days.map((day) => (
         <div key={day}>
+          <button type="button" className="calendar-all-day-create"
+            aria-label={`Create all-day event on ${day}`}
+            disabled={locked || creating} onClick={() => onCreate(day)}>+ Add</button>
           {allDayEventsForDay(externalEvents, day).map((event) => (
             event.url ? (
               <a

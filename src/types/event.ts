@@ -39,6 +39,7 @@ export type EventTimeRange = {
   endDate: string;
   startTime: string;
   endTime: string;
+  allDay?: boolean;
 };
 
 export type NativeEventInput = EventTimeRange & {

@@ -8,6 +8,7 @@ export default function EventDialog({ draft, onSave, onDelete, onClose }: EventD
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const values = draft.values;
+  const [allDay, setAllDay] = useState(Boolean(values.allDay));
 
   useEffect(() => { dialog.current?.showModal(); }, []);
 
@@ -18,7 +19,8 @@ export default function EventDialog({ draft, onSave, onDelete, onClose }: EventD
     try {
       onSave({ name: field("name"), location: field("location"), description: field("description"),
         startDate: field("startDate"), startTime: field("startTime"),
-        endDate: field("endDate"), endTime: field("endTime"), timeZone: values.timeZone });
+        endDate: field("endDate"), endTime: field("endTime"), allDay: data.has("allDay"),
+        timeZone: values.timeZone });
     } catch (value) {
       setError(value instanceof Error ? value.message : "Could not save the event.");
     }
@@ -32,11 +34,18 @@ export default function EventDialog({ draft, onSave, onDelete, onClose }: EventD
           <label>Title
             <input name="name" required autoFocus maxLength={EVENT_TEXT_LIMITS.name} defaultValue={values.name} />
           </label>
+          <label className="event-all-day">
+            <input name="allDay" type="checkbox" checked={allDay}
+              onChange={(event) => setAllDay(event.target.checked)} />
+            All day
+          </label>
           <div className="event-date-time">
             <label>Start date<input name="startDate" type="date" required defaultValue={values.startDate} /></label>
-            <label>Start time<input name="startTime" type="time" required defaultValue={values.startTime} /></label>
+            <label>Start time<input name="startTime" type="time" required={!allDay}
+              disabled={allDay} defaultValue={values.startTime} /></label>
             <label>End date<input name="endDate" type="date" required defaultValue={values.endDate} /></label>
-            <label>End time<input name="endTime" type="time" required defaultValue={values.endTime} /></label>
+            <label>End time<input name="endTime" type="time" required={!allDay}
+              disabled={allDay} defaultValue={values.endTime} /></label>
           </div>
           <p>Time zone: {values.timeZone}</p>
           <label>Location<input name="location" maxLength={EVENT_TEXT_LIMITS.location} defaultValue={values.location} /></label>

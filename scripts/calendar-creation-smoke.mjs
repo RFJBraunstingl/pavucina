@@ -36,10 +36,23 @@ try {
   await browser.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
   await ui.wait("document.querySelectorAll('.external-calendar-event').length === 2");
+  await ui.click(`[aria-label="Create all-day event on ${day}"]`);
+  await ui.wait(opened);
+  assert.equal(await ui.evaluate("document.querySelector('[name=allDay]').checked"), true);
+  assert.equal(await ui.evaluate("document.querySelector('[name=startTime]').disabled"), true);
+  assert.equal(await ui.evaluate("document.querySelector('[name=endTime]').disabled"), true);
+  await ui.field("name", "All-day plan");
+  await ui.click(".event-dialog button[type=submit]");
+  await waitFor(() => saved("All-day plan"), "all-day event saved");
+  const allDay = fixture.graph.nodes.find((node) => node.type === "event" && node.properties.name === "All-day plan");
+  assert.equal(allDay.properties.allDay, true);
+  assert.equal(allDay.properties.startTime, undefined);
+  await ui.wait("[...document.querySelectorAll('.calendar-all-day button:not(.calendar-all-day-create)')].some(button => button.textContent === 'All-day plan')");
+  const writesAfterAllDay = fixture.writes.length;
   const position = await ui.point(9 * 60 + 10);
   await ui.mouse(position);
   await ui.wait("document.querySelector('.calendar-create-preview')?.textContent.includes('09:00 – 09:30')");
-  assert.equal(fixture.writes.length, 0);
+  assert.equal(fixture.writes.length, writesAfterAllDay);
   const screenshot = await browser.send("Page.captureScreenshot");
   await writeFile(join(tmpdir(), "pavucina-calendar-create-preview.png"), Buffer.from(screenshot.data, "base64"));
   await ui.mouse(position, true);
@@ -51,7 +64,7 @@ try {
   await ui.field("endTime", "08:00");
   await ui.click(".event-dialog button[type=submit]");
   await ui.wait("document.querySelector('.event-error')?.textContent.includes('end after')");
-  assert.equal(fixture.writes.length, 0);
+  assert.equal(fixture.writes.length, writesAfterAllDay);
   await ui.field("endTime", "09:30");
   await ui.click(".event-dialog button[type=submit]");
   await ui.wait(closed);
@@ -99,6 +112,7 @@ try {
     }
   })()`);
   await ui.wait("document.querySelector('.calendar-edit-lock')?.getAttribute('aria-pressed') === 'true'");
+  assert.equal(await ui.evaluate("document.querySelector('.calendar-all-day-create').disabled"), true);
   await ui.touch(await ui.point(9 * 60 + 10));
   assert.equal(await ui.evaluate(closed), true);
   await ui.click(".calendar-edit-lock");
@@ -126,7 +140,7 @@ try {
   await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
   await ui.wait("document.body.innerText.includes('Guest event')");
   assert.deepEqual(errors, []);
-  console.log("PASS: hover preview, click, validation, create/edit/delete, reload, keyboard, mobile lock/tap/scroll, guest persistence");
+  console.log("PASS: all-day, hover preview, click, validation, create/edit/delete, reload, keyboard, mobile lock/tap/scroll, guest persistence");
 } catch (error) {
   console.error(await ui.evaluate("document.body.innerText"), errors, await ui.evaluate("window.calendarInputLog"));
   throw error;

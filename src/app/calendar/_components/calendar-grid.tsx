@@ -90,7 +90,12 @@ export default function CalendarGrid({
           importedEvents={graphEvents}
           graph={graph}
           selectedId={selectedId}
+          locked={locked}
+          creating={creating}
           onSelect={onSelectEvent}
+          onCreate={(date) => onCreateEvent({
+            ...defaultCalendarEvent(items, date), allDay: true,
+          })}
         />
         <div className="calendar-body">
           <div className="calendar-times" style={{ height: CALENDAR_HEIGHT }}>
