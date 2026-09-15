@@ -4,6 +4,7 @@ import { useGraph } from "@/providers/graph-provider";
 import TaskScheduleFields from "./task-schedule-fields";
 import {
   deleteTask,
+  getParentTaskNames,
   renameTask,
   setTaskDescription,
 } from "@/services/task-service";
@@ -29,6 +30,7 @@ export default function TaskInspector({
   );
   if (!graph) return null;
   const done = selected ? isNodeDone(graph, selected.id) : false;
+  const parentNames = selected ? getParentTaskNames(graph, selected.id) : [];
 
   function updateName(taskId: string, value: string) {
     setGraph((current) =>
@@ -74,6 +76,9 @@ export default function TaskInspector({
           </button>
           <p className="eyebrow">Selected task</p>
           <h2 id="inspector-heading">Edit details</h2>
+          {parentNames.length > 0 && (
+            <p className="inspector-task-path">{parentNames.join(" › ")}</p>
+          )}
           <label>
             Name
             <input

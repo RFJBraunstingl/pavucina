@@ -9,6 +9,13 @@
   margin-bottom: 24px;
 }
 
+.inspector-task-path {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
 .inspector label {
   display: grid;
   margin-top: 16px;
@@ -18,6 +25,10 @@
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.inspector-task-path + label {
+  margin-top: 8px;
 }
 
 .inspector input,
