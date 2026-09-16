@@ -1,4 +1,33 @@
-# Offline inbox-parent suggestions
+# Offline graph experiments
+
+## Vadalog: find projects with overdue work
+
+Download a backup from Preferences, then generate a self-contained Vadalog
+program using only the Python standard library:
+
+```sh
+python3 python/reason_overdue.py pavucina-backup.zip --today 2026-09-16 --program overdue.vada
+```
+
+Omit `--program` to print the program. `--today` defaults to your computer's
+local date. An unfinished leaf task is overdue when its planned end date is
+before that date; the rules propagate it to every ancestor task. Parent tasks,
+inbox tasks, and events do not cause alerts. The program uses numeric task IDs;
+the original names and paths stay in the backup.
+
+When a [Vadalog engine](https://docs.prometheux.ai/vadalog/engine-api) is
+available, pass its base URL to run the program and print a JSON report with
+each affected project's overdue tasks:
+
+```sh
+python3 python/reason_overdue.py pavucina-backup.zip --engine-url http://localhost:8080
+```
+
+`--engine-url` sends graph structure, deadlines, and completion facts to that
+endpoint. This workspace does not include a Vadalog engine, so the program can
+be generated and tested here, but engine execution requires one separately.
+
+## Inbox-parent suggestions
 
 These experiments rank existing graph tasks as possible parents for inbox tasks.
 They read a Pavucina backup locally and never change the backup or app graph.
