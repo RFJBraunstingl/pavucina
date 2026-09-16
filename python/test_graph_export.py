@@ -17,7 +17,10 @@ class GraphExportTest(unittest.TestCase):
         inbox = [{
             "id": "inbox",
             "type": "task",
-            "properties": {"name": "Research launch", "description": "Plan details"},
+            "properties": {
+                "name": "Research launch",
+                "description": "Plan details\n\nReview launch notes",
+            },
         }]
         relationships = edges or [
             {"id": "one", "type": "child", "sourceId": "root", "targetId": "parent"},
@@ -43,6 +46,8 @@ class GraphExportTest(unittest.TestCase):
         self.assertIn((node_entity("parent"), "child", node_entity("child")), triples)
         self.assertIn((node_entity("inbox"), "pavucina:nameToken", "token:research"), triples)
         self.assertIn((node_entity("inbox"), "pavucina:descriptionToken", "token:details"), triples)
+        self.assertIn((node_entity("inbox"), "pavucina:descriptionToken", "token:notes"), triples)
+        self.assertNotIn((node_entity("parent"), "pavucina:descriptionToken", "token:details"), triples)
         self.assertEqual(task_details(nodes, edges, "child")["path"], "Launch Plan › Research")
 
     def test_relationship_endpoints_must_exist(self):

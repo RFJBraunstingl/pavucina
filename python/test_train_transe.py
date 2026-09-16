@@ -39,7 +39,14 @@ class TrainTransESmokeTest(unittest.TestCase):
                 },
             ]
             inbox = [
-                {"id": "inbox", "type": "task", "properties": {"name": "Research plan"}},
+                {
+                    "id": "inbox",
+                    "type": "task",
+                    "properties": {
+                        "name": "Research plan",
+                        "description": "Review launch details",
+                    },
+                },
             ]
             with ZipFile(backup, "w") as archive:
                 archive.writestr("nodes.json", json.dumps(nodes))

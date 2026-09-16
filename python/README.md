@@ -1,21 +1,45 @@
-# TransE inbox-parent suggestions
+# Offline inbox-parent suggestions
 
-This directory contains an offline experiment that trains a
-[PyKEEN TransE](https://pykeen.readthedocs.io/en/stable/api/pykeen.models.TransE.html)
-model from a Pavucina backup and ranks existing graph tasks as possible parents
-for each inbox task. It never changes the backup or the application graph.
+These experiments rank existing graph tasks as possible parents for inbox tasks.
+They read a Pavucina backup locally and never change the backup or app graph.
 
 ## Setup
 
-PyKEEN 1.11.1 requires Python 3.10 or newer.
+Use Python 3.11. The GraphSAGE experiment uses PyTorch Geometric's
+[SAGEConv](https://pytorch-geometric.readthedocs.io/en/stable/generated/torch_geometric.nn.conv.SAGEConv.html)
+with only its base PyTorch dependency; optional PyG acceleration packages are
+not needed.
 
 ```sh
-python3.10 -m venv python/.venv
+python3.11 -m venv python/.venv
 source python/.venv/bin/activate
 python -m pip install -r python/requirements.txt
 ```
 
-## Train and predict
+## GraphSAGE: predict new inbox items without retraining
+
+```sh
+python python/train_graphsage.py pavucina-backup.zip --output python/artifacts/graphsage
+python python/predict_graphsage.py fresh-backup.zip --model-dir python/artifacts/graphsage
+```
+
+Training writes `model.pt`, `metadata.json`, `metrics.json`, and
+`suggestions.json`. Prediction prints the same suggestions JSON for a fresh
+backup; add `--output suggestions.json` to save it. Each candidate includes its
+full task path and a ranking score, not a probability. `--epochs`,
+`--embedding-dim`, `--top-k`, and `--seed` are available for training.
+
+The model uses task names and descriptions as fixed-size text features, plus
+the existing task hierarchy. It trains by detaching leaf tasks, then predicting
+their original parent from the remaining graph. The held-out leaves in
+`metrics.json` are excluded from training. The file reports Recall@3 and mean
+reciprocal rank for GraphSAGE, a text-matching baseline, and TransE when PyKEEN
+is installed (`null` otherwise). This is a snapshot proxy, not a historical
+future-task test. The bundled eight-task seed is too small to establish quality;
+do not integrate suggestions into the app unless real-workspace tests beat the
+text baseline. Top-level root placement is outside this first experiment.
+
+## TransE: retrain for new inbox items
 
 Download a backup from Pavucina's Preferences page, then run:
 
@@ -45,5 +69,5 @@ The export conversion tests use only the Python standard library:
 python3 -m unittest discover -s python -p 'test_*.py'
 ```
 
-After installing the requirements in Python 3.10+, use `--epochs 1` for a quick
-end-to-end smoke run.
+After installing the requirements, the same command also runs one-epoch
+GraphSAGE and TransE smoke tests.
