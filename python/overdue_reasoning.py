@@ -1,14 +1,11 @@
 """Turn a Pavucina graph snapshot into overdue-project Vadalog facts."""
 
 from datetime import date
+from pathlib import Path
 
 from graph_export import graph_tasks, task_details
 
-RULES = """overdue(T) <- open_leaf(T), due(T,D), today_date(N), D<N.
-needs_attention(P,T) <- child(P,T), overdue(T).
-needs_attention(P,T) <- child(P,C), needs_attention(C,T).
-@output("needs_attention").
-"""
+RULES = Path(__file__).with_name("overdue.vada").read_text(encoding="utf-8")
 
 
 def _date_number(value):

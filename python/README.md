@@ -2,8 +2,14 @@
 
 ## Vadalog: find projects with overdue work
 
-Download a backup from Preferences, then generate a self-contained Vadalog
-program using only the Python standard library:
+The reusable [overdue.vada](overdue.vada) file contains only the rules. Supply
+`child(parent,child)`, `open_leaf(task)`, `due(task,YYYYMMDD)`, and
+`today_date(YYYYMMDD)` facts from any source; `needs_attention(project,task)`
+is the output. Task IDs and dates are integers. Vadalog can also read these
+predicates through [data bindings](https://docs.prometheux.ai/vadalog/annotations).
+
+To supply facts from a Pavucina backup, download one from Preferences and
+generate a self-contained program using only the Python standard library:
 
 ```sh
 python3 python/reason_overdue.py pavucina-backup.zip --today 2026-09-16 --program overdue.vada

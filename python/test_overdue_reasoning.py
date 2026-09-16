@@ -72,6 +72,7 @@ class OverdueReasoningTest(unittest.TestCase):
         self.assertNotIn("child(root", program)
         self.assertIn("D<N.", program)
         self.assertIn("needs_attention(P,T) <- child(P,C), needs_attention(C,T).", program)
+        self.assertTrue(program.endswith(Path(__file__).with_name("overdue.vada").read_text()))
         self.assertEqual(due_by_id["top"], "2026-09-15")
 
     def test_reports_each_ancestor_and_explaining_task(self):
