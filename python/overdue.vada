@@ -1,6 +1,0 @@
-% Supply child(parent,child), open_leaf(task), due(task,YYYYMMDD),
-% and today_date(YYYYMMDD) as facts or bound input predicates.
-overdue(T) <- open_leaf(T), due(T,D), today_date(N), D<N.
-needs_attention(P,T) <- child(P,T), overdue(T).
-needs_attention(P,T) <- child(P,C), needs_attention(C,T).
-@output("needs_attention").

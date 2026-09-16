@@ -1,11 +1,16 @@
-"""Turn a Pavucina graph snapshot into overdue-project Vadalog facts."""
+"""Find projects with overdue leaf tasks in a Pavucina graph snapshot."""
 
 from datetime import date
-from pathlib import Path
+
+from pyDatalog import pyDatalog
 
 from graph_export import graph_tasks, task_details
 
-RULES = Path(__file__).with_name("overdue.vada").read_text(encoding="utf-8")
+RULES = """
+overdue(T) <= open_leaf(T) & due(T,D) & today_date(N) & (D < N)
+needs_attention(P,T) <= child(P,T) & overdue(T)
+needs_attention(P,T) <= child(P,C) & needs_attention(C,T)
+"""
 
 
 def _date_number(value):
@@ -20,18 +25,16 @@ def _date_number(value):
     return int(value.replace("-", ""))
 
 
-def build_program(nodes, edges, today):
-    task_ids = sorted(task["id"] for task in graph_tasks(nodes))
-    numbers = {task_id: number for number, task_id in enumerate(task_ids, 1)}
-    ids_by_number = {number: task_id for task_id, number in numbers.items()}
-    child_pairs = sorted({
+def reason_overdue(nodes, edges, today):
+    task_ids = {task["id"] for task in graph_tasks(nodes)}
+    children = {
         (edge["sourceId"], edge["targetId"])
         for edge in edges
         if edge["type"] == "child"
-        and edge["sourceId"] in numbers
-        and edge["targetId"] in numbers
-    })
-    leaf_ids = set(task_ids) - {parent for parent, _ in child_pairs}
+        and edge["sourceId"] in task_ids
+        and edge["targetId"] in task_ids
+    }
+    leaf_ids = task_ids - {parent for parent, _ in children}
     completed_ids = {
         edge["sourceId"] for edge in edges if edge["type"] == "markedAsDone"
     }
@@ -42,42 +45,31 @@ def build_program(nodes, edges, today):
     due_by_id = {}
     for edge in edges:
         task_id = edge["sourceId"]
-        if edge["type"] != "plannedEndDate" or task_id not in numbers:
+        if edge["type"] != "plannedEndDate" or task_id not in task_ids:
             continue
         if task_id in due_by_id:
             raise ValueError(f"Task {task_id} has multiple planned end dates")
         due_by_id[task_id] = date_nodes.get(edge["targetId"])
         _date_number(due_by_id[task_id])
 
-    facts = [f"today_date({int(today.strftime('%Y%m%d'))})."]
-    facts.extend(f"child({numbers[parent]},{numbers[child]})." for parent, child in child_pairs)
-    facts.extend(f"open_leaf({numbers[task_id]})." for task_id in sorted(leaf_ids - completed_ids))
-    facts.extend(
-        f"due({numbers[task_id]},{_date_number(due_by_id[task_id])})."
-        for task_id in sorted(leaf_ids & due_by_id.keys())
-    )
-    return "\n".join([*facts, "", RULES]), ids_by_number, due_by_id
+    pyDatalog.clear()
+    pyDatalog.load(RULES)
+    pyDatalog.assert_fact("today_date", int(today.strftime("%Y%m%d")))
+    for parent, child in sorted(children):
+        pyDatalog.assert_fact("child", parent, child)
+    for task_id in sorted(leaf_ids - completed_ids):
+        pyDatalog.assert_fact("open_leaf", task_id)
+    for task_id in sorted(leaf_ids & due_by_id.keys()):
+        pyDatalog.assert_fact("due", task_id, _date_number(due_by_id[task_id]))
 
-
-def project_report(response, nodes, edges, ids_by_number, due_by_id, today):
-    result_set = response.get("resultSet") if isinstance(response, dict) else None
-    rows = result_set.get("needs_attention", []) if isinstance(result_set, dict) else None
-    if not isinstance(rows, list):
-        raise ValueError("Vadalog returned an invalid needs_attention result")
-
+    answer = pyDatalog.ask("needs_attention(P,T)")
     grouped = {}
-    for row in rows:
-        if (not isinstance(row, list) or len(row) != 2
-                or any(type(number) is not int or number not in ids_by_number for number in row)):
-            raise ValueError("Vadalog returned an unknown task ID")
-        project_id, task_id = (ids_by_number[number] for number in row)
-        if task_id not in due_by_id:
-            raise ValueError("Vadalog returned a task without a due date")
+    for project_id, task_id in (answer.answers if answer else ()):
         grouped.setdefault(project_id, set()).add(task_id)
 
     reported_ids = set(grouped)
-    for task_ids in grouped.values():
-        reported_ids.update(task_ids)
+    for overdue_ids in grouped.values():
+        reported_ids.update(overdue_ids)
     details = {task_id: task_details(nodes, edges, task_id) for task_id in reported_ids}
     ordered = lambda task_id: (details[task_id]["path"].casefold(), task_id)
     return {

@@ -1,37 +1,20 @@
 # Offline graph experiments
 
-## Vadalog: find projects with overdue work
+## pyDatalog: find projects with overdue work
 
-The reusable [overdue.vada](overdue.vada) file contains only the rules. Supply
-`child(parent,child)`, `open_leaf(task)`, `due(task,YYYYMMDD)`, and
-`today_date(YYYYMMDD)` facts from any source; `needs_attention(project,task)`
-is the output. Task IDs and dates are integers. Vadalog can also read these
-predicates through [data bindings](https://docs.prometheux.ai/vadalog/annotations).
-
-To supply facts from a Pavucina backup, download one from Preferences and
-generate a self-contained program using only the Python standard library:
+Download a backup from Preferences, install the small reasoning dependency, and
+run the report locally:
 
 ```sh
-python3 python/reason_overdue.py pavucina-backup.zip --today 2026-09-16 --program overdue.vada
+python3 -m pip install -r python/requirements-reasoning.txt
+python3 python/reason_overdue.py pavucina-backup.zip --today 2026-09-16
 ```
 
-Omit `--program` to print the program. `--today` defaults to your computer's
-local date. An unfinished leaf task is overdue when its planned end date is
-before that date; the rules propagate it to every ancestor task. Parent tasks,
-inbox tasks, and events do not cause alerts. The program uses numeric task IDs;
-the original names and paths stay in the backup.
-
-When a [Vadalog engine](https://docs.prometheux.ai/vadalog/engine-api) is
-available, pass its base URL to run the program and print a JSON report with
-each affected project's overdue tasks:
-
-```sh
-python3 python/reason_overdue.py pavucina-backup.zip --engine-url http://localhost:8080
-```
-
-`--engine-url` sends graph structure, deadlines, and completion facts to that
-endpoint. This workspace does not include a Vadalog engine, so the program can
-be generated and tested here, but engine execution requires one separately.
+The command prints JSON with each affected project's path and overdue tasks.
+`--today` defaults to your computer's local date. An unfinished leaf task is
+overdue when its planned end date is before that date; pyDatalog propagates it
+to every ancestor task. Parent tasks, inbox tasks, and events do not cause
+alerts. The backup stays local and is not modified.
 
 ## Inbox-parent suggestions
 
@@ -98,7 +81,7 @@ tasks have embeddings even though they have no graph relationships yet.
 
 ## Test
 
-The export conversion tests use only the Python standard library:
+After installing the reasoning requirements, run the Python tests with:
 
 ```sh
 python3 -m unittest discover -s python -p 'test_*.py'
