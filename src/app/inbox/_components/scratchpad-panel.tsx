@@ -9,6 +9,7 @@ type Props = {
   draggingId: string | null;
   onCreate: (name: string) => void;
   onRename: (id: string, name: string) => void;
+  onDescriptionChange: (id: string, description: string) => void;
   onDelete: (id: string) => void;
   onMoveRequest: (id: string) => void;
   onDragStart: (event: PointerEvent<HTMLButtonElement>, id: string) => void;
@@ -99,6 +100,15 @@ export default function ScratchpadPanel(props: Props) {
               >
                 <span aria-hidden="true">×</span>
               </button>
+              <textarea
+                rows={2}
+                aria-label={`Description for ${node.properties.name}`}
+                placeholder="Add a description"
+                value={node.properties.description ?? ""}
+                onChange={(event) =>
+                  props.onDescriptionChange(node.id, event.currentTarget.value)
+                }
+              />
             </li>
           ))}
         </ul>

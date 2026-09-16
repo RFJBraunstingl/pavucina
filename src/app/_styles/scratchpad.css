@@ -6,7 +6,8 @@
 }
 
 .scratchpad-form input,
-.scratchpad-list input {
+.scratchpad-list input,
+.scratchpad-list textarea {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -66,9 +67,20 @@
 }
 
 .scratchpad-list input:hover,
-.scratchpad-list input:focus {
+.scratchpad-list input:focus,
+.scratchpad-list textarea:hover,
+.scratchpad-list textarea:focus {
   border-color: var(--line);
   background: #fff;
+}
+
+.scratchpad-list textarea {
+  width: 100%;
+  min-height: 58px;
+  padding: 7px;
+  grid-column: 2 / -1;
+  line-height: 1.4;
+  resize: vertical;
 }
 
 .inbox-drag-handle {
@@ -95,5 +107,9 @@
 @media (max-width: 680px) {
   .scratchpad-list li {
     grid-template-columns: minmax(0, 1fr) 30px;
+  }
+
+  .scratchpad-list textarea {
+    grid-column: 1 / -1;
   }
 }

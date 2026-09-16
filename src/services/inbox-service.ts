@@ -62,6 +62,24 @@ export function renameInboxTask(graph: Graph, id: string, value: string) {
   };
 }
 
+export function setInboxTaskDescription(
+  graph: Graph,
+  id: string,
+  description: string,
+) {
+  const task = graph.inboxNodes?.find((node) => node.id === id);
+  const value = description || undefined;
+  if (!task || task.properties.description === value) return graph;
+  return {
+    ...graph,
+    inboxNodes: (graph.inboxNodes ?? []).map((node) =>
+      node.id === id
+        ? { ...node, properties: { ...node.properties, description: value } }
+        : node,
+    ),
+  };
+}
+
 export function deleteInboxTask(graph: Graph, id: string) {
   if (!graph.inboxNodes?.some((node) => node.id === id)) return graph;
   return {

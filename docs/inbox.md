@@ -18,7 +18,8 @@ tree.
 ## Scratchpad
 
 - Enter a task name and press Enter or choose **Add** to capture it.
-- Rename or delete captured tasks before organizing them.
+- Add descriptions inline, or rename and delete captured tasks before organizing
+  them.
 - Move a captured task below an existing task with **Move…** or by dragging it
   onto the task tree.
 

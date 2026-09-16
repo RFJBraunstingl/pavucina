@@ -7,6 +7,7 @@ import {
   deleteInboxTask,
   moveInboxTask,
   renameInboxTask,
+  setInboxTaskDescription,
 } from "./inbox-service.ts";
 import { isGraph } from "./graph-service.ts";
 import { getTaskDate, setTaskDates } from "./task-schedule-service.ts";
@@ -21,6 +22,13 @@ test("inbox tasks can be captured, edited, and deleted", () => {
 
   graph = renameInboxTask(graph, id, "  Better idea ");
   assert.equal(graph.inboxNodes?.[0]?.properties.name, "Better idea");
+  const description = "First paragraph.\n\nSecond paragraph.";
+  graph = setInboxTaskDescription(graph, id, description);
+  assert.equal(graph.inboxNodes?.[0]?.properties.description, description);
+  assert.equal(setInboxTaskDescription(graph, id, description), graph);
+  assert.equal(setInboxTaskDescription(graph, crypto.randomUUID(), "Notes"), graph);
+  graph = setInboxTaskDescription(graph, id, "");
+  assert.equal(graph.inboxNodes?.[0]?.properties.description, undefined);
   graph = deleteInboxTask(graph, id);
   assert.deepEqual(graph.inboxNodes, []);
 });
@@ -28,6 +36,7 @@ test("inbox tasks can be captured, edited, and deleted", () => {
 test("moving an inbox task creates one child and removes the detached node", () => {
   const id = crypto.randomUUID();
   let graph = addInboxTask(createSeedGraph("2026-09-10"), id, "Captured task");
+  graph = setInboxTaskDescription(graph, id, "Keep this context");
   const parent = graph.nodes.find(
     (node): node is TaskNode =>
       node.type === "task" && node.properties.name === "Design timeline",
@@ -47,6 +56,7 @@ test("moving an inbox task creates one child and removes the detached node", () 
     movedTask?.properties.name,
     "Captured task",
   );
+  assert.equal(movedTask?.properties.description, "Keep this context");
   assert.equal(
     moved.relationships.find(
       (relationship) =>

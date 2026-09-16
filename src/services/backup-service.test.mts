@@ -17,7 +17,10 @@ test("backup writes all workspace data and restores its contents", () => {
       {
         id: crypto.randomUUID(),
         type: "task" as const,
-        properties: { name: "Captured idea" },
+        properties: {
+          name: "Captured idea",
+          description: "Details kept for TransE",
+        },
       },
     ],
   };

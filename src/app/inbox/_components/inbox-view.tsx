@@ -17,6 +17,7 @@ import {
   deleteInboxTask,
   moveInboxTask,
   renameInboxTask,
+  setInboxTaskDescription,
 } from "@/services/inbox-service";
 import { resolvedScheduleMode } from "@/services/preferences-service";
 import { flattenTasks, getParentTaskNames } from "@/services/task-service";
@@ -119,6 +120,13 @@ export default function InboxView() {
           onRename={(id, name) =>
             setGraph((current) =>
               current ? renameInboxTask(current, id, name) : current,
+            )
+          }
+          onDescriptionChange={(id, description) =>
+            setGraph((current) =>
+              current
+                ? setInboxTaskDescription(current, id, description)
+                : current,
             )
           }
           onDelete={(id) =>
