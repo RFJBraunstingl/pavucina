@@ -1,7 +1,7 @@
 import "server-only";
 import { BSON } from "mongodb";
 import { getMongoDatabase } from "./mongodb";
-import type { GraphCommit, GraphRecordRevision } from "../types/graph-commit";
+import type { GraphCommit, GraphRecordRevision, PublishedGraphRecord } from "../types/graph-commit";
 import type { GraphRecord, GraphRevision } from "../types/graph-sync";
 
 let indexes: Promise<unknown> | undefined;
@@ -24,7 +24,7 @@ export async function latestCommit(userId: string) {
 }
 export async function publishedRecords(userId: string, revision: GraphRevision, includeDeleted = false, after = -1) {
   const { records } = await graphCollections();
-  return records.aggregate<GraphRecord>([
+  return records.aggregate<PublishedGraphRecord>([
     { $match: { userId, generation: revision.generation, sequence: { $gt: after, $lte: revision.sequence } } },
     { $lookup: { from: "graph_commits", localField: "attemptId", foreignField: "_id", as: "commit" } },
     { $match: { "commit.0": { $exists: true } } },
@@ -53,14 +53,4 @@ export async function publishCommit(commit: GraphCommit, changed: GraphRecord[],
     if (!await commits.findOne({ _id: commit._id })) await records.deleteMany({ attemptId: commit._id });
     throw error;
   }
-}
-
-export async function cleanUnpublishedRecords(userId: string) {
-  const { records } = await graphCollections();
-  const abandoned = await records.aggregate<{ _id: string }>([
-    { $match: { userId, createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } } },
-    { $lookup: { from: "graph_commits", localField: "attemptId", foreignField: "_id", as: "commit" } },
-    { $match: { "commit.0": { $exists: false } } }, { $limit: 100 }, { $project: { _id: 1 } },
-  ]).toArray();
-  if (abandoned.length) await records.deleteMany({ userId, _id: { $in: abandoned.map(({ _id }) => _id) } });
 }

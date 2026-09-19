@@ -1,8 +1,9 @@
 import "server-only";
 import { createHash } from "node:crypto";
+import { advanceCurrentGraph, currentGraphRecords } from "./graph-current-store";
 import { pruneImportedHistory } from "./graph-pruning-service";
 import { loadLegacyGraph } from "./legacy-graph-repository";
-import { graphCollections, latestCommit, publishedRecords, publishCommit, cleanUnpublishedRecords } from "./graph-commit-store";
+import { graphCollections, latestCommit, publishCommit } from "./graph-commit-store";
 import { changedGraphRecords, recordsGraph } from "./graph-record-service";
 import { applyGraphOperations, diffGraph, GraphConflictError } from "./graph-patch-service";
 import { isGraph } from "./graph-service";
@@ -23,7 +24,7 @@ export async function loadGraphSnapshot(userId: string): Promise<GraphSnapshot |
       await replaceGraph(userId, legacy, true);
       continue;
     }
-    const records = await publishedRecords(userId, head);
+    const records = await currentGraphRecords(userId, head);
     if ((await latestCommit(userId))?._id === head._id) return { revision: revision(head.generation, head.sequence), records };
   }
   throw new Error("The workspace is changing. Please retry loading it.");
@@ -34,7 +35,6 @@ export async function loadLatestGraph(userId: string): Promise<Graph | null> {
 }
 
 async function write(userId: string, graph: Graph, base: GraphSnapshot | null, mutationId: string, digest: string, replacement = false) {
-  if (!isGraph(graph)) throw new Error("Invalid graph");
   const sequence = (base?.revision.sequence ?? 0) + 1;
   const generation = replacement ? crypto.randomUUID() : base?.revision.generation ?? crypto.randomUUID();
   const oldGraph = base ? recordsGraph(base.records) : empty;
@@ -44,11 +44,11 @@ async function write(userId: string, graph: Graph, base: GraphSnapshot | null, m
     if (importedIds.has(edge.sourceId)) importedIds.add(edge.id);
   }
   const changed = changedGraphRecords(replacement ? [] : base?.records ?? [], graph);
-  await publishCommit({ _id: crypto.randomUUID(), userId, generation, sequence, mutationId, digest, createdAt: new Date() },
-    changed, importedIds);
+  const commit = { _id: crypto.randomUUID(), userId, generation, sequence, mutationId, digest, createdAt: new Date() };
+  await publishCommit(commit, changed, importedIds);
   // Publication succeeded; cleanup failure must not turn a committed mutation into a failed save.
+  await advanceCurrentGraph(userId, commit).catch((error) => console.error("Could not update current graph", error));
   await pruneImportedHistory(userId, revision(generation, sequence), changed.filter((record) => importedIds.has(record.id)).map((record) => record.id), replacement).catch((error) => console.error("Could not prune imported history", error));
-  await cleanUnpublishedRecords(userId).catch((error) => console.error("Could not clean unpublished records", error));
   return revision(generation, sequence);
 }
 
@@ -59,6 +59,7 @@ export async function patchGraph(userId: string, patch: GraphPatch) {
     const previous = await commits.findOne({ userId, mutationId: patch.mutationId });
     if (previous) {
       if (previous.digest !== digest) throw new Error("Mutation ID was reused with different changes.");
+      await advanceCurrentGraph(userId, previous).catch((error) => console.error("Could not update current graph", error));
       return revision(previous.generation, previous.sequence);
     }
     const base = await loadGraphSnapshot(userId);
@@ -88,6 +89,7 @@ export async function updateGraphVersion(userId: string, update: (graph: Graph) 
     if (!base) throw new Error("Workspace not found");
     const graph = recordsGraph(base.records);
     const next = update(graph);
+    if (!isGraph(next)) throw new Error("Invalid graph");
     if (!diffGraph(graph, next).length) return base.revision;
     try { return await write(userId, next, base, crypto.randomUUID(), "calendar import"); }
     catch (error) { if (!duplicate(error)) throw error; }

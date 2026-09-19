@@ -4,6 +4,7 @@ process.env.MONGODB_URI = process.env.INCREMENTAL_TEST_MONGODB_URI ?? "mongodb:/
 const { getMongoDatabase } = await import("../src/services/mongodb.ts");
 const { replaceGraph, loadGraphSnapshot, patchGraph, updateGraphVersion } = await import("../src/services/graph-repository.ts");
 const { graphCollections, publishCommit, publishedRecords } = await import("../src/services/graph-commit-store.ts");
+const { pruneGraphStorage } = await import("../src/services/graph-maintenance-service.ts");
 const { recordsGraph } = await import("../src/services/graph-record-service.ts");
 const { diffGraph } = await import("../src/services/graph-patch-service.ts");
 const { createSeedGraph } = await import("../src/data/seed-graph.ts");
@@ -16,6 +17,7 @@ const { DEFAULT_USER_PREFERENCES } = await import("../src/services/preferences-s
 const userId = crypto.randomUUID();
 const database = await getMongoDatabase();
 const { commits, records } = await graphCollections();
+const current = database.collection("graph_current");
 const graph = createSeedGraph("2026-09-13");
 const id = graph.nodes.find((node) => node.type === "task").id;
 const patch = (snapshot, next) => ({ mutationId: crypto.randomUUID(), baseRevision: snapshot.revision, operations: diffGraph(recordsGraph(snapshot.records), next) });
@@ -27,6 +29,8 @@ try {
   assert.deepEqual(recordsGraph((await loadGraphSnapshot(userId)).records), graph);
   assert.equal(await database.collection("nodes").countDocuments({ userId }), legacyNodes.length);
   const initial = await loadGraphSnapshot(userId);
+  assert.deepEqual(await current.findOne({ _id: `head:${userId}` }, { projection: { _id: 0, generation: 1, sequence: 1 } }), initial.revision);
+  assert.equal(await current.countDocuments({ kind: "record", userId, generation: initial.revision.generation }), initial.records.length);
   const beforeCount = await records.countDocuments({ userId });
   const first = patch(initial, renameTask(graph, id, "Changed"));
   await patchGraph(userId, first);
@@ -52,6 +56,13 @@ try {
   await records.insertOne({ _id: orphanId, userId, generation: initial.revision.generation, sequence: 999,
     attemptId: crypto.randomUUID(), collection: "nodes", id, value: { id, type: "task", properties: { name: "Invisible" } }, order: 0, imported: false, createdAt: new Date() });
   assert.equal(recordsGraph((await loadGraphSnapshot(userId)).records).nodes.find((node) => node.id === id).properties.name, "Concurrent name");
+  const oldOrphanId = crypto.randomUUID();
+  await records.insertOne({ _id: oldOrphanId, userId, generation: initial.revision.generation, sequence: 998,
+    attemptId: crypto.randomUUID(), collection: "nodes", id, value: { id, type: "task", properties: { name: "Old orphan" } }, order: 0, imported: false, createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) });
+  const maintenance = await pruneGraphStorage();
+  assert.equal(maintenance.unpublishedRecordsDeleted, 1);
+  assert.equal(await records.countDocuments({ _id: oldOrphanId }), 0);
+  assert.equal(await records.countDocuments({ _id: orphanId }), 1);
   await records.deleteOne({ _id: orphanId });
   const eventId = crypto.randomUUID();
   await updateGraphVersion(userId, (current) => {
@@ -66,7 +77,13 @@ try {
   assert.equal(await records.countDocuments({ userId, id: eventId, value: { $exists: true } }), 0);
   const prior = await loadGraphSnapshot(userId);
   await replaceGraph(userId, graph);
-  assert.notEqual((await loadGraphSnapshot(userId)).revision.generation, prior.revision.generation);
+  const replacement = await loadGraphSnapshot(userId);
+  assert.notEqual(replacement.revision.generation, prior.revision.generation);
+  const pruned = await pruneGraphStorage();
+  assert.ok(pruned.staleCurrentRecordsDeleted > 0);
+  assert.equal(await current.countDocuments({ kind: "record", userId, generation: prior.revision.generation }), 0);
+  await current.deleteMany({ userId });
+  assert.deepEqual(await loadGraphSnapshot(userId), replacement);
   await assert.rejects(() => patchGraph(userId, patch(prior, renameTask(recordsGraph(prior.records), id, "Stale"))), /conflict/);
   await Promise.all([
     patchPreferences(userId, { fields: { hideDone: { before: DEFAULT_USER_PREFERENCES.hideDone, after: false } } }),
@@ -91,6 +108,6 @@ try {
   assert.equal((await loadGraphSnapshot(userId)).revision.sequence, head.sequence);
   console.log("PASS: standalone atomic publication, incremental writes, duplicate retries, concurrent edits, conflicts, imported cleanup, restore generations, settings, legacy migration, 20 MiB graph, failed publication rollback");
 } finally {
-  for (const name of ["graph_records", "graph_commits", "nodes", "edges", "settings"]) await database.collection(name).deleteMany({ userId });
+  for (const name of ["graph_current", "graph_records", "graph_commits", "nodes", "edges", "settings"]) await database.collection(name).deleteMany({ userId });
   await (await globalThis.pavucinaMongoClient).close();
 }

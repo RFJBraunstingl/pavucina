@@ -10,8 +10,10 @@ Preferences and calendar selections use their own field/item patches.
 MongoDB stores changed entity revisions in `graph_records`, then publishes one
 small `graph_commits` document. Unpublished records are invisible; a unique sequence
 index arbitrates concurrent writers. This works on standalone MongoDB without
-transactions. Native history remains; obsolete imported payloads are removed.
-Abandoned unpublished records older than 24 hours are cleaned in bounded batches.
+transactions. A rebuildable `graph_current` projection keeps normal reads proportional
+to the current graph instead of its history. Native history remains; obsolete imported
+payloads are removed. Abandoned unpublished records older than 24 hours are cleaned by
+scheduled maintenance.
 
 Valid legacy MongoDB graphs migrate on first load. Original native revisions remain.
 Guest data migrates from localStorage to per-record IndexedDB without deleting the
@@ -34,6 +36,21 @@ envelope allowance. Set `NEXT_PUBLIC_MAX_MUTATION_MIB` and
 An individual MongoDB record must still fit within 16 MiB. The application still
 holds the graph in memory and validates it as a whole; incremental writes do not
 remove browser memory or CPU constraints.
+
+## Maintenance
+
+Set `MAINTENANCE_SECRET`, then call the protected endpoint daily. Next.js does not
+provide a durable scheduler for a standalone server, so use the host or platform
+scheduler. For a cron daemon configured for Europe/Vienna:
+
+```cron
+CRON_TZ=Europe/Vienna
+0 2 * * * curl --fail --silent --show-error -X POST -H "Authorization: Bearer <maintenance-secret>" https://pavucina.example/api/maintenance/graph
+```
+
+The endpoint deletes abandoned unpublished revisions and obsolete projection
+generations in bounded batches. Call it again when the response reports
+`"hasMore": true`.
 
 ## Checks
 

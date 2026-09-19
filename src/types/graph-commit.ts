@@ -8,3 +8,4 @@ export type GraphRecordRevision = GraphRecord & {
   _id: string; userId: string; generation: string; sequence: number;
   attemptId: string; imported: boolean; createdAt: Date;
 };
+export type PublishedGraphRecord = GraphRecord & { sequence: number };

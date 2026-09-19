@@ -66,7 +66,8 @@ and saves write only changed records before publishing a small atomic commit mar
 Independent edits merge; conflicting edits offer **Keep mine** or **Use saved**.
 Pending edits persist in an account-scoped browser outbox across reloads.
 
-`graph_records` and `graph_commits` hold graph revisions. Legacy `nodes` and
+`graph_records` and `graph_commits` hold graph revisions. `graph_current` is a
+rebuildable projection used for fast current-state reads. Legacy `nodes` and
 `edges` collections remain readable for migration and native history. Other
 collections hold users, account links, settings, mailboxes, and calendar connections.
 Imported calendar payload history is pruned; deletion markers remain for synchronization.
