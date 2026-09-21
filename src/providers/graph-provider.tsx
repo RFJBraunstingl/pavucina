@@ -2,11 +2,11 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { GraphSyncController } from "@/services/graph-sync-controller";
-import { todayIso } from "@/utils/date";
-import SyncConflictDialog from "@/app/_components/sync-conflict-dialog";
-import type { Graph } from "@/types/graph";
-import type { GraphSyncView } from "@/types/graph-sync-controller";
+import { GraphSyncController } from "@/services/graph/sync/graph-sync-controller";
+import { todayIso } from "@/utils/shared/date";
+import SyncConflictDialog from "@/app/_components/sync/sync-conflict-dialog";
+import type { Graph } from "@/types/graph/graph";
+import type { GraphSyncView } from "@/types/graph/graph-sync-controller";
 
 function useGraphState() {
   const { data: session, status } = useSession();

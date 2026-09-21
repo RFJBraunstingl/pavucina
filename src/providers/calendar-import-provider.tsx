@@ -11,14 +11,14 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 
-import { usePreferences } from "@/app/_components/use-preferences";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "./graph-provider";
 import {
   setCalendarEventImport,
   syncImportedCalendarEvents,
-} from "@/services/remote-calendar-import-store";
-import { disconnectCalendar } from "@/services/remote-calendar-store";
-import type { CalendarImportResponse } from "@/types/calendar-import";
+} from "@/services/calendar/import/remote-calendar-import-store";
+import { disconnectCalendar } from "@/services/calendar/import/remote-calendar-store";
+import type { CalendarImportResponse } from "@/types/calendar/calendar-import";
 
 const HOUR_MS = 60 * 60 * 1_000;
 

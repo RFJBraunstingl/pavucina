@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 
 import { auth } from "@/auth";
-import { MAILBOX_CONNECT_COOKIE } from "@/services/mailbox-oauth";
-import { mailboxSourceAvailability } from "@/services/mailbox-provider";
-import { loadMailboxInbox } from "@/services/mailbox-service";
+import { MAILBOX_CONNECT_COOKIE } from "@/services/mailbox/providers/mailbox-oauth";
+import { mailboxSourceAvailability } from "@/services/mailbox/providers/mailbox-provider";
+import { loadMailboxInbox } from "@/services/mailbox/mailbox-service";
 
 export const runtime = "nodejs";
 

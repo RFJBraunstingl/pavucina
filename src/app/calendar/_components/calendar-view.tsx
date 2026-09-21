@@ -2,31 +2,26 @@
 
 import { useMemo, useRef, useState } from "react";
 
-import CalendarControls from "./calendar-controls";
-import CalendarRangeControls from "./calendar-range-controls";
-import CalendarGrid from "./calendar-grid";
-import EventDialog from "./event-dialog";
-import EventInspector from "./event-inspector";
-import ScheduleTray from "./schedule-tray";
-import { useCalendarDayCount } from "./use-calendar-day-count";
-import { useCalendarItems } from "./use-calendar-items";
-import { useExternalCalendars } from "../../_components/use-external-calendars";
-import { useTraySchedule } from "./use-tray-schedule";
-import { useEventEditor } from "./use-event-editor";
-import AppHeader from "../../_components/app-header";
-import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
-import TaskInspector from "../../_components/task-inspector";
-import { usePreferences } from "../../_components/use-preferences";
+import CalendarControls from "./navigation/calendar-controls";
+import CalendarToolbar from "./calendar-toolbar";
+import CalendarGrid from "./grid/calendar-grid";
+import EventDialog from "./editor/event-dialog";
+import EventInspector from "./editor/event-inspector";
+import ScheduleTray from "./scheduling/schedule-tray";
+import { useCalendarDayCount } from "./navigation/use-calendar-day-count";
+import { useCalendarItems } from "./grid/use-calendar-items";
+import { useExternalCalendars } from "@/app/_components/sync/use-external-calendars";
+import { useTraySchedule } from "./scheduling/use-tray-schedule";
+import { useEventEditor } from "./editor/use-event-editor";
+import AppHeader from "@/app/_components/common/app-header";
+import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import TaskInspector from "@/app/_components/task/task-inspector";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
-import { scheduleTaskForDay } from "@/services/task-day-schedule-service";
-import {
-  compactDateLabel,
-  makeDateRange,
-  rangeLabel,
-  startOfWeek,
-} from "@/utils/date";
-import type { UserPreferences } from "@/types/preferences";
+import { scheduleTaskForDay } from "@/services/task/scheduling/day/task-day-schedule-service";
+import { makeDateRange, startOfWeek } from "@/utils/shared/date";
+import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function CalendarView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
@@ -101,14 +96,17 @@ export default function CalendarView() {
       <GraphSyncError error={calendarImport.error} onRetry={() => void calendarImport.syncNow()} />
       <div className="workspace">
         <section className="calendar-card" aria-labelledby="calendar-heading">
-          <div className="timeline-toolbar">
-            <div>
-              <p className="eyebrow">{mobile ? "Daily plan" : "Weekly plan"}</p>
-              <h2 id="calendar-heading">
-                {mobile ? compactDateLabel(day) : rangeLabel(days[0], days[6])}
-              </h2>
-            </div>
-            <div className="calendar-toolbar-actions">
+          <CalendarToolbar
+            days={days}
+            day={day}
+            today={today}
+            dayCount={dayCount}
+            locked={locked}
+            hideDone={preferences.hideDone}
+            onToggleLock={() => setMobileLocked((current) => !current)}
+            onHideDone={(hideDone) => updatePreferences({ hideDone })}
+            onShowDay={showDay}
+            controls={
               <CalendarControls
                 calendars={calendars}
                 importBusy={calendarImport.busy}
@@ -117,18 +115,8 @@ export default function CalendarView() {
                   await calendars.refresh();
                 }}
               />
-              <CalendarRangeControls day={day} today={today} dayCount={dayCount}
-                locked={locked} hideDone={preferences.hideDone}
-                onToggleLock={() => setMobileLocked((current) => !current)}
-                onHideDone={(hideDone) => updatePreferences({ hideDone })}
-                onShowDay={showDay} />
-            </div>
-          </div>
-          <p className="calendar-hint">
-            {locked
-              ? "Editing is locked. Unlock to create events, or drag and resize tasks and events."
-              : "Click or tap free time to create an event. Drag tasks and events or their edges to reschedule them."}
-          </p>
+            }
+          />
           <ScheduleTray
             days={schedules.map(({ date, unscheduled }) => ({
               date,

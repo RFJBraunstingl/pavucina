@@ -4,20 +4,20 @@ import { useMemo, useState } from "react";
 
 import TodoDetailsDialog from "./todo-details-dialog";
 import TodoListItem from "./todo-list-item";
-import AppHeader from "../../_components/app-header";
-import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
-import { useExternalCalendars } from "../../_components/use-external-calendars";
-import { usePreferences } from "../../_components/use-preferences";
+import AppHeader from "@/app/_components/common/app-header";
+import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { useExternalCalendars } from "@/app/_components/sync/use-external-calendars";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
-import { getTodoItemsForDate } from "@/services/todo-service";
+import { getTodoItemsForDate } from "@/services/todo/todo-service";
 import {
   isNodeDone,
   markNodeDone,
   reopenNode,
-} from "@/services/completion-service";
-import { compactDateLabel } from "@/utils/date";
-import type { UserPreferences } from "@/types/preferences";
+} from "@/services/event/completion-service";
+import { compactDateLabel } from "@/utils/shared/date";
+import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function TodoView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();

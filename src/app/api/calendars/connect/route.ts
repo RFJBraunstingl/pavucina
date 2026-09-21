@@ -5,9 +5,9 @@ import {
   CALENDAR_CONNECT_COOKIE,
   CALENDAR_CONNECT_MAX_AGE,
   createCalendarConnectRequest,
-} from "@/services/calendar-oauth";
-import { calendarSourceAvailability } from "@/services/calendar-provider";
-import { isCalendarSource } from "@/utils/external-calendar";
+} from "@/services/calendar/providers/calendar-oauth";
+import { calendarSourceAvailability } from "@/services/calendar/providers/calendar-provider";
+import { isCalendarSource } from "@/utils/calendar/external-calendar";
 
 export const runtime = "nodejs";
 

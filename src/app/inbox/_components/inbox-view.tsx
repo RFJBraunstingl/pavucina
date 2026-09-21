@@ -2,14 +2,14 @@
 
 import { useMemo, useState } from "react";
 
-import AppHeader from "../../_components/app-header";
-import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
-import { usePreferences } from "../../_components/use-preferences";
-import InboxTaskPanel from "./inbox-task-panel";
-import MoveTaskDialog from "./move-task-dialog";
-import ScratchpadPanel from "./scratchpad-panel";
-import SourcePanel from "./source-panel";
-import { useInboxDrag } from "./use-inbox-drag";
+import AppHeader from "@/app/_components/common/app-header";
+import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
+import InboxTaskPanel from "./tasks/inbox-task-panel";
+import MoveTaskDialog from "./tasks/move-task-dialog";
+import ScratchpadPanel from "./tasks/scratchpad-panel";
+import SourcePanel from "./mailbox/source-panel";
+import { useInboxDrag } from "./tasks/use-inbox-drag";
 import { useGraph } from "@/providers/graph-provider";
 import {
   addInboxTask,
@@ -18,9 +18,9 @@ import {
   moveInboxTask,
   renameInboxTask,
   setInboxTaskDescription,
-} from "@/services/inbox-service";
-import { resolvedScheduleMode } from "@/services/preferences-service";
-import { flattenTasks, getParentTaskNames } from "@/services/task-service";
+} from "@/services/inbox/inbox-service";
+import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
+import { flattenTasks, getParentTaskNames } from "@/services/task/core/task-service";
 
 export default function InboxView() {
   const {

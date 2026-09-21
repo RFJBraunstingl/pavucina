@@ -5,8 +5,8 @@ import {
   MAILBOX_CONNECT_COOKIE,
   MAILBOX_CONNECT_MAX_AGE,
   createMailboxConnectRequest,
-} from "@/services/mailbox-oauth";
-import { mailboxSourceAvailability } from "@/services/mailbox-provider";
+} from "@/services/mailbox/providers/mailbox-oauth";
+import { mailboxSourceAvailability } from "@/services/mailbox/providers/mailbox-provider";
 import { isMailboxSource } from "@/utils/mailbox";
 
 export const runtime = "nodejs";

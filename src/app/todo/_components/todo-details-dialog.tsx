@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 
-import { isNodeDone } from "@/services/completion-service";
-import { getParentTaskNames } from "@/services/task-service";
-import { getTodoSchedule } from "@/services/todo-service";
-import { compactDateLabel } from "@/utils/date";
-import { calendarSourceLabel } from "@/utils/external-calendar";
-import type { TodoDetailsDialogProps } from "@/types/todo";
+import { isNodeDone } from "@/services/event/completion-service";
+import { getParentTaskNames } from "@/services/task/core/task-service";
+import { getTodoSchedule } from "@/services/todo/todo-service";
+import { compactDateLabel } from "@/utils/shared/date";
+import { calendarSourceLabel } from "@/utils/calendar/external-calendar";
+import type { TodoDetailsDialogProps } from "@/types/timeline/todo";
 
 export default function TodoDetailsDialog({
   graph, item, onClose,

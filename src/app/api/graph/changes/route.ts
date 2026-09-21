@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
-import { latestCommit, publishedRecords } from "@/services/graph-commit-store";
-import { isGraphRevision } from "@/services/graph-sync-validation";
-import { MAX_MUTATION_BYTES } from "@/services/graph-size";
+import { latestCommit, publishedRecords } from "@/services/graph/persistence/graph-commit-store";
+import { isGraphRevision } from "@/services/graph/sync/graph-sync-validation";
+import { MAX_MUTATION_BYTES } from "@/services/graph/core/graph-size";
 
 export async function GET(request: Request) {
   const session = await auth();

@@ -1,10 +1,10 @@
 import { auth } from "@/auth";
-import { isGraph } from "@/services/graph-service";
-import { MAX_MUTATION_BYTES, MAX_SNAPSHOT_BYTES } from "@/services/graph-size";
-import { loadGraphSnapshot, patchGraph, replaceGraph } from "@/services/graph-repository";
-import { GraphConflictError } from "@/services/graph-patch-service";
-import { isGraphPatch } from "@/services/graph-sync-validation";
-import { readBoundedJson } from "@/services/request-json";
+import { isGraph } from "@/services/graph/core/graph-service";
+import { MAX_MUTATION_BYTES, MAX_SNAPSHOT_BYTES } from "@/services/graph/core/graph-size";
+import { loadGraphSnapshot, patchGraph, replaceGraph } from "@/services/graph/persistence/graph-repository";
+import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
+import { isGraphPatch } from "@/services/graph/sync/graph-sync-validation";
+import { readBoundedJson } from "@/services/http/request-json";
 
 export const runtime = "nodejs";
 export async function GET() {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import TimelineView from "../_components/timeline-view";
+import TimelineView from "@/app/_components/timeline/timeline-view";
 
 export const metadata: Metadata = {
   title: "Timeline · Pavucina",

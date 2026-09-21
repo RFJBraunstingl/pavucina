@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
-import { isUserPreferences } from "@/services/preferences-service";
-import { loadPreferences, preferenceChanges, patchPreferences, savePreferences } from "@/services/preferences-repository";
-import { isSettingsPatch } from "@/services/settings-patch-service";
-import { GraphConflictError } from "@/services/graph-patch-service";
-import { readBoundedJson } from "@/services/request-json";
+import { isUserPreferences } from "@/services/preferences/preferences-service";
+import { loadPreferences, preferenceChanges, patchPreferences, savePreferences } from "@/services/preferences/storage/preferences-repository";
+import { isSettingsPatch } from "@/services/preferences/settings-patch-service";
+import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
+import { readBoundedJson } from "@/services/http/request-json";
 
 export const runtime = "nodejs";
 export async function GET(request: Request) {

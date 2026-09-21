@@ -1,13 +1,13 @@
 import { auth } from "@/auth";
 import {
   deleteCalendarConnection,
-} from "@/services/calendar-repository";
-import { removeCalendarConnectionEvents } from "@/services/calendar-import-service";
-import { isCalendarSelectionChanges } from "@/services/calendar-selection-patch";
-import { patchCalendarSelections } from "@/services/calendar-selection-repository";
-import { GraphConflictError } from "@/services/graph-patch-service";
-import { readBoundedJson } from "@/services/request-json";
-import { isUuid } from "@/utils/id";
+} from "@/services/calendar/providers/calendar-repository";
+import { removeCalendarConnectionEvents } from "@/services/calendar/import/calendar-import-service";
+import { isCalendarSelectionChanges } from "@/services/calendar/import/calendar-selection-patch";
+import { patchCalendarSelections } from "@/services/calendar/import/calendar-selection-repository";
+import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
+import { readBoundedJson } from "@/services/http/request-json";
+import { isUuid } from "@/utils/shared/id";
 
 const MAX_BODY_BYTES = 256 * 1024;
 

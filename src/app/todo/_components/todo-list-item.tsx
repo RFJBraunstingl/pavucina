@@ -1,8 +1,8 @@
-import { isNodeDone } from "@/services/completion-service";
-import { getParentTaskNames } from "@/services/task-service";
-import { getTodoSchedule } from "@/services/todo-service";
-import { compactDateLabel } from "@/utils/date";
-import type { TodoListItemProps } from "@/types/todo";
+import { isNodeDone } from "@/services/event/completion-service";
+import { getParentTaskNames } from "@/services/task/core/task-service";
+import { getTodoSchedule } from "@/services/todo/todo-service";
+import { compactDateLabel } from "@/utils/shared/date";
+import type { TodoListItemProps } from "@/types/timeline/todo";
 
 export default function TodoListItem({
   graph, item, showFullTaskPath, onDetails, onCompletion,

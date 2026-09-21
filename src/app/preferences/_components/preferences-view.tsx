@@ -2,18 +2,18 @@
 
 import { useRef } from "react";
 
-import AppHeader from "../../_components/app-header";
-import { GraphLoading, GraphSyncError } from "../../_components/graph-state";
-import { usePreferences } from "../../_components/use-preferences";
-import AccountLinks from "./account-links";
-import BackupRestore from "./backup-restore";
-import LegalLinks from "./legal-links";
-import CalendarImportSettings from "./calendar-import-settings";
-import StartupPageSettings from "./startup-page-settings";
+import AppHeader from "@/app/_components/common/app-header";
+import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
+import AccountLinks from "./sections/account-links";
+import BackupRestore from "./sections/backup-restore";
+import LegalLinks from "./sections/legal-links";
+import CalendarImportSettings from "./sections/calendar-import-settings";
+import StartupPageSettings from "./sections/startup-page-settings";
 import { useGraph } from "@/providers/graph-provider";
-import { resolvedScheduleMode } from "@/services/preferences-service";
-import { clearParentTaskSchedules } from "@/services/task-schedule-mode-service";
-import type { ScheduleMode } from "@/types/preferences";
+import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
+import { clearParentTaskSchedules } from "@/services/task/scheduling/task-schedule-mode-service";
+import type { ScheduleMode } from "@/types/preferences/preferences";
 
 export default function PreferencesView() {
   const { graph, setGraph, restoreGraph, hydrated, syncError, retry } =

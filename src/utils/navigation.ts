@@ -1,5 +1,5 @@
-import type { AppPage, StartPage } from "../types/navigation.ts";
-import type { UserPreferences } from "../types/preferences.ts";
+import type { AppPage, StartPage } from "@/types/preferences/navigation.ts";
+import type { UserPreferences } from "@/types/preferences/preferences.ts";
 
 export const MOBILE_VIEW_QUERY = "(max-width: 680px)";
 
