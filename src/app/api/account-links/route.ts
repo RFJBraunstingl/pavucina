@@ -8,9 +8,9 @@ import {
   confirmAccountLink,
   createAccountLinkRequest,
   loadAccountLinkRequest,
-} from "@/services/account-link-service";
-import { listLinkedProviders } from "@/services/user-identity";
-import { isAuthProvider } from "@/utils/auth-provider";
+} from "@/services/account/link/account-link-service";
+import { listLinkedProviders } from "@/services/account/auth/user-identity";
+import { isAuthProvider } from "@/utils/account/auth-provider";
 
 async function currentUserId() {
   return (await auth())?.user.id ?? null;

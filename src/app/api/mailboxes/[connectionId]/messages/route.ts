@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
-import { markMailboxMessageRead } from "@/services/mailbox-provider";
-import { findMailboxConnection } from "@/services/mailbox-repository";
-import { isUuid } from "@/utils/id";
+import { markMailboxMessageRead } from "@/services/mailbox/providers/mailbox-provider";
+import { findMailboxConnection } from "@/services/mailbox/mailbox-repository";
+import { isUuid } from "@/utils/shared/id";
 
 export const runtime = "nodejs";
 

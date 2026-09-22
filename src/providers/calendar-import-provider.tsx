@@ -11,21 +11,21 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 
-import { usePreferences } from "@/app/_components/use-preferences";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "./graph-provider";
 import {
   setCalendarEventImport,
   syncImportedCalendarEvents,
-} from "@/services/remote-calendar-import-store";
-import { disconnectCalendar } from "@/services/remote-calendar-store";
-import type { CalendarImportResponse } from "@/types/calendar-import";
+} from "@/services/calendar/import/storage/remote-calendar-import-store";
+import { disconnectCalendar } from "@/services/calendar/import/storage/remote-calendar-store";
+import type { CalendarImportResponse } from "@/types/calendar/calendar-import";
 
 const HOUR_MS = 60 * 60 * 1_000;
 
 function useCalendarImportState() {
   const { data: session, status } = useSession();
-  const { graph, saveGraphNow, adoptImportedGraph } = useGraph();
-  const { preferences, setPreferences } = usePreferences();
+  const { graph, saveGraphNow, refreshGraph } = useGraph();
+  const { preferences, patchPreferences } = usePreferences();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string>();
@@ -33,19 +33,19 @@ function useCalendarImportState() {
   const startupKey = useRef<string | undefined>(undefined);
   const enabled = preferences?.calendarEventImportEnabled ?? false;
 
-  const apply = useCallback(async (
+  const runImportOperation = useCallback(async (
     operation: () => Promise<CalendarImportResponse>,
   ) => {
     if (!graph || status !== "authenticated") return;
     if (inFlight.current) return inFlight.current;
-    const base = graph;
-    const pending = (async () => {
+    const currentGraph = graph;
+    const operationPromise = (async () => {
       setBusy(true);
       setError(null);
       try {
-        await saveGraphNow(base);
+        await saveGraphNow(currentGraph);
         const result = await operation();
-        await adoptImportedGraph();
+        await refreshGraph();
         setLastSyncedAt(result.syncedAt);
         if (result.errors.length) {
           setError(result.errors.map(({ message }) => message).join("; "));
@@ -58,27 +58,26 @@ function useCalendarImportState() {
         inFlight.current = null;
       }
     })();
-    inFlight.current = pending;
-    return pending;
-  }, [adoptImportedGraph, graph, saveGraphNow, status]);
+    inFlight.current = operationPromise;
+    return operationPromise;
+  }, [graph, refreshGraph, saveGraphNow, status]);
 
   const syncNow = useCallback(
-    () => apply(syncImportedCalendarEvents),
-    [apply],
+    () => runImportOperation(syncImportedCalendarEvents),
+    [runImportOperation],
   );
 
   const disconnect = useCallback(
-    (connectionId: string) => apply(() => disconnectCalendar(connectionId)),
-    [apply],
+    (connectionId: string) =>
+      runImportOperation(() => disconnectCalendar(connectionId)),
+    [runImportOperation],
   );
 
   const setEnabled = useCallback(async (next: boolean) => {
-    await apply(() => setCalendarEventImport(next));
+    await runImportOperation(() => setCalendarEventImport(next));
     startupKey.current = next ? `${session?.user.id}:true` : undefined;
-    setPreferences((current) => current
-      ? { ...current, calendarEventImportEnabled: next }
-      : current);
-  }, [apply, session?.user.id, setPreferences]);
+    patchPreferences({ calendarEventImportEnabled: next });
+  }, [patchPreferences, runImportOperation, session?.user.id]);
 
   useEffect(() => {
     if (!enabled || status !== "authenticated" || !graph) return;

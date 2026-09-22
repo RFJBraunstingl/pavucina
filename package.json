@@ -1,13 +1,14 @@
 {
   "name": "pavucina",
   "version": "3.1.10",
+  "type": "module",
   "private": true,
   "license": "SEE LICENSE IN LICENSE.md",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test --experimental-strip-types src/services/*.test.mts",
+    "test": "node --test --experimental-strip-types --import ./scripts/register-typescript.mjs 'src/services/**/*.test.mts'",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
   },

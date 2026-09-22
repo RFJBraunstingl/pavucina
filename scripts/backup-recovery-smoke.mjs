@@ -4,9 +4,9 @@
 import assert from "node:assert/strict";
 import { incrementalFixture } from "./incremental-browser-fixture.mjs";
 import { createSeedGraph } from "../src/data/seed-graph.ts";
-import { createBackupArchive } from "../src/services/backup-service.ts";
-import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
-import { todayIso } from "../src/utils/date.ts";
+import { createBackupArchive } from "../src/services/backup/backup-service.ts";
+import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences/preferences-service.ts";
+import { todayIso } from "../src/utils/shared/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 
 const appUrl = process.argv[2] ?? "http://127.0.0.1:3000";

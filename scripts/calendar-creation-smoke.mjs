@@ -5,9 +5,9 @@ import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { saveNativeEvent } from "../src/services/native-event-service.ts";
+import { saveNativeEvent } from "../src/services/event/native/native-event-service.ts";
 import { incrementalFixture } from "./incremental-browser-fixture.mjs";
-import { todayIso } from "../src/utils/date.ts";
+import { todayIso } from "../src/utils/shared/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
 
