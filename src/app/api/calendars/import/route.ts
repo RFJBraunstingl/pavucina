@@ -2,10 +2,10 @@ import { auth } from "@/auth";
 import {
   removeAllCalendarEvents,
   syncCalendarEvents,
-} from "@/services/calendar-import-service";
-import { updateCalendarImportPreference } from "@/services/preferences-repository";
-import { clearCalendarEventSyncStates } from "@/services/calendar-repository";
-import { isTimeZone } from "@/utils/event";
+} from "@/services/calendar/import/calendar-import-service";
+import { updateCalendarImportPreference } from "@/services/preferences/storage/preferences-repository";
+import { clearCalendarEventSyncStates } from "@/services/calendar/providers/sync/calendar-sync-state-repository";
+import { isTimeZone } from "@/utils/calendar/events/event";
 
 export const runtime = "nodejs";
 

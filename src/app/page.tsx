@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { GraphLoading } from "./_components/graph-state";
-import { usePreferences } from "./_components/use-preferences";
+import { GraphLoading } from "@/app/_components/sync/graph-state";
+import { usePreferences } from "@/app/_components/sync/use-preferences";
 import {
   appPagePath,
   MOBILE_VIEW_QUERY,

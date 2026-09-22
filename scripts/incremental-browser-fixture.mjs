@@ -1,8 +1,8 @@
-import { changedGraphRecords, mergeRecords } from "../src/services/graph-record-service.ts";
-import { applyGraphOperations, GraphConflictError } from "../src/services/graph-patch-service.ts";
-import { applyPreferencesPatch } from "../src/services/settings-patch-service.ts";
-import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
-import { changedFields } from "../src/utils/field-changes.ts";
+import { changedGraphRecords, mergeRecords } from "../src/services/graph/sync/graph-record-service.ts";
+import { applyGraphOperations, GraphConflictError } from "../src/services/graph/sync/graph-patch-service.ts";
+import { applyPreferencesPatch } from "../src/services/preferences/settings-patch-service.ts";
+import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences/preferences-service.ts";
+import { changedFields } from "../src/utils/shared/field-changes.ts";
 
 export function incrementalFixture(graph) {
   const fixture = { userId: crypto.randomUUID(), graph, invalid: false, failWrites: false, loseAcknowledgement: false,

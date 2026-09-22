@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { deleteMailboxConnection } from "@/services/mailbox-repository";
-import { isUuid } from "@/utils/id";
+import { deleteMailboxConnection } from "@/services/mailbox/mailbox-repository";
+import { isUuid } from "@/utils/shared/id";
 
 export async function DELETE(
   _request: Request,

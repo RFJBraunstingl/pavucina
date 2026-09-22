@@ -1,11 +1,11 @@
 // node --experimental-strip-types scripts/incremental-browser-smoke.mjs [app URL] [Chrome URL]
 import assert from "node:assert/strict";
 import { createSeedGraph } from "../src/data/seed-graph.ts";
-import { saveNativeEvent, nativeEventInput } from "../src/services/native-event-service.ts";
-import { isNodeDone } from "../src/services/completion-service.ts";
-import { createBackupArchive } from "../src/services/backup-service.ts";
-import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences-service.ts";
-import { todayIso } from "../src/utils/date.ts";
+import { saveNativeEvent, nativeEventInput } from "../src/services/event/native/native-event-service.ts";
+import { isNodeDone } from "../src/services/event/completion-service.ts";
+import { createBackupArchive } from "../src/services/backup/backup-service.ts";
+import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences/preferences-service.ts";
+import { todayIso } from "../src/utils/shared/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
 import { incrementalFixture } from "./incremental-browser-fixture.mjs";

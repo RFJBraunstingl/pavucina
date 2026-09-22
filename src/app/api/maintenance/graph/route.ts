@@ -1,5 +1,5 @@
-import { pruneGraphStorage } from "@/services/graph-maintenance-service";
-import { authorizeMaintenance } from "@/services/maintenance-auth";
+import { pruneGraphStorage } from "@/services/graph/persistence/graph-maintenance-service";
+import { authorizeMaintenance } from "@/services/infrastructure/maintenance-auth";
 
 export const runtime = "nodejs";
 

@@ -1,11 +1,9 @@
-import {
-  setTaskDates,
-  setTaskTimes,
-} from "../services/task-schedule-service.ts";
-import { clearParentTaskSchedules } from "../services/task-schedule-mode-service.ts";
-import { ensureRootNode } from "../services/graph-service.ts";
-import { addDays } from "../utils/date.ts";
-import type { Graph } from "@/types/graph";
+import { setTaskDates } from "@/services/task/scheduling/dates/task-date-range-service.ts";
+import { setTaskTimes } from "@/services/task/scheduling/task-time-service.ts";
+import { clearParentTaskSchedules } from "@/services/task/scheduling/task-schedule-mode-service.ts";
+import { ensureRootNode } from "@/services/graph/core/graph-service.ts";
+import { addDays } from "@/utils/shared/temporal/date.ts";
+import type { Graph } from "@/types/graph/graph";
 
 export function createSeedGraph(today: string): Graph {
   const taskData = [

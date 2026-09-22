@@ -1,5 +1,5 @@
-import { isUuid } from "./id.ts";
-import type { MailboxSource, MailTaskOrigin } from "../types/mailbox.ts";
+import { isUuid } from "@/utils/shared/id.ts";
+import type { MailboxSource, MailTaskOrigin } from "@/types/mailbox/mailbox.ts";
 
 export const MAILBOX_SOURCES: MailboxSource[] = ["gmail", "outlook"];
 
