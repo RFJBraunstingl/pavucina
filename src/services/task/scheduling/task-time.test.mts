@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createSeedGraph } from "@/data/seed-graph.ts";
-import { setTaskTime } from "../core/task-service.ts";
-import { getTaskTime } from "./task-time-service.ts";
+import { getTaskTime, setTaskTime } from "./task-time-service.ts";
 
 test("task times can be edited and cleared", () => {
   const graph = createSeedGraph("2026-03-29");

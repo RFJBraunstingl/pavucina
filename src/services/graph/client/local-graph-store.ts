@@ -1,6 +1,6 @@
 import { createSeedGraph } from "@/data/seed-graph.ts";
 import { ensureRootNode, isGraph } from "../core/graph-service.ts";
-import { changedGraphRecords, recordsGraph } from "../sync/graph-record-service.ts";
+import { changedGraphRecords, recordsGraph } from "../sync/records/graph-record-service.ts";
 import { readBrowserGraph, writeBrowserGraph } from "./browser-database.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 

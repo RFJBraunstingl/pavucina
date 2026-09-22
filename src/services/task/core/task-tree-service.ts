@@ -1,17 +1,36 @@
-import type { FlatTask, Graph, RootNode, TaskNode } from "@/types/graph/graph";
+import type { FlatTask, Graph, RootNode } from "@/types/graph/graph";
+
+export function taskTree(graph: Graph) {
+  const tasks = new Map(
+    graph.nodes.flatMap((node) =>
+      node.type === "task" ? [[node.id, node] as const] : [],
+    ),
+  );
+  const children = new Map<string, string[]>();
+  const parents = new Map<string, string>();
+  for (const relationship of graph.relationships) {
+    if (relationship.type !== "child" || !tasks.has(relationship.targetId)) {
+      continue;
+    }
+    const childIds = children.get(relationship.sourceId) ?? [];
+    childIds.push(relationship.targetId);
+    children.set(relationship.sourceId, childIds);
+    parents.set(relationship.targetId, relationship.sourceId);
+  }
+  const rootId = graph.nodes.find((node) => node.type === "root")?.id;
+  const topLevelIds = rootId
+    ? children.get(rootId) ?? []
+    : [...tasks.keys()].filter((id) => !parents.has(id));
+  return { tasks, children, parents, rootId, topLevelIds };
+}
 
 export function ensureRootNode(graph: Graph): Graph {
   const root = graph.nodes.find(
     (node): node is RootNode => node.type === "root",
   );
-  const parentedTaskIds = new Set(
-    graph.relationships
-      .filter((relationship) => relationship.type === "child")
-      .map((relationship) => relationship.targetId),
-  );
-  const topLevelTasks = graph.nodes.filter(
-    (node): node is TaskNode =>
-      node.type === "task" && !parentedTaskIds.has(node.id),
+  const tree = taskTree(graph);
+  const topLevelTasks = [...tree.tasks.values()].filter(
+    (task) => !tree.parents.has(task.id),
   );
   if (root && !topLevelTasks.length) return graph;
 
@@ -39,51 +58,31 @@ export function flattenTasks(
   graph: Graph,
   collapsedIds?: ReadonlySet<string>,
 ): FlatTask[] {
-  const tasks = graph.nodes.filter(
-    (node): node is TaskNode => node.type === "task",
-  );
-  const children = new Map<string, string[]>();
-  const childIds = new Set<string>();
-  for (const relationship of graph.relationships) {
-    if (relationship.type !== "child") continue;
-    children.set(relationship.sourceId, [
-      ...(children.get(relationship.sourceId) ?? []),
-      relationship.targetId,
-    ]);
-    childIds.add(relationship.targetId);
-  }
-
-  const taskById = new Map(tasks.map((task) => [task.id, task]));
+  const tree = taskTree(graph);
   const result: FlatTask[] = [];
   const visit = (id: string, depth: number) => {
-    const task = taskById.get(id);
+    const task = tree.tasks.get(id);
     if (!task) return;
     result.push({ task, depth });
     if (collapsedIds?.has(id)) return;
-    for (const childId of children.get(id) ?? []) visit(childId, depth + 1);
+    for (const childId of tree.children.get(id) ?? []) {
+      visit(childId, depth + 1);
+    }
   };
-  const root = graph.nodes.find((node) => node.type === "root");
-  const topLevelIds = root
-    ? children.get(root.id) ?? []
-    : tasks.filter((task) => !childIds.has(task.id)).map((task) => task.id);
-  for (const taskId of topLevelIds) visit(taskId, 0);
+  for (const taskId of tree.topLevelIds) visit(taskId, 0);
   return result;
 }
 
 export function getParentTaskIds(graph: Graph) {
-  const rootId = graph.nodes.find((node) => node.type === "root")?.id;
+  const tree = taskTree(graph);
   return new Set(
-    graph.relationships
-      .filter(({ type, sourceId }) => type === "child" && sourceId !== rootId)
-      .map(({ sourceId }) => sourceId),
+    [...tree.parents.values()].filter((parentId) => parentId !== tree.rootId),
   );
 }
 
 export function getTaskAndDescendantIds(graph: Graph, taskId: string) {
-  const taskIds = new Set(
-    graph.nodes.flatMap((node) => node.type === "task" ? [node.id] : []),
-  );
-  if (!taskIds.has(taskId)) return new Set<string>();
+  const tree = taskTree(graph);
+  if (!tree.tasks.has(taskId)) return new Set<string>();
 
   const result = new Set<string>();
   const pending = [taskId];
@@ -91,35 +90,18 @@ export function getTaskAndDescendantIds(graph: Graph, taskId: string) {
     const id = pending.pop()!;
     if (result.has(id)) continue;
     result.add(id);
-    for (const relationship of graph.relationships) {
-      if (
-        relationship.type === "child" &&
-        relationship.sourceId === id &&
-        taskIds.has(relationship.targetId)
-      ) {
-        pending.push(relationship.targetId);
-      }
-    }
+    pending.push(...(tree.children.get(id) ?? []));
   }
   return result;
 }
 
 export function getParentTaskNames(graph: Graph, taskId: string) {
-  const tasks = new Map(
-    graph.nodes.flatMap((node) => node.type === "task" ? [[node.id, node]] : []),
-  );
-  const parents = new Map(
-    graph.relationships.flatMap((relationship) =>
-      relationship.type === "child"
-        ? [[relationship.targetId, relationship.sourceId]]
-        : [],
-    ),
-  );
+  const tree = taskTree(graph);
   const names: string[] = [];
-  let parent = tasks.get(parents.get(taskId) ?? "");
+  let parent = tree.tasks.get(tree.parents.get(taskId) ?? "");
   while (parent) {
     names.unshift(parent.properties.name);
-    parent = tasks.get(parents.get(parent.id) ?? "");
+    parent = tree.tasks.get(tree.parents.get(parent.id) ?? "");
   }
   return names;
 }

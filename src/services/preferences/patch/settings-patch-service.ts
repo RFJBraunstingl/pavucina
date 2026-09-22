@@ -1,13 +1,9 @@
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service.ts";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error.ts";
 import { changedFields, equalValue } from "@/utils/shared/field-changes.ts";
-import { isUserPreferences } from "./preferences-service.ts";
+import { isUserPreferences } from "../preferences-service.ts";
 import type { SyncConflict } from "@/types/graph/graph-sync.ts";
 import type { UserPreferences } from "@/types/preferences/preferences.ts";
 import type { SettingsPatch } from "@/types/preferences/settings-sync.ts";
-
-function object(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
 
 export function diffPreferences(
   before: UserPreferences,
@@ -34,19 +30,32 @@ export function hasPreferenceChanges(patch: SettingsPatch) {
     Boolean(patch.collapsed?.remove.length);
 }
 
+export function applyPreferencePatches(
+  current: UserPreferences,
+  patches: SettingsPatch[],
+  force = false,
+) {
+  return patches.reduce(
+    (preferences, patch) => applyPreferencesPatch(preferences, patch, force),
+    current,
+  );
+}
+
 export function withoutConflictingPreferenceFields(
   patches: SettingsPatch[],
   conflicts: SyncConflict[],
 ) {
   const conflictingFields = new Set(conflicts.map(({ field }) => field));
-  return patches.map((patch) => ({
-    ...patch,
-    fields: Object.fromEntries(
-      Object.entries(patch.fields).filter(
-        ([field]) => !conflictingFields.has(field),
+  return patches
+    .map((patch) => ({
+      ...patch,
+      fields: Object.fromEntries(
+        Object.entries(patch.fields).filter(
+          ([field]) => !conflictingFields.has(field),
+        ),
       ),
-    ),
-  }));
+    }))
+    .filter(hasPreferenceChanges);
 }
 
 export function applyPreferencesPatch(
@@ -70,12 +79,7 @@ export function applyPreferencesPatch(
     } else if (change.after === undefined) {
       delete next[key];
     } else {
-      Object.defineProperty(next, key, {
-        value: change.after,
-        enumerable: true,
-        writable: true,
-        configurable: true,
-      });
+      next[key] = change.after;
     }
   }
   if (conflicts.length) throw new GraphConflictError(conflicts);
@@ -87,26 +91,4 @@ export function applyPreferencesPatch(
 
   if (!isUserPreferences(next)) throw new Error("Invalid preference changes");
   return next;
-}
-
-function isFieldChange(value: unknown) {
-  return object(value) &&
-    Object.keys(value).every((key) => key === "before" || key === "after");
-}
-
-function isCollapsedTaskChanges(value: unknown) {
-  return value === undefined ||
-    (object(value) &&
-      Array.isArray(value.add) &&
-      Array.isArray(value.remove) &&
-      [...value.add, ...value.remove].every((id) => typeof id === "string"));
-}
-
-export function isSettingsPatch(value: unknown): value is SettingsPatch {
-  return object(value) &&
-    object(value.fields) &&
-    Object.entries(value.fields).every(([key, change]) =>
-      /^[a-zA-Z]+$/.test(key) && isFieldChange(change),
-    ) &&
-    isCollapsedTaskChanges(value.collapsed);
 }

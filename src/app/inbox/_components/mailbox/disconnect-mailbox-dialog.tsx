@@ -1,16 +1,9 @@
 "use client";
 
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
-import type { MailboxConnectionSummary } from "@/types/mailbox/mailbox";
+import type { DisconnectMailboxDialogProps } from "@/types/inbox/inbox-components";
 
-type Props = {
-  connection: MailboxConnectionSummary | null;
-  busy: boolean;
-  onConfirm: () => void;
-  onClose: () => void;
-};
-
-export default function DisconnectMailboxDialog(props: Props) {
+export default function DisconnectMailboxDialog(props: DisconnectMailboxDialogProps) {
   return (
     <ConfirmationDialog
       open={Boolean(props.connection)}

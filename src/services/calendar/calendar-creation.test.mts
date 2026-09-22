@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   calendarCurrentTimePosition,
   calendarPosition,
-  layoutCalendarItems,
 } from "@/utils/calendar/calendar.ts";
+import { layoutCalendarItems } from "@/utils/calendar/calendar-layout.ts";
 import { calendarFreeGaps, defaultCalendarEvent, suggestCalendarEvent } from "@/utils/calendar/calendar-creation.ts";
 
 const day = "2026-09-13";

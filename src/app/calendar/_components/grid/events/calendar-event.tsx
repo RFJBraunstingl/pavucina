@@ -30,22 +30,30 @@ export default function CalendarEvent({
   } = item;
   const node = "task" in item ? item.task : item.eventNode;
   const laneWidth = 100 / (dayCount * laneCount);
+  const laneLeft = dayIndex * (100 / dayCount) + laneIndex * laneWidth;
   const endLabel =
     startDate === endDate ? endTime : `${compactDateLabel(endDate)} ${endTime}`;
+  const className = [
+    "calendar-event",
+    "eventNode" in item && "external-calendar-event",
+    selected && "selected",
+    locked && "locked",
+  ].filter(Boolean).join(" ");
+  const style = {
+    top,
+    height,
+    left: `calc(${laneLeft}% + 4px)`,
+    width: `calc(${laneWidth}% - 8px)`,
+    ...("eventNode" in item && {
+      "--external-calendar-color": item.eventNode.properties.calendarColor,
+    }),
+  } as CSSProperties;
 
   return (
     <div
-      className={`calendar-event${"eventNode" in item ? " external-calendar-event" : ""}${selected ? " selected" : ""}${
-        locked ? " locked" : ""
-      }`}
+      className={className}
       onFocus={onSelect}
-      style={{
-        top,
-        height,
-        left: `calc(${dayIndex * (100 / dayCount) + laneIndex * laneWidth}% + 4px)`,
-        width: `calc(${laneWidth}% - 8px)`,
-        ...("eventNode" in item && { "--external-calendar-color": item.eventNode.properties.calendarColor }),
-      } as CSSProperties}
+      style={style}
     >
       {!locked && resizeStart && (
         <button
@@ -72,7 +80,9 @@ export default function CalendarEvent({
         onKeyDown={locked ? undefined : (event) => onKeyDown(event, "move")}
       >
         <strong>{node.properties.name}</strong>
-        {("task" in item || height >= 48) && <span>{startTime} – {endLabel}</span>}
+        {("task" in item || height >= 48) && (
+          <span>{startTime} – {endLabel}</span>
+        )}
       </button>
       {!locked && resizeEnd && (
         <button

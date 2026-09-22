@@ -51,17 +51,17 @@ export function graphCalendarItems(
 ) {
   const ranges = eventDates(graph);
   return events.flatMap((event): GraphCalendarItem[] => {
-    if (event.properties.allDay || !event.properties.startTime ||
-      !event.properties.endTime) return [];
+    const { allDay, startTime, endTime } = event.properties;
+    if (allDay || !startTime || !endTime) return [];
     const { start: startDate, end: endDate } = ranges.get(event.id) ?? {};
     if (!startDate || !endDate) return [];
     return days.flatMap((day) => {
       if (day < startDate || day > endDate) return [];
-      if (day > startDate && day === endDate && event.properties.endTime === "00:00") {
+      if (day > startDate && day === endDate && endTime === "00:00") {
         return [];
       }
-      const visibleStart = day === startDate ? event.properties.startTime! : "00:00";
-      const visibleEnd = day === endDate ? event.properties.endTime! : "00:00";
+      const visibleStart = day === startDate ? startTime : "00:00";
+      const visibleEnd = day === endDate ? endTime : "00:00";
       const position = calendarPosition(
         `${event.id}:${day}`,
         day,

@@ -1,10 +1,10 @@
+import { normalizeOutlookCalendarEvent } from "../../core/calendar-event.ts";
 import {
-  normalizeOutlookCalendarEvent,
   providerObject,
   providerRecords,
   providerText,
-} from "../../core/calendar-event.ts";
-import { OAuthRequestError } from "@/services/http/oauth-client.ts";
+} from "../../core/provider-response.ts";
+import { OAuthRequestError } from "@/services/http/oauth/oauth-client.ts";
 import type {
   CalendarConnectionDocument,
   CalendarEventChange,

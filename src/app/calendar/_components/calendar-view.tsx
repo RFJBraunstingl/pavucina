@@ -1,50 +1,41 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-
 import CalendarControls from "./navigation/calendar-controls";
 import CalendarInspector from "./calendar-inspector";
 import CalendarToolbar from "./calendar-toolbar";
 import CalendarGrid from "./grid/calendar-grid";
 import EventDialog from "./editor/event-dialog";
 import ScheduleTray from "./scheduling/schedule-tray";
-import { useCalendarDayCount } from "./navigation/use-calendar-day-count";
 import { useCalendarItems } from "./grid/use-calendar-items";
 import { useExternalCalendars } from "@/app/_components/sync/calendar/use-external-calendars";
-import { useTraySchedule } from "./scheduling/use-tray-schedule";
 import { useEventEditor } from "./editor/use-event-editor";
+import { useCalendarRange } from "./state/use-calendar-range";
+import { useCalendarTaskScheduling } from "./state/use-calendar-task-scheduling";
 import AppHeader from "@/app/_components/common/app-header";
 import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
-import { scheduleTaskForDay } from "@/services/task/scheduling/day/task-day-schedule-service";
-import { makeDateRange, startOfWeek } from "@/utils/shared/temporal/date";
-import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function CalendarView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
   const {
     preferences,
-    setPreferences,
+    patchPreferences,
     syncError: preferencesError,
     retry: retryPreferences,
   } = usePreferences();
   const calendarImport = useCalendarImport();
-  const [day, setDay] = useState(today);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const eventEditor = useEventEditor(setSelectedId);
-  const [scheduleDate, setScheduleDate] = useState(today);
-  const [singleDayLocked, setSingleDayLocked] = useState(true);
-  const calendarBodyRef = useRef<HTMLDivElement>(null);
-  const dayCount = useCalendarDayCount();
-  const singleDay = dayCount === 1;
-  const days = useMemo(
-    () => makeDateRange(singleDay ? day : startOfWeek(day), dayCount),
-    [day, dayCount, singleDay],
-  );
+  const range = useCalendarRange(today);
+  const taskScheduling = useCalendarTaskScheduling({
+    today,
+    days: range.days,
+    locked: range.locked,
+    onGraphChange: setGraph,
+  });
+  const eventEditor = useEventEditor(taskScheduling.setSelectedId);
   const externalCalendars = useExternalCalendars(
-    days,
+    range.days,
     calendarImport.disconnect,
     !calendarImport.enabled,
   );
@@ -52,21 +43,13 @@ export default function CalendarView() {
     useCalendarItems(
       graph,
       preferences,
-      days,
+      range.days,
       today,
       externalCalendars.data?.connections,
     );
-  const locked = singleDay && singleDayLocked;
   const externalEvents = calendarImport.enabled
     ? []
     : externalCalendars.data?.events ?? [];
-  const traySchedule = useTraySchedule({
-    days,
-    bodyRef: calendarBodyRef,
-    locked,
-    onSelect: selectTask,
-    onSchedule: scheduleTask,
-  });
 
   if (!hydrated || !graph) {
     return <GraphLoading label="Loading calendar…" error={syncError} onRetry={retry} />;
@@ -75,37 +58,14 @@ export default function CalendarView() {
     return <GraphLoading label="Loading preferences…" error={preferencesError} onRetry={retryPreferences} />;
   }
 
-  function updatePreferences(changes: Partial<UserPreferences>) {
-    setPreferences((current) => current ? { ...current, ...changes } : current);
-  }
-
-  function selectTask(taskId: string, date: string) {
-    setSelectedId(taskId);
-    setScheduleDate(date);
-  }
-
-  function scheduleTask(
-    taskId: string,
-    date: string,
-    startTime: string,
-    endTime: string,
-  ) {
-    setGraph((current) =>
-      current
-        ? scheduleTaskForDay(current, taskId, date, startTime, endTime)
-        : current,
-    );
-  }
-
   async function refreshCalendars() {
     if (calendarImport.enabled) await calendarImport.syncNow();
     await externalCalendars.refresh();
   }
 
   function showDay(date: string) {
-    setDay(date);
-    setScheduleDate(date);
-    setSelectedId(null);
+    range.setDay(date);
+    taskScheduling.showDate(date);
     eventEditor.close();
   }
 
@@ -122,14 +82,14 @@ export default function CalendarView() {
       <div className="workspace">
         <section className="calendar-card" aria-labelledby="calendar-heading">
           <CalendarToolbar
-            days={days}
-            day={day}
+            days={range.days}
+            day={range.day}
             today={today}
-            dayCount={dayCount}
-            locked={locked}
+            dayCount={range.dayCount}
+            locked={range.locked}
             hideDone={preferences.hideDone}
-            onToggleLock={() => setSingleDayLocked((current) => !current)}
-            onHideDone={(hideDone) => updatePreferences({ hideDone })}
+            onToggleLock={range.toggleLock}
+            onHideDone={(hideDone) => patchPreferences({ hideDone })}
             onShowDay={showDay}
             controls={
               <CalendarControls
@@ -145,28 +105,28 @@ export default function CalendarView() {
               tasks: unscheduled,
             }))}
             overdue={overdue}
-            selectedId={selectedId}
-            selectedDate={scheduleDate}
-            locked={locked}
-            onSelect={selectTask}
-            onDragStart={traySchedule.beginDrag}
-            onDragMove={traySchedule.continueDrag}
-            onDragEnd={traySchedule.endDrag}
-            onDragCancel={traySchedule.cancelDrag}
+            selectedId={taskScheduling.selectedId}
+            selectedDate={taskScheduling.scheduleDate}
+            locked={range.locked}
+            onSelect={taskScheduling.selectTask}
+            onDragStart={taskScheduling.tray.beginDrag}
+            onDragMove={taskScheduling.tray.continueDrag}
+            onDragEnd={taskScheduling.tray.endDrag}
+            onDragCancel={taskScheduling.tray.cancelDrag}
           />
           <CalendarGrid
             graph={graph}
             scheduleMode={scheduleMode}
-            days={days}
+            days={range.days}
             today={today}
             taskEvents={taskEvents}
             externalEvents={externalEvents}
             graphEvents={graphEvents}
-            selectedId={selectedId}
-            locked={locked}
-            bodyRef={calendarBodyRef}
+            selectedId={taskScheduling.selectedId}
+            locked={range.locked}
+            bodyRef={taskScheduling.bodyRef}
             onGraphChange={setGraph}
-            onSelect={selectTask}
+            onSelect={taskScheduling.selectTask}
             onSelectEvent={eventEditor.select}
             onCreateEvent={eventEditor.create}
             creating={Boolean(eventEditor.draft)}
@@ -174,14 +134,14 @@ export default function CalendarView() {
         </section>
         <CalendarInspector
           graph={graph}
-          selectedId={selectedId}
+          selectedId={taskScheduling.selectedId}
           scheduleMode={scheduleMode}
-          scheduleDate={scheduleDate}
+          scheduleDate={taskScheduling.scheduleDate}
           onEditEvent={eventEditor.select}
-          onDeleteTask={() => setSelectedId(null)}
+          onDeleteTask={() => taskScheduling.setSelectedId(null)}
         />
       </div>
-      {graph && eventEditor.draft && (
+      {eventEditor.draft && (
         <EventDialog
           key={eventEditor.draft.id}
           draft={eventEditor.draft}

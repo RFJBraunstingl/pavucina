@@ -5,3 +5,8 @@ export type CalendarSelectionChange = { id: string } & (
   | { kind: "delete"; before: CalendarSelection }
   | { kind: "update"; fields: Record<string, FieldChange> }
 );
+
+export type PendingCalendarSelection = {
+  connectionId: string;
+  changes: CalendarSelectionChange[];
+};

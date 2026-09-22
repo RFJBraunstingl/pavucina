@@ -1,5 +1,5 @@
 import { diffCalendarSelections } from "../calendar-selection-patch";
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error";
 import { requireSuccess } from "@/services/http/remote-response";
 import type {
   CalendarSelection,

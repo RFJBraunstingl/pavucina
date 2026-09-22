@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import CalendarManager from "../calendar-manager";
+import SyncConflictDialog from "@/app/_components/sync/sync-conflict-dialog";
 import type { useExternalCalendars } from "@/app/_components/sync/calendar/use-external-calendars";
 import type { CalendarSelection } from "@/types/calendar/events/external-calendar";
 
@@ -36,7 +37,10 @@ export default function CalendarControls({
 
   return (
     <div className="external-calendar-controls">
-      {calendars.conflictDialog}
+      <SyncConflictDialog
+        conflicts={calendars.conflicts}
+        onResolve={calendars.resolveConflict}
+      />
       <div className="calendar-toggles">
         {calendars.data?.connections.flatMap((connection) =>
           connection.calendars.filter(({ selected }) => selected).map((calendar) => (

@@ -43,10 +43,21 @@ export function hasValidGraphDateRanges(
     const endDate = relationships.get(`${node.id}:${endType}`);
     if (node.type === "event" && (!startDate || !endDate)) return false;
     if (startDate && endDate && daysBetween(startDate, endDate) < 0) return false;
-    if (node.type === "event" && !node.properties.externalOrigin &&
-      !node.properties.allDay && startDate && endDate &&
-      minutesBetweenDateTimes(startDate, node.properties.startTime!,
-        endDate, node.properties.endTime!) <= 0) return false;
+    const nativeTimedEvent = node.type === "event" &&
+      !node.properties.externalOrigin &&
+      !node.properties.allDay;
+    if (nativeTimedEvent && startDate && endDate) {
+      const { startTime, endTime } = node.properties;
+      if (!startTime || !endTime) return false;
+      if (minutesBetweenDateTimes(
+        startDate,
+        startTime,
+        endDate,
+        endTime,
+      ) <= 0) {
+        return false;
+      }
+    }
   }
   return true;
 }

@@ -1,14 +1,5 @@
 import { compactDateLabel } from "@/utils/shared/temporal/date";
-
-type TodoHeaderProps = {
-  date: string;
-  doneCount: number;
-  itemCount: number;
-  hideDone: boolean;
-  showFullTaskPath: boolean;
-  onHideDoneChange: (hideDone: boolean) => void;
-  onShowFullTaskPathChange: (showFullTaskPath: boolean) => void;
-};
+import type { TodoHeaderProps } from "@/types/timeline/todo";
 
 export default function TodoHeader({
   date,

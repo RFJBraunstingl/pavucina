@@ -1,25 +1,28 @@
 import { readBrowserValue, writeBrowserValue } from "@/services/graph/client/browser-database.ts";
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service.ts";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error.ts";
 import { browserTabId } from "@/utils/shared/browser-session.ts";
 import { DEFAULT_USER_PREFERENCES } from "./preferences-service.ts";
 import {
+  applyPreferencePatches,
   applyPreferencesPatch,
   diffPreferences,
   hasPreferenceChanges,
   withoutConflictingPreferenceFields,
-} from "./settings-patch-service.ts";
+} from "./patch/settings-patch-service.ts";
 import {
+  applyGuestPreferencePatch,
   loadGuestPreferences,
   saveGuestPreferences,
 } from "./storage/local-preferences-store.ts";
 import {
   pullPreferenceChanges,
-  saveRemotePreferences,
+  restoreRemotePreferences,
   sendPreferencePatch,
 } from "./storage/remote-preferences-store.ts";
 import type { UserPreferences } from "@/types/preferences/preferences.ts";
 import type {
   PreferencesCache,
+  PreferencesUpdate,
   PreferencesView,
 } from "@/types/preferences/preferences-sync.ts";
 
@@ -33,59 +36,54 @@ export class PreferencesSyncController {
     revision: -1,
     pending: [],
   };
-  private running: Promise<void> | null = null;
-  private disk = Promise.resolve();
+  private syncPromise: Promise<void> | null = null;
+  private cacheWrite = Promise.resolve();
   private readonly cacheKey: string;
 
   constructor(
     private readonly scope: string,
-    private readonly listener: (state: PreferencesView) => void,
+    private readonly onStateChange: (state: PreferencesView) => void,
   ) {
     this.cacheKey = `${scope}:${browserTabId()}:preferences`;
   }
 
-  private notify(error: string | null = null) {
-    if (this.active) {
-      this.listener({
-        preferences: this.preferences,
-        error,
-        conflicts: this.conflicts,
-      });
-    }
+  private publishState(error: string | null = null) {
+    if (!this.active) return;
+    this.onStateChange({
+      preferences: this.preferences,
+      error,
+      conflicts: this.conflicts,
+    });
   }
 
   private saveCache() {
     const cache = structuredClone(this.cache);
-    this.disk = this.disk
+    this.cacheWrite = this.cacheWrite
       .catch(() => undefined)
       .then(() => writeBrowserValue(this.cacheKey, cache));
-    return this.disk;
+    return this.cacheWrite;
   }
 
-  private preferencesWithPendingChanges(force = false) {
-    return this.cache.pending.reduce(
-      (preferences, patch) => applyPreferencesPatch(preferences, patch, force),
+  private applyPendingPreferences(keepMine = false) {
+    return applyPreferencePatches(
       this.cache.preferences,
+      this.cache.pending,
+      keepMine,
     );
   }
 
   async open() {
     try {
-      this.cache =
-        await readBrowserValue<PreferencesCache>(this.cacheKey) ?? this.cache;
-      this.preferences = this.preferencesWithPendingChanges();
+      const saved = await readBrowserValue<PreferencesCache>(this.cacheKey);
+      if (saved) this.cache = saved;
+      this.preferences = this.applyPendingPreferences();
       await this.flush();
     } catch (error) {
-      this.fail(error);
+      this.publishError(error);
     }
   }
 
-  change(
-    next:
-      | UserPreferences
-      | null
-      | ((current: UserPreferences | null) => UserPreferences | null),
-  ) {
+  change(next: PreferencesUpdate) {
     const preferences = typeof next === "function"
       ? next(this.preferences)
       : next;
@@ -94,36 +92,30 @@ export class PreferencesSyncController {
     if (!hasPreferenceChanges(patch)) return;
     this.cache.pending.push(patch);
     this.preferences = preferences;
-    this.notify();
+    this.publishState();
     void this.saveCache()
       .then(() => this.flush())
-      .catch((error) => this.fail(error));
+      .catch((error) => this.publishError(error));
   }
 
-  private fail(error: unknown) {
+  private publishError(error: unknown) {
     if (error instanceof GraphConflictError) this.conflicts = error.conflicts;
-    this.notify(
-      error instanceof Error
-        ? error.message
-        : "Could not synchronize preferences",
-    );
+    const message = error instanceof Error ? error.message : "Could not synchronize preferences";
+    this.publishState(message);
   }
 
   flush(): Promise<void> {
-    if (this.running) return this.running;
-    this.running = this.synchronize().then(
-      () => {
-        this.running = null;
+    if (this.syncPromise) return this.syncPromise;
+    this.syncPromise = this.synchronize()
+      .finally(() => {
+        this.syncPromise = null;
+      })
+      .then(() => {
         if (this.active && !this.conflicts.length && this.cache.pending.length) {
           return this.flush();
         }
-      },
-      (error) => {
-        this.running = null;
-        throw error;
-      },
-    );
-    return this.running;
+      });
+    return this.syncPromise;
   }
 
   private async pullSavedPreferences() {
@@ -142,12 +134,12 @@ export class PreferencesSyncController {
 
   private async synchronize() {
     try {
-      await this.disk;
+      await this.cacheWrite;
       if (!this.active || this.conflicts.length) return;
       while (this.cache.pending.length && this.active) {
         const patch = this.cache.pending[0];
         if (this.scope === "guest") {
-          await saveGuestPreferences(this.cache.preferences, patch);
+          await applyGuestPreferencePatch(patch);
         } else {
           await sendPreferencePatch(patch);
         }
@@ -160,11 +152,11 @@ export class PreferencesSyncController {
       if (!this.active) return;
       await this.pullSavedPreferences();
       if (!this.active) return;
-      this.preferences = this.preferencesWithPendingChanges();
+      this.preferences = this.applyPendingPreferences();
       await this.saveCache();
-      this.notify();
+      this.publishState();
     } catch (error) {
-      this.fail(error);
+      this.publishError(error);
       throw error;
     }
   }
@@ -177,27 +169,28 @@ export class PreferencesSyncController {
         this.conflicts,
       );
     }
-    const preferences = this.preferencesWithPendingChanges(keepMine);
-    this.cache.pending = [diffPreferences(this.cache.preferences, preferences)];
+    const preferences = this.applyPendingPreferences(keepMine);
+    const resolution = diffPreferences(this.cache.preferences, preferences);
+    this.cache.pending = hasPreferenceChanges(resolution) ? [resolution] : [];
     this.conflicts = [];
     this.preferences = preferences;
     await this.saveCache();
-    this.notify();
+    this.publishState();
     await this.flush();
   }
 
   async restore(preferences: UserPreferences) {
-    await this.running?.catch(() => undefined);
+    await this.syncPromise?.catch(() => undefined);
     this.ensureActiveRestore();
     if (this.scope === "guest") await saveGuestPreferences(preferences);
-    else await saveRemotePreferences(preferences);
+    else await restoreRemotePreferences(preferences);
     this.ensureActiveRestore();
     this.cache.pending = [];
     this.conflicts = [];
     await this.pullSavedPreferences();
     this.preferences = this.cache.preferences;
     await this.saveCache();
-    this.notify();
+    this.publishState();
   }
 
   private ensureActiveRestore() {

@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from "react";
 
+import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
 import {
   createBackupArchive,
   readBackupArchive,
@@ -10,8 +11,9 @@ import type { BackupRestoreProps } from "@/types/shared/backup";
 
 export default function BackupRestore({ graph, preferences, onRestore }: BackupRestoreProps) {
   const input = useRef<HTMLInputElement>(null);
-  const restoreDialog = useRef<HTMLDialogElement>(null);
-  const pendingBackup = useRef<ReturnType<typeof readBackupArchive>>(null);
+  const [pendingBackup, setPendingBackup] = useState<ReturnType<
+    typeof readBackupArchive
+  > | null>(null);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -40,10 +42,9 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
 
     setRestoring(true);
     try {
-      pendingBackup.current = readBackupArchive(
+      setPendingBackup(readBackupArchive(
         new Uint8Array(await file.arrayBuffer()),
-      );
-      restoreDialog.current?.showModal();
+      ));
     } catch (error) {
       setIsError(true);
       setMessage(error instanceof Error ? error.message : "Invalid backup file.");
@@ -53,7 +54,7 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
   }
 
   async function confirmRestore() {
-    const backup = pendingBackup.current;
+    const backup = pendingBackup;
     if (!backup) return;
     setRestoring(true);
     try {
@@ -72,6 +73,7 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
       setMessage(error instanceof Error ? error.message : "Restore failed.");
     } finally {
       setRestoring(false);
+      setPendingBackup(null);
     }
   }
 
@@ -100,30 +102,16 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
           {message}
         </p>
       )}
-      <dialog
-        ref={restoreDialog}
-        className="app-dialog"
-        aria-labelledby="restore-dialog-heading"
-        onClose={() => { pendingBackup.current = null; }}
-      >
-        <form method="dialog">
-          <h3 id="restore-dialog-heading">Restore backup?</h3>
-          <p>
-            All current tasks, relationships, and settings will be replaced.
-            This cannot be undone.
-          </p>
-          <div className="dialog-actions">
-            <button type="submit" autoFocus>Cancel</button>
-            <button
-              type="submit"
-              className="dialog-danger"
-              onClick={() => void confirmRestore()}
-            >
-              Restore
-            </button>
-          </div>
-        </form>
-      </dialog>
+      <ConfirmationDialog
+        open={Boolean(pendingBackup)}
+        title="Restore backup?"
+        message="All current tasks, relationships, and settings will be replaced. This cannot be undone."
+        confirmLabel="Restore"
+        busy={restoring}
+        busyLabel="Restoring…"
+        onConfirm={() => void confirmRestore()}
+        onClose={() => setPendingBackup(null)}
+      />
     </section>
   );
 }

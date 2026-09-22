@@ -6,8 +6,8 @@ import {
   CALENDAR_CONNECT_MAX_AGE,
   createCalendarConnectRequest,
 } from "@/services/calendar/providers/calendar-oauth";
-import { calendarSourceAvailability } from "@/services/calendar/providers/calendar-provider";
-import { isCalendarSource } from "@/utils/calendar/events/external-calendar";
+import { calendarSourceAvailability } from "@/services/calendar/providers/calendar-auth";
+import { isCalendarSource } from "@/utils/calendar/events/external-calendar-source";
 
 export const runtime = "nodejs";
 

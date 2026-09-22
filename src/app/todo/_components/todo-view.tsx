@@ -17,7 +17,6 @@ import {
   markNodeDone,
   reopenNode,
 } from "@/services/event/completion-service";
-import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function TodoView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
@@ -27,7 +26,7 @@ export default function TodoView() {
   const calendarImport = useCalendarImport();
   const {
     preferences,
-    setPreferences,
+    patchPreferences,
     syncError: preferencesError,
     retry: retryPreferences,
   } = usePreferences();
@@ -72,12 +71,6 @@ export default function TodoView() {
     );
   }
 
-  function updatePreferences(changes: Partial<UserPreferences>) {
-    setPreferences((current) =>
-      current ? { ...current, ...changes } : current,
-    );
-  }
-
   return (
     <main className="app-shell">
       <AppHeader active="todo" title="ToDo" />
@@ -93,9 +86,9 @@ export default function TodoView() {
           itemCount={items.length}
           hideDone={preferences.hideDone}
           showFullTaskPath={preferences.showFullTaskPath ?? false}
-          onHideDoneChange={(hideDone) => updatePreferences({ hideDone })}
+          onHideDoneChange={(hideDone) => patchPreferences({ hideDone })}
           onShowFullTaskPathChange={(showFullTaskPath) =>
-            updatePreferences({ showFullTaskPath })
+            patchPreferences({ showFullTaskPath })
           }
         />
 

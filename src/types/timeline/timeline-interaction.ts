@@ -10,6 +10,7 @@ import type {
   Graph,
   TaskPlacement,
 } from "@/types/graph/graph";
+import type { GraphUpdate } from "@/types/graph/graph-sync-controller";
 import type { ScheduleMode } from "@/types/preferences/preferences";
 
 export type DragMode = "move" | "start" | "end";
@@ -47,6 +48,12 @@ export type TimelineInteractionOptions = {
   graph: Graph;
   scheduleMode: ScheduleMode;
   onGraphChange: (graph: Graph) => void;
+  onSelect: (taskId: string) => void;
+};
+
+export type TimelineTaskActionsOptions = {
+  scheduleMode: ScheduleMode;
+  onGraphChange: (update: GraphUpdate) => void;
   onSelect: (taskId: string) => void;
 };
 

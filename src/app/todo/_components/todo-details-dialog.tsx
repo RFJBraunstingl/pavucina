@@ -4,7 +4,7 @@ import { isNodeDone } from "@/services/event/completion-service";
 import { getParentTaskNames } from "@/services/task/core/task-service";
 import { getTodoSchedule } from "@/services/todo/todo-service";
 import { compactDateLabel } from "@/utils/shared/temporal/date";
-import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar";
+import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar-source";
 import type { TodoDetailsDialogProps } from "@/types/timeline/todo";
 
 export default function TodoDetailsDialog({

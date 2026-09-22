@@ -4,14 +4,17 @@ import test from "node:test";
 import {
   getDaySchedule,
   getOverdueTasks,
+} from "./task-day-view-service.ts";
+import {
   scheduleTaskForDay,
 } from "./task-day-schedule-service.ts";
 import {
   getTaskDate,
-  setTaskDates,
-} from "../task-date-service.ts";
+} from "../dates/task-date-service.ts";
+import { setTaskDates } from "../dates/task-date-range-service.ts";
 import { markNodeDone } from "@/services/event/completion-service.ts";
-import { calendarItem, HOUR_HEIGHT, layoutCalendarItems } from "@/utils/calendar/calendar.ts";
+import { calendarItem, HOUR_HEIGHT } from "@/utils/calendar/calendar.ts";
+import { layoutCalendarItems } from "@/utils/calendar/calendar-layout.ts";
 import { DAY_HEIGHT, droppedTimeRange } from "@/utils/calendar/day-schedule.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph.ts";
 

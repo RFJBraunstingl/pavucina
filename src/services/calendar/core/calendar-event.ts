@@ -1,3 +1,4 @@
+import { providerRecord, providerText } from "./provider-response.ts";
 import { isIsoDate } from "@/utils/shared/temporal/date.ts";
 import { isCalendarProviderId } from "@/utils/calendar/events/event.ts";
 import type {
@@ -5,26 +6,6 @@ import type {
   CalendarSelection,
   ExternalCalendarEvent,
 } from "@/types/calendar/events/external-calendar";
-
-function record(value: unknown) {
-  return value && typeof value === "object"
-    ? value as Record<string, unknown>
-    : null;
-}
-
-export function providerRecords(value: unknown, key: string) {
-  const parent = record(value);
-  return parent && Array.isArray(parent[key]) ? parent[key] as unknown[] : [];
-}
-
-export function providerObject(value: unknown, key: string) {
-  return record(record(value)?.[key]);
-}
-
-export function providerText(value: unknown, key: string) {
-  const parent = record(value);
-  return parent && typeof parent[key] === "string" ? parent[key] as string : undefined;
-}
 
 function httpsUrl(value: unknown) {
   if (typeof value !== "string") return undefined;
@@ -42,7 +23,7 @@ function timedValue(value: unknown) {
 }
 
 function outlookTime(value: unknown) {
-  const dateTime = record(value)?.dateTime;
+  const dateTime = providerRecord(value)?.dateTime;
   if (typeof dateTime !== "string") return null;
   return timedValue(/[zZ]|[+-]\d\d:\d\d$/.test(dateTime) ? dateTime : `${dateTime}Z`);
 }
@@ -82,9 +63,9 @@ export function normalizeGoogleCalendarEvent(
   calendar: CalendarSelection,
   value: unknown,
 ): ExternalCalendarEvent | null {
-  const event = record(value);
-  const start = record(event?.start);
-  const end = record(event?.end);
+  const event = providerRecord(value);
+  const start = providerRecord(event?.start);
+  const end = providerRecord(event?.end);
   if (!event || event.status === "cancelled" || !isCalendarProviderId(event.id)) {
     return null;
   }
@@ -112,14 +93,14 @@ export function normalizeOutlookCalendarEvent(
   calendar: CalendarSelection,
   value: unknown,
 ): ExternalCalendarEvent | null {
-  const event = record(value);
+  const event = providerRecord(value);
   if (!event || event.isCancelled === true || !isCalendarProviderId(event.id)) {
     return null;
   }
   const base = eventBase(connection, calendar, event.id, event.subject, event.webLink, {
-      description: record(event.body)?.content,
-      location: record(event.location)?.displayName,
-      providerUpdatedAt: event.lastModifiedDateTime,
+    description: providerRecord(event.body)?.content,
+    location: providerRecord(event.location)?.displayName,
+    providerUpdatedAt: event.lastModifiedDateTime,
   });
   if (event.isAllDay === true) {
     const start = providerText(event.start, "dateTime")?.slice(0, 10);

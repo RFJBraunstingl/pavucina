@@ -98,3 +98,12 @@ export type CalendarCreatePreviewProps = {
   preview: EventTimeRange;
   days: string[];
 };
+
+export type CalendarInspectorProps = {
+  graph: Graph;
+  selectedId: string | null;
+  scheduleMode: ScheduleMode;
+  scheduleDate: string;
+  onEditEvent: (eventId: string) => void;
+  onDeleteTask: () => void;
+};

@@ -1,5 +1,5 @@
 import { isCompletionRelationship } from "../completion-service.ts";
-import { removeUnusedDates } from "@/services/task/scheduling/task-date-service.ts";
+import { removeUnusedDates } from "@/services/task/scheduling/dates/task-date-service.ts";
 import {
   calendarEventOriginKey,
   isImportedEvent,
@@ -20,10 +20,9 @@ function importedEventsByOrigin(graph: Graph) {
 function relationshipsBySource(graph: Graph) {
   const bySource = new Map<string, Relationship[]>();
   for (const relationship of graph.relationships) {
-    bySource.set(relationship.sourceId, [
-      ...(bySource.get(relationship.sourceId) ?? []),
-      relationship,
-    ]);
+    const relationships = bySource.get(relationship.sourceId) ?? [];
+    relationships.push(relationship);
+    bySource.set(relationship.sourceId, relationships);
   }
   return bySource;
 }

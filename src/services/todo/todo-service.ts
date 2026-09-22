@@ -1,6 +1,6 @@
 import { getEventDate } from "@/services/event/event-schedule-service.ts";
-import { getTaskDate } from "@/services/task/scheduling/task-date-service.ts";
-import { getLeafTasksForDate } from "@/services/task/core/task-service.ts";
+import { getTaskDate } from "@/services/task/scheduling/dates/task-date-service.ts";
+import { getLeafTasksForDate } from "@/services/task/scheduling/day/task-day-view-service.ts";
 import { visibleCalendarEvents } from "@/utils/calendar/events/graph-calendar.ts";
 import type { CalendarConnectionSummary } from "@/types/calendar/events/external-calendar.ts";
 import type { Graph } from "@/types/graph/graph.ts";
@@ -42,7 +42,7 @@ export function getTodoItemsForDate(
       ))
     .map(({ item, startDate, startTime, allDay }) => ({
       item,
-      sortTime: allDay ? "" : item.type === "event" && startDate! < date
+      sortTime: allDay ? "" : item.type === "event" && startDate && startDate < date
         ? "00:00" : startTime ?? "24:00",
     }))
     .sort((left, right) => left.sortTime.localeCompare(right.sortTime) ||

@@ -1,14 +1,12 @@
 import "server-only";
 
-
 import {
   syncCalendarConnection,
-  type ConnectionSync,
-} from "../providers/calendar-connection-sync.ts";
+} from "../providers/sync/calendar-connection-sync.ts";
 import {
-  listCalendarConnections,
   updateCalendarEventSyncStates,
-} from "../providers/calendar-repository.ts";
+} from "../providers/sync/calendar-sync-state-repository.ts";
+import { listCalendarConnections } from "../providers/calendar-repository.ts";
 import {
   reconcileCalendarBatch,
   removeImportedEvents,
@@ -16,6 +14,7 @@ import {
 import { updateGraphVersion } from "@/services/graph/persistence/graph-repository.ts";
 import { loadPreferences } from "@/services/preferences/storage/preferences-repository.ts";
 import type {
+  CalendarConnectionSync,
   CalendarConnectionDocument,
 } from "@/types/calendar/events/external-calendar.ts";
 import type { Graph } from "@/types/graph/graph.ts";
@@ -23,7 +22,7 @@ import type { Graph } from "@/types/graph/graph.ts";
 function removeUnavailableEvents(
   graph: Graph,
   connections: CalendarConnectionDocument[],
-  results: ConnectionSync[],
+  results: CalendarConnectionSync[],
 ) {
   const calendarsByConnection = new Map(connections.map((connection, index) => {
     const calendars = results[index]?.calendars;
@@ -52,12 +51,22 @@ export async function syncCalendarEvents(userId: string, timeZone: string) {
   const revision = await updateGraphVersion(userId, (graph) => {
     let next = removeUnavailableEvents(graph, connections, results);
     for (const { batches } of results) {
-      for (const batch of batches) next = reconcileCalendarBatch(next, batch, timeZone);
+      for (const batch of batches) {
+        next = reconcileCalendarBatch(next, batch, timeZone);
+      }
     }
     return next;
   });
-  await Promise.all(connections.map((connection, index) =>
-    updateCalendarEventSyncStates(userId, connection._id, connection.eventSyncStates ?? [], results[index].states)));
+  await Promise.all(
+    connections.map((connection, index) =>
+      updateCalendarEventSyncStates(
+        userId,
+        connection._id,
+        connection.eventSyncStates ?? [],
+        results[index].states,
+      ),
+    ),
+  );
   return {
     revision,
     errors: results.flatMap(({ errors }) => errors),
@@ -66,10 +75,20 @@ export async function syncCalendarEvents(userId: string, timeZone: string) {
 }
 
 export async function removeAllCalendarEvents(userId: string) {
-  const revision = await updateGraphVersion(userId, (graph) => removeImportedEvents(graph));
+  const revision = await updateGraphVersion(userId, (graph) =>
+    removeImportedEvents(graph),
+  );
   const connections = await listCalendarConnections(userId);
-  await Promise.all(connections.map(({ _id, eventSyncStates }) =>
-    updateCalendarEventSyncStates(userId, _id, eventSyncStates ?? [], [])));
+  await Promise.all(
+    connections.map(({ _id, eventSyncStates }) =>
+      updateCalendarEventSyncStates(
+        userId,
+        _id,
+        eventSyncStates ?? [],
+        [],
+      ),
+    ),
+  );
   return { revision, errors: [], syncedAt: new Date().toISOString() };
 }
 
@@ -77,9 +96,11 @@ export async function removeCalendarConnectionEvents(
   userId: string,
   connectionId: string,
 ) {
-  const revision = await updateGraphVersion(userId, (graph) => removeImportedEvents(
-    graph,
-    (event) => event.properties.externalOrigin.connectionId === connectionId,
-  ));
+  const revision = await updateGraphVersion(userId, (graph) =>
+    removeImportedEvents(
+      graph,
+      (event) => event.properties.externalOrigin.connectionId === connectionId,
+    ),
+  );
   return { revision, errors: [], syncedAt: new Date().toISOString() };
 }

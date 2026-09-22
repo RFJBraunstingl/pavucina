@@ -1,31 +1,13 @@
-import { flattenTasks } from "@/services/task/core/task-tree-service.ts";
+import {
+  flattenTasks,
+  taskTree,
+} from "@/services/task/core/task-tree-service.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph";
 import type {
   TimelineFilterLevel,
   TimelineFilterOption,
   TimelineFilterResult,
 } from "@/types/timeline/timeline-filter";
-
-function taskTree(graph: Graph) {
-  const tasks = new Map(
-    graph.nodes.flatMap((node) => node.type === "task" ? [[node.id, node]] : []),
-  );
-  const children = new Map<string, string[]>();
-  const parents = new Map<string, string>();
-  for (const relationship of graph.relationships) {
-    if (relationship.type !== "child" || !tasks.has(relationship.targetId)) continue;
-    children.set(relationship.sourceId, [
-      ...(children.get(relationship.sourceId) ?? []),
-      relationship.targetId,
-    ]);
-    parents.set(relationship.targetId, relationship.sourceId);
-  }
-  const rootId = graph.nodes.find((node) => node.type === "root")?.id;
-  const topLevelIds = rootId
-    ? children.get(rootId) ?? []
-    : [...tasks.keys()].filter((id) => !parents.has(id));
-  return { tasks, children, parents, topLevelIds };
-}
 
 function taskOptions(
   ids: string[],

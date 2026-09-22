@@ -5,13 +5,9 @@ import MailboxConnectionPicker from "./mailbox-connection-picker";
 import MailMessageList from "./mail-message-list";
 import { useMailboxes } from "./use-mailboxes";
 import { mailboxSourceLabel } from "@/utils/mailbox";
-import type { MailMessage } from "@/types/mailbox/mailbox";
+import type { SourcePanelProps } from "@/types/inbox/inbox-components";
 
-export default function SourcePanel({
-  onAdd,
-}: {
-  onAdd: (message: MailMessage) => void;
-}) {
+export default function SourcePanel({ onAdd }: SourcePanelProps) {
   const mailboxes = useMailboxes(onAdd);
   const {
     data,

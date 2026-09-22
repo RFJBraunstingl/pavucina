@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getDaySchedule, scheduleTaskOnDay } from "./task-day-schedule-service.ts";
-import { getTaskDate, setTaskDates } from "../task-date-service.ts";
+import { scheduleTaskOnDay } from "./task-day-schedule-service.ts";
+import { getDaySchedule } from "./task-day-view-service.ts";
+import { getTaskDate } from "../dates/task-date-service.ts";
+import { setTaskDates } from "../dates/task-date-range-service.ts";
 import { getTaskTime, setTaskTimes } from "../task-time-service.ts";
 import type { EventNode } from "@/types/calendar/events/event.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph.ts";

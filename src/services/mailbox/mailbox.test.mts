@@ -5,6 +5,8 @@ import {
   openMailboxValue,
   sealMailboxValue,
 } from "./providers/mailbox-crypto.ts";
+import { readOAuthConnectRequest } from "@/services/http/oauth/oauth-client.ts";
+import { isMailboxSource } from "@/utils/mailbox.ts";
 import {
   newestMessagesPerSource,
   normalizeGmailMessage,
@@ -36,7 +38,34 @@ test("mailbox secrets are authenticated and encrypted", () => {
       accessToken: "secret-token",
     });
     assert.throws(() => openMailboxValue(sealed, "other-context"));
-    assert.throws(() => openMailboxValue(`${sealed.slice(0, -1)}x`, "test"));
+    const tampered = `${sealed[0] === "x" ? "y" : "x"}${sealed.slice(1)}`;
+    assert.throws(() => openMailboxValue(tampered, "test"));
+
+    const request = sealMailboxValue({
+      source: "gmail",
+      expiresAt: Date.now() + 60_000,
+    }, "connect-test");
+    assert.equal(
+      readOAuthConnectRequest(request, "connect-test", isMailboxSource)?.source,
+      "gmail",
+    );
+    const expired = sealMailboxValue({
+      source: "gmail",
+      expiresAt: Date.now() - 1,
+    }, "connect-test");
+    assert.equal(
+      readOAuthConnectRequest(expired, "connect-test", isMailboxSource),
+      null,
+    );
+    const malformed = sealMailboxValue({
+      source: "gmail",
+      userId: "external-provider-id",
+      expiresAt: Date.now() + 60_000,
+    }, "connect-test");
+    assert.equal(
+      readOAuthConnectRequest(malformed, "connect-test", isMailboxSource),
+      null,
+    );
   } finally {
     if (previous === undefined) delete process.env.AUTH_SECRET;
     else process.env.AUTH_SECRET = previous;

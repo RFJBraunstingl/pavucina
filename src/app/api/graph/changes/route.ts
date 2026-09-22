@@ -42,8 +42,7 @@ export async function GET(request: Request) {
   const records = await publishedRecords(
     session.user.id,
     revision,
-    true,
-    after.sequence,
+    { includeDeleted: true, after: after.sequence },
   );
   if ((await latestCommit(session.user.id))?._id !== head._id) {
     return Response.json({ retry: true }, { status: 409 });

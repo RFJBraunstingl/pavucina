@@ -1,9 +1,6 @@
-import {
-  normalizeGoogleCalendarEvent,
-  providerRecords,
-  providerText,
-} from "../../core/calendar-event";
-import { defaultCalendarColor, isCalendarColor } from "@/utils/calendar/events/external-calendar";
+import { normalizeGoogleCalendarEvent } from "../../core/calendar-event";
+import { providerRecords, providerText } from "../../core/provider-response";
+import { defaultCalendarColor, isCalendarColor } from "@/utils/calendar/events/external-calendar-source";
 import { isCalendarProviderId } from "@/utils/calendar/events/event";
 import type {
   CalendarConnectionDocument,

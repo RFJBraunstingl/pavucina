@@ -1,4 +1,4 @@
-import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar";
+import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar-source";
 import type {
   CalendarConnectionSectionProps,
   CalendarSelection,
@@ -24,7 +24,8 @@ export default function CalendarConnectionSection({
 }: CalendarConnectionSectionProps) {
   function select(calendarId: string) {
     const current = selections(connection);
-    const option = connection.calendars.find(({ id }) => id === calendarId)!;
+    const option = connection.calendars.find(({ id }) => id === calendarId);
+    if (!option) return;
     onSave(option.selected
       ? current.filter(({ id }) => id !== calendarId)
       : [...current, {

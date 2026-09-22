@@ -2,21 +2,14 @@
 
 import { useEffect, useRef, type FormEvent } from "react";
 
-export type ParentOption = { id: string; label: string };
-
-type Props = {
-  taskId: string | null;
-  parents: ParentOption[];
-  onMove: (taskId: string, parentId: string) => void;
-  onClose: () => void;
-};
+import type { MoveTaskDialogProps } from "@/types/inbox/inbox-components";
 
 export default function MoveTaskDialog({
   taskId,
   parents,
   onMove,
   onClose,
-}: Props) {
+}: MoveTaskDialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {

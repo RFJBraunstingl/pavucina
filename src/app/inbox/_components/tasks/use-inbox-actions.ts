@@ -8,27 +8,12 @@ import {
   setInboxTaskDescription,
 } from "@/services/inbox/inbox-service";
 import type { MailMessage } from "@/types/mailbox/mailbox";
-import type { UserPreferences } from "@/types/preferences/preferences";
-import type { ScheduleMode } from "@/types/preferences/preferences";
-
-type PreferencesSetter = (
-  next:
-    | UserPreferences
-    | null
-    | ((current: UserPreferences | null) => UserPreferences | null),
-) => void;
-
-type InboxActionsOptions = {
-  preferences: UserPreferences | null;
-  scheduleMode: ScheduleMode;
-  setPreferences: PreferencesSetter;
-  onSelect: (taskId: string) => void;
-};
+import type { InboxActionsOptions } from "@/types/inbox/inbox-components";
 
 export function useInboxActions({
   preferences,
   scheduleMode,
-  setPreferences,
+  patchPreferences,
   onSelect,
 }: InboxActionsOptions) {
   const { graph, setGraph } = useGraph();
@@ -74,8 +59,7 @@ export function useInboxActions({
     const next = moveInboxTask(graph, taskId, parentId, scheduleMode);
     if (next === graph) return;
     setGraph(next);
-    setPreferences({
-      ...preferences,
+    patchPreferences({
       collapsedTaskIds: preferences.collapsedTaskIds.filter(
         (id) => id !== parentId,
       ),

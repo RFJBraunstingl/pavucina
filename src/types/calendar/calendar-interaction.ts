@@ -1,6 +1,7 @@
 import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 
 import type { Graph } from "@/types/graph/graph";
+import type { GraphUpdate } from "@/types/graph/graph-sync-controller";
 import type { ScheduleMode } from "@/types/preferences/preferences";
 import type { EventTimeRange } from "./events/event";
 import type { CalendarLayoutItem, EditableCalendarItem } from "./calendar-layout";
@@ -62,4 +63,18 @@ export type CalendarInteractionOptions = {
   onSelect: (taskId: string, date: string) => void;
   onOpenEvent: (eventId: string) => void;
   locked: boolean;
+};
+
+export type CalendarGridInteractionOptions = CalendarInteractionOptions & {
+  items: CalendarLayoutItem[];
+  today: string;
+  creating: boolean;
+  onCreate: (range: EventTimeRange) => void;
+};
+
+export type CalendarTaskSchedulingOptions = {
+  today: string;
+  days: string[];
+  locked: boolean;
+  onGraphChange: (update: GraphUpdate) => void;
 };

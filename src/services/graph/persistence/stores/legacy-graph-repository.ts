@@ -51,6 +51,15 @@ async function revisionMap(
   return new Map(revisions.map((revision) => [revision._id, revision]));
 }
 
+function revisionNode(
+  revisions: Map<string, NodeRevisionDocument>,
+  revisionId: string,
+) {
+  const revision = revisions.get(revisionId);
+  if (!revision) throw new Error(`Missing node revision ${revisionId}`);
+  return revision.node;
+}
+
 export async function loadLegacyGraph(userId: string): Promise<Graph | null> {
   const { edges, nodes } = await collections();
   const version = await latestVersion(edges, userId);
@@ -63,10 +72,10 @@ export async function loadLegacyGraph(userId: string): Promise<Graph | null> {
   const revisions = await revisionMap(nodes, userId, revisionIds);
   return {
     version: version.graphSchemaVersion,
-    nodes: version.nodeRevisionIds.map((id) => revisions.get(id)!.node),
+    nodes: version.nodeRevisionIds.map((id) => revisionNode(revisions, id)),
     relationships: version.edges,
     inboxNodes: version.inboxNodeRevisionIds.map(
-      (id) => revisions.get(id)!.node as TaskNode,
+      (id) => revisionNode(revisions, id) as TaskNode,
     ),
   };
 }

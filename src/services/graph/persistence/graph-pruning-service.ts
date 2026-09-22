@@ -12,17 +12,25 @@ async function pruneCurrentGeneration(
   revision: GraphRevision,
   affectedIds: Set<string>,
 ) {
+  if (!affectedIds.size) return;
   const { records } = await graphCollections();
-  const latestRecords = await publishedRecords(userId, revision, true);
-  for (const record of latestRecords) {
-    if (!affectedIds.has(record.id)) continue;
-    await records.deleteMany({
-      userId,
-      generation: revision.generation,
-      collection: record.collection,
-      id: record.id,
-      sequence: { $lt: record.sequence },
-    });
+  const latestRecords = await publishedRecords(userId, revision, {
+    includeDeleted: true,
+    ids: [...affectedIds],
+  });
+  const deletions = latestRecords.map((record) => ({
+    deleteMany: {
+      filter: {
+        userId,
+        generation: revision.generation,
+        collection: record.collection,
+        id: record.id,
+        sequence: { $lt: record.sequence },
+      },
+    },
+  }));
+  if (deletions.length) {
+    await records.bulkWrite(deletions, { ordered: false });
   }
 }
 

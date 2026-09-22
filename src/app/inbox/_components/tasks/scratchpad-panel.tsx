@@ -1,24 +1,11 @@
 "use client";
 
-import { useState, type FormEvent, type PointerEvent } from "react";
+import { useState, type FormEvent } from "react";
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
 import type { TaskNode } from "@/types/graph/graph";
+import type { ScratchpadPanelProps } from "@/types/inbox/inbox-components";
 
-type Props = {
-  nodes: TaskNode[];
-  draggingId: string | null;
-  onCreate: (name: string) => void;
-  onRename: (id: string, name: string) => void;
-  onDescriptionChange: (id: string, description: string) => void;
-  onDelete: (id: string) => void;
-  onMoveRequest: (id: string) => void;
-  onDragStart: (event: PointerEvent<HTMLButtonElement>, id: string) => void;
-  onDragMove: (event: PointerEvent<HTMLButtonElement>) => void;
-  onDragEnd: (event: PointerEvent<HTMLButtonElement>) => void;
-  onDragCancel: (event: PointerEvent<HTMLButtonElement>) => void;
-};
-
-export default function ScratchpadPanel(props: Props) {
+export default function ScratchpadPanel(props: ScratchpadPanelProps) {
   const [draft, setDraft] = useState("");
   const [deleting, setDeleting] = useState<TaskNode | null>(null);
 

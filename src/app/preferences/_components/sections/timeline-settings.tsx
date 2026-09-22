@@ -1,13 +1,8 @@
-import { useRef } from "react";
+import { useState } from "react";
 
+import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
 import type { ScheduleMode } from "@/types/preferences/preferences";
-
-type TimelineSettingsProps = {
-  scheduleMode: ScheduleMode;
-  disabled: boolean;
-  onScheduleModeChange: (mode: ScheduleMode) => void;
-  onEnableLeafMode: () => void;
-};
+import type { TimelineSettingsProps } from "@/types/preferences/preferences-components";
 
 export default function TimelineSettings({
   scheduleMode,
@@ -15,11 +10,11 @@ export default function TimelineSettings({
   onScheduleModeChange,
   onEnableLeafMode,
 }: TimelineSettingsProps) {
-  const leafModeDialog = useRef<HTMLDialogElement>(null);
+  const [confirmingLeafMode, setConfirmingLeafMode] = useState(false);
 
   function selectMode(mode: ScheduleMode) {
     if (mode === scheduleMode) return;
-    if (mode === "leaf") leafModeDialog.current?.showModal();
+    if (mode === "leaf") setConfirmingLeafMode(true);
     else onScheduleModeChange(mode);
   }
 
@@ -61,29 +56,17 @@ export default function TimelineSettings({
           </label>
         </fieldset>
       </section>
-      <dialog
-        ref={leafModeDialog}
-        className="app-dialog"
-        aria-labelledby="leaf-mode-dialog-heading"
-      >
-        <form method="dialog">
-          <h3 id="leaf-mode-dialog-heading">Enable leaf scheduling?</h3>
-          <p>
-            Planned dates and times stored on tasks with children will be
-            permanently deleted. This cannot be undone.
-          </p>
-          <div className="dialog-actions">
-            <button type="submit" autoFocus>Cancel</button>
-            <button
-              type="submit"
-              className="dialog-danger"
-              onClick={onEnableLeafMode}
-            >
-              Delete schedules and enable
-            </button>
-          </div>
-        </form>
-      </dialog>
+      <ConfirmationDialog
+        open={confirmingLeafMode}
+        title="Enable leaf scheduling?"
+        message="Planned dates and times stored on tasks with children will be permanently deleted. This cannot be undone."
+        confirmLabel="Delete schedules and enable"
+        onConfirm={() => {
+          setConfirmingLeafMode(false);
+          onEnableLeafMode();
+        }}
+        onClose={() => setConfirmingLeafMode(false)}
+      />
     </>
   );
 }

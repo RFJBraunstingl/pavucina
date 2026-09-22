@@ -3,9 +3,9 @@ import {
   deleteCalendarConnection,
 } from "@/services/calendar/providers/calendar-repository";
 import { removeCalendarConnectionEvents } from "@/services/calendar/import/calendar-import-service";
-import { isCalendarSelectionChanges } from "@/services/calendar/import/calendar-selection-patch";
+import { isCalendarSelectionChanges } from "@/services/calendar/import/calendar-selection-validation";
 import { patchCalendarSelections } from "@/services/calendar/import/storage/calendar-selection-repository";
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error";
 import { readBoundedJson } from "@/services/http/request-json";
 import { isUuid } from "@/utils/shared/id";
 

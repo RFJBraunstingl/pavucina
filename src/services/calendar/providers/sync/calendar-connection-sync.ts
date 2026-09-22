@@ -1,13 +1,14 @@
 import "server-only";
 
 import {
-  createCalendarRequest,
   listProviderCalendars,
-} from "./calendar-provider.ts";
-import { syncGoogleCalendar } from "./google/google-calendar-sync.ts";
-import { syncOutlookCalendar } from "./outlook/outlook-calendar-sync.ts";
-import { addDays } from "@/utils/shared/temporal/date.ts";
+} from "../calendar-provider.ts";
+import { createCalendarRequest } from "../calendar-auth.ts";
+import { syncGoogleCalendar } from "../google/google-calendar-sync.ts";
+import { syncOutlookCalendar } from "../outlook/outlook-calendar-sync.ts";
+import { calendarSyncWindow, todayInTimeZone } from "./calendar-sync-window.ts";
 import type {
+  CalendarConnectionSync,
   CalendarConnectionDocument,
   CalendarEventSyncState,
   CalendarImportError,
@@ -16,56 +17,17 @@ import type {
 } from "@/types/calendar/events/external-calendar.ts";
 import type { OAuthRequest } from "@/types/auth/oauth.ts";
 
-export type ConnectionSync = {
-  batches: CalendarSyncBatch[];
-  calendars?: ProviderCalendar[];
-  errors: CalendarImportError[];
-  states: CalendarEventSyncState[];
-};
-
-function todayInTimeZone(timeZone: string) {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts();
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((item) => item.type === type)!.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
-
-function syncRange(
-  state: CalendarEventSyncState | undefined,
-  today: string,
-  timeZone: string,
-) {
-  if (state && state.timeZone === timeZone && today < state.refreshAfter) {
-    return {
-      rangeStart: state.rangeStart,
-      rangeEnd: state.rangeEnd,
-      refreshAfter: state.refreshAfter,
-      cursor: state.cursor,
-    };
-  }
-  return {
-    rangeStart: addDays(today, -30),
-    rangeEnd: addDays(today, 396),
-    refreshAfter: addDays(today, 30),
-    cursor: undefined,
-  };
-}
-
 async function syncCalendar(
   connection: CalendarConnectionDocument,
   calendar: ProviderCalendar,
+  today: string,
   timeZone: string,
   request: OAuthRequest,
 ) {
   const previous = connection.eventSyncStates?.find(
     ({ calendarId }) => calendarId === calendar.id,
   );
-  const range = syncRange(previous, todayInTimeZone(timeZone), timeZone);
+  const range = calendarSyncWindow(previous, today, timeZone);
   const result = connection.source === "google"
     ? await syncGoogleCalendar(
         connection, calendar, request, range.rangeStart, range.rangeEnd,
@@ -100,11 +62,15 @@ async function syncCalendar(
 export async function syncCalendarConnection(
   connection: CalendarConnectionDocument,
   timeZone: string,
-): Promise<ConnectionSync> {
+): Promise<CalendarConnectionSync> {
   const request = createCalendarRequest(connection);
+  let today: string;
   let calendars: ProviderCalendar[];
   try {
-    const saved = new Map(connection.calendars.map((calendar) => [calendar.id, calendar]));
+    today = todayInTimeZone(timeZone);
+    const saved = new Map(
+      connection.calendars.map((calendar) => [calendar.id, calendar]),
+    );
     calendars = (await listProviderCalendars(connection, request)).map((calendar) => ({
       ...calendar,
       color: saved.get(calendar.id)?.color ?? calendar.color,
@@ -121,7 +87,7 @@ export async function syncCalendarConnection(
   }
   const results = await Promise.all(calendars.map(async (calendar) => {
     try {
-      return await syncCalendar(connection, calendar, timeZone, request);
+      return await syncCalendar(connection, calendar, today, timeZone, request);
     } catch (error) {
       return { error: {
         connectionId: connection._id,
@@ -133,6 +99,7 @@ export async function syncCalendarConnection(
   const succeeded = results.flatMap((result) => "batch" in result ? [result] : []);
   const failedIds = new Set(results.flatMap((result) =>
     "error" in result && result.error.calendarId ? [result.error.calendarId] : []));
+  const calendarIds = new Set(calendars.map(({ id }) => id));
   return {
     batches: succeeded.map(({ batch }) => batch),
     calendars,
@@ -140,7 +107,7 @@ export async function syncCalendarConnection(
     states: [
       ...succeeded.map(({ state }) => state),
       ...(connection.eventSyncStates ?? []).filter(({ calendarId }) =>
-        failedIds.has(calendarId) && calendars.some(({ id }) => id === calendarId)),
+        failedIds.has(calendarId) && calendarIds.has(calendarId)),
     ],
   };
 }

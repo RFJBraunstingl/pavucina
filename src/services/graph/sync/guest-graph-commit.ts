@@ -3,16 +3,14 @@ import {
   idbCompletion,
   idbRequest,
 } from "../client/browser-database.ts";
-import {
-  applyGraphOperations,
-  GraphConflictError,
-} from "./graph-patch-service.ts";
+import { GraphConflictError } from "./graph-conflict-error.ts";
+import { applyGraphOperations } from "./graph-patch-service.ts";
 import {
   changedGraphRecords,
   mergeRecords,
   recordKey,
   recordsGraph,
-} from "./graph-record-service.ts";
+} from "./records/graph-record-service.ts";
 import type {
   GraphPatch,
   GraphSnapshot,

@@ -61,7 +61,9 @@ export function validateGraphRelationships(
         return null;
       }
       parents.add(target.id);
-      children.set(source.id, [...(children.get(source.id) ?? []), target.id]);
+      const childIds = children.get(source.id) ?? [];
+      childIds.push(target.id);
+      children.set(source.id, childIds);
     } else if (
       relationship.type === "eventStartDate" ||
       relationship.type === "eventEndDate"

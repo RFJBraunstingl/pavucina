@@ -10,8 +10,8 @@ import {
 } from "./task-schedule-mode-service.ts";
 import {
   getTaskDate,
-  setTaskDates,
-} from "./task-date-service.ts";
+} from "./dates/task-date-service.ts";
+import { setTaskDates } from "./dates/task-date-range-service.ts";
 import { getTaskTime, setTaskTimes } from "./task-time-service.ts";
 import { addChildTask } from "../core/task-service.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph.ts";

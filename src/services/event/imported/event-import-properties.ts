@@ -16,7 +16,7 @@ export function importedCalendarMetadata(batch: CalendarSyncBatch) {
     calendarName: truncateText(
       batch.calendar.name,
       EVENT_TEXT_LIMITS.calendarName,
-    )!,
+    ) ?? "Calendar",
     calendarColor: batch.calendar.color,
   };
 }

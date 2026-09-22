@@ -1,14 +1,7 @@
 import { useRef, useState, type PointerEvent } from "react";
+import type { InboxDragState } from "@/types/inbox/inbox-components";
 
 const DRAG_THRESHOLD = 4;
-
-type DragState = {
-  pointerId: number;
-  taskId: string;
-  originX: number;
-  originY: number;
-  started: boolean;
-};
 
 function taskAt(event: PointerEvent<HTMLButtonElement>) {
   return document
@@ -18,7 +11,7 @@ function taskAt(event: PointerEvent<HTMLButtonElement>) {
 }
 
 export function useInboxDrag(onMove: (taskId: string, parentId: string) => void) {
-  const drag = useRef<DragState | null>(null);
+  const drag = useRef<InboxDragState | null>(null);
   const targetRef = useRef<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [targetId, setTargetState] = useState<string | null>(null);

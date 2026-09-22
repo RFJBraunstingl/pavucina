@@ -16,3 +16,13 @@ export type TodoListItemProps = {
   onDetails: (id: string) => void;
   onCompletion: (itemId: string, done: boolean) => void;
 };
+
+export type TodoHeaderProps = {
+  date: string;
+  doneCount: number;
+  itemCount: number;
+  hideDone: boolean;
+  showFullTaskPath: boolean;
+  onHideDoneChange: (hideDone: boolean) => void;
+  onShowFullTaskPathChange: (showFullTaskPath: boolean) => void;
+};

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { changedGraphRecords, recordsGraph } from "../sync/graph-record-service";
+import { changedGraphRecords, recordsGraph } from "../sync/records/graph-record-service";
 import { pruneImportedHistory } from "./graph-pruning-service";
 import { publishCommit } from "./stores/graph-commit-store";
 import { advanceCurrentGraph } from "./stores/graph-current-store";
@@ -52,17 +52,19 @@ async function updateGraphReadModels(
   importedRecordIds: string[],
   replacement: boolean,
 ) {
-  await advanceCurrentGraph(userId, commit).catch((error) =>
-    console.error("Could not update current graph", error),
-  );
-  await pruneImportedHistory(
-    userId,
-    graphRevision(commit.generation, commit.sequence),
-    importedRecordIds,
-    replacement,
-  ).catch((error) =>
-    console.error("Could not prune imported history", error),
-  );
+  await Promise.all([
+    advanceCurrentGraph(userId, commit).catch((error) =>
+      console.error("Could not update current graph", error),
+    ),
+    pruneImportedHistory(
+      userId,
+      graphRevision(commit.generation, commit.sequence),
+      importedRecordIds,
+      replacement,
+    ).catch((error) =>
+      console.error("Could not prune imported history", error),
+    ),
+  ]);
 }
 
 export async function writeGraphCommit(

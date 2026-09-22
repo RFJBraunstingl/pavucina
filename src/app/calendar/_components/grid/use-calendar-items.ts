@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import {
   getDaySchedule,
   getOverdueTasks,
-} from "@/services/task/scheduling/day/task-day-schedule-service";
+} from "@/services/task/scheduling/day/task-day-view-service";
 import { isNodeDone } from "@/services/event/completion-service";
 import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
 import { visibleCalendarEvents } from "@/utils/calendar/events/graph-calendar";

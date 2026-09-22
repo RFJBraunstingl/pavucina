@@ -1,5 +1,5 @@
-import { getEventDate } from "../event-schedule-service.ts";
-import { removeUnusedDates } from "@/services/task/scheduling/task-date-service.ts";
+import { getEventDate, setEventDates } from "../event-schedule-service.ts";
+import { removeUnusedDates } from "@/services/task/scheduling/dates/task-date-service.ts";
 import { isIsoDate } from "@/utils/shared/temporal/date.ts";
 import { EVENT_TEXT_LIMITS, isTimeZone } from "@/utils/calendar/events/event.ts";
 import { isTime, minutesBetweenDateTimes } from "@/utils/shared/temporal/time.ts";
@@ -30,13 +30,18 @@ export function validateNativeEvent(input: NativeEventInput) {
 }
 
 export function nativeEventInput(graph: Graph, event: EventNode): NativeEventInput {
+  const startDate = getEventDate(graph, event.id, "eventStartDate");
+  const endDate = getEventDate(graph, event.id, "eventEndDate");
+  if (!startDate || !endDate) {
+    throw new Error("The event has an incomplete schedule.");
+  }
   return {
     name: event.properties.name,
     description: event.properties.description ?? "",
     location: event.properties.location ?? "",
     timeZone: event.properties.timeZone,
-    startDate: getEventDate(graph, event.id, "eventStartDate")!,
-    endDate: getEventDate(graph, event.id, "eventEndDate")!,
+    startDate,
+    endDate,
     startTime: event.properties.startTime ?? "09:00",
     endTime: event.properties.endTime ?? "10:00",
     ...(event.properties.allDay && { allDay: true }),
@@ -44,41 +49,47 @@ export function nativeEventInput(graph: Graph, event: EventNode): NativeEventInp
 }
 
 export function saveNativeEvent(
-  graph: Graph, id: string, input: NativeEventInput, creating: boolean,
+  graph: Graph,
+  id: string,
+  input: NativeEventInput,
+  creating: boolean,
 ): Graph {
   validateNativeEvent(input);
   if (!isUuid(id)) throw new Error("Invalid event ID.");
   const existing = graph.nodes.find((node) => node.id === id);
-  if (creating ? Boolean(existing) : existing?.type !== "event" ||
-    Boolean(existing.properties.externalOrigin)) {
+  const cannotCreate = creating && Boolean(existing);
+  const cannotEdit = !creating && (
+    existing?.type !== "event" || Boolean(existing.properties.externalOrigin)
+  );
+  if (cannotCreate || cannotEdit) {
     throw new Error("This event cannot be edited.");
   }
   const event: EventNode = {
-    id, type: "event",
+    id,
+    type: "event",
     properties: {
-      name: input.name.trim(), description: input.description.trim() || undefined,
-      location: input.location.trim() || undefined, allDay: Boolean(input.allDay),
-      ...(!input.allDay && { startTime: input.startTime, endTime: input.endTime }),
+      name: input.name.trim(),
+      description: input.description.trim() || undefined,
+      location: input.location.trim() || undefined,
+      allDay: Boolean(input.allDay),
+      ...(!input.allDay && {
+        startTime: input.startTime,
+        endTime: input.endTime,
+      }),
       timeZone: input.timeZone,
-      calendarName: "Pavucina", calendarColor: "#167a54",
+      calendarName: "Pavucina",
+      calendarColor: "#167a54",
     },
   };
-  const nodes = creating ? [...graph.nodes, event]
+  const nodes = creating
+    ? [...graph.nodes, event]
     : graph.nodes.map((node) => node.id === id ? event : node);
-  let relationships = [...graph.relationships];
-  for (const [type, date] of [
-    ["eventStartDate", input.startDate], ["eventEndDate", input.endDate],
-  ] as const) {
-    let target = nodes.find((node) => node.type === "date" && node.properties.value === date);
-    if (!target) {
-      target = { id: crypto.randomUUID(), type: "date", properties: { value: date } };
-      nodes.push(target);
-    }
-    const edge = relationships.find((edge) => edge.sourceId === id && edge.type === type);
-    relationships = relationships.filter((edge) => edge.sourceId !== id || edge.type !== type);
-    relationships.push({ id: edge?.id ?? crypto.randomUUID(), type, sourceId: id, targetId: target.id });
-  }
-  return removeUnusedDates({ ...graph, nodes, relationships });
+  return setEventDates(
+    { ...graph, nodes },
+    id,
+    input.startDate,
+    input.endDate,
+  );
 }
 
 export function deleteNativeEvent(graph: Graph, id: string): Graph {
@@ -87,6 +98,9 @@ export function deleteNativeEvent(graph: Graph, id: string): Graph {
   return removeUnusedDates({
     ...graph,
     nodes: graph.nodes.filter((node) => node.id !== id),
-    relationships: graph.relationships.filter((edge) => edge.sourceId !== id && edge.targetId !== id),
+    relationships: graph.relationships.filter(
+      (relationship) =>
+        relationship.sourceId !== id && relationship.targetId !== id,
+    ),
   });
 }

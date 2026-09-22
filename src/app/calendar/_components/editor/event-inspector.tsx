@@ -1,5 +1,5 @@
 import { getEventDate } from "@/services/event/event-service";
-import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar";
+import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar-source";
 import type { EventInspectorProps } from "@/types/calendar/events/event";
 
 export default function EventInspector({ graph, event, onEdit }: EventInspectorProps) {

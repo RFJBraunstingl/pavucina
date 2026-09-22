@@ -1,21 +1,25 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import CalendarAllDay from "./events/calendar-all-day";
 import CalendarGridItems from "./events/calendar-grid-items";
 import CalendarGridBackground from "./calendar-grid-background";
 import CalendarCreatePreview from "./calendar-create-preview";
 import CalendarDaysHeader from "./calendar-days-header";
-import { useCalendarSchedule } from "../scheduling/use-calendar-schedule";
-import { useCalendarCreation } from "../scheduling/use-calendar-creation";
+import { useCalendarGridInteractions } from "../scheduling/grid/use-calendar-grid-interactions";
 import {
   CALENDAR_HEIGHT,
   calendarCurrentTimePosition,
   HOUR_HEIGHT,
   HOUR_LABELS,
-  layoutCalendarItems,
 } from "@/utils/calendar/calendar";
-import { defaultCalendarEvent } from "@/utils/calendar/calendar-creation";
-import { externalCalendarItems } from "@/utils/calendar/events/external-calendar";
+import { layoutCalendarItems } from "@/utils/calendar/calendar-layout";
+import { externalCalendarItems } from "@/utils/calendar/events/external-calendar-layout";
 import { graphCalendarItems } from "@/utils/calendar/events/graph-calendar";
 import type { CalendarGridProps } from "@/types/calendar/calendar-components";
 
@@ -47,18 +51,22 @@ export default function CalendarGrid({
     ]),
     [days, externalEvents, graph, graphEvents, taskEvents],
   );
-  const creation = useCalendarCreation({ items, days, locked, creating, bodyRef, onCreate: onCreateEvent });
-  const preview = creation.preview;
-  const schedule = useCalendarSchedule({
+  const interactions = useCalendarGridInteractions({
     graph,
     scheduleMode,
+    items,
     days,
+    today,
+    locked,
+    creating,
     bodyRef,
     onGraphChange,
     onSelect,
     onOpenEvent: onSelectEvent,
-    locked,
+    onCreate: onCreateEvent,
   });
+  const { creation, schedule } = interactions;
+  const preview = creation.preview;
 
   useEffect(() => {
     if (scroll.current) {
@@ -85,9 +93,7 @@ export default function CalendarGrid({
           locked={locked}
           creating={creating}
           onSelect={onSelectEvent}
-          onCreate={(date) => onCreateEvent({
-            ...defaultCalendarEvent(items, date), allDay: true,
-          })}
+          onCreate={interactions.createAllDayEvent}
         />
         <div className="calendar-body">
           <div className="calendar-times" style={{ height: CALENDAR_HEIGHT }}>
@@ -101,23 +107,12 @@ export default function CalendarGrid({
             aria-label={`24 hour calendar from ${days[0]} to ${days.at(-1)}`}
             tabIndex={locked ? -1 : 0}
             aria-keyshortcuts="Enter"
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" || event.target !== event.currentTarget ||
-                event.repeat || locked || creating) return;
-              event.preventDefault();
-              onCreateEvent(defaultCalendarEvent(items, days.includes(today) ? today : days[0]));
-            }}
-            onPointerMove={(event) => {
-              schedule.continueDrag(event);
-              creation.move(event);
-            }}
+            onKeyDown={interactions.createEventWithKeyboard}
+            onPointerMove={interactions.continuePointerInteraction}
             onPointerUp={schedule.endDrag}
             onPointerDown={creation.begin}
             onPointerLeave={creation.leave}
-            onPointerCancel={(event) => {
-              schedule.endDrag(event);
-              creation.clear();
-            }}
+            onPointerCancel={interactions.cancelPointerInteraction}
             onClick={creation.click}
           >
             <CalendarGridBackground

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
+import EventDateTimeFields from "./event-date-time-fields";
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
 import { EVENT_TEXT_LIMITS } from "@/utils/calendar/events/event";
 import type { EventDialogProps } from "@/types/calendar/events/event";
@@ -65,55 +66,11 @@ export default function EventDialog({
               defaultValue={values.name}
             />
           </label>
-          <label className="event-all-day">
-            <input
-              name="allDay"
-              type="checkbox"
-              checked={allDay}
-              onChange={(event) => setAllDay(event.target.checked)}
-            />
-            All day
-          </label>
-          <div className="event-date-time">
-            <label>
-              Start date
-              <input
-                name="startDate"
-                type="date"
-                required
-                defaultValue={values.startDate}
-              />
-            </label>
-            <label>
-              Start time
-              <input
-                name="startTime"
-                type="time"
-                required={!allDay}
-                disabled={allDay}
-                defaultValue={values.startTime}
-              />
-            </label>
-            <label>
-              End date
-              <input
-                name="endDate"
-                type="date"
-                required
-                defaultValue={values.endDate}
-              />
-            </label>
-            <label>
-              End time
-              <input
-                name="endTime"
-                type="time"
-                required={!allDay}
-                disabled={allDay}
-                defaultValue={values.endTime}
-              />
-            </label>
-          </div>
+          <EventDateTimeFields
+            values={values}
+            allDay={allDay}
+            onAllDayChange={setAllDay}
+          />
           <p>Time zone: {values.timeZone}</p>
           <label>
             Location

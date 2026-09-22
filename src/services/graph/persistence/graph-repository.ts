@@ -3,64 +3,24 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { isGraph } from "../core/graph-service";
-import {
-  applyGraphOperations,
-  diffGraph,
-  GraphConflictError,
-} from "../sync/graph-patch-service";
-import { recordsGraph } from "../sync/graph-record-service";
+import { GraphConflictError } from "../sync/graph-conflict-error";
+import { applyGraphOperations } from "../sync/graph-patch-service";
+import { diffGraph } from "../sync/graph-diff-service";
+import { recordsGraph } from "../sync/records/graph-record-service";
 import {
   graphRevision,
   isDuplicateKeyError,
   MAX_GRAPH_WRITE_ATTEMPTS,
   writeGraphCommit,
 } from "./graph-write-service";
-import { graphCollections, latestCommit } from "./stores/graph-commit-store";
-import {
-  advanceCurrentGraph,
-  currentGraphRecords,
-} from "./stores/graph-current-store";
-import { loadLegacyGraph } from "./stores/legacy-graph-repository";
+import { graphCollections } from "./stores/graph-commit-store";
+import { advanceCurrentGraph } from "./stores/graph-current-store";
+import { loadGraphSnapshot } from "./graph-snapshot-service";
 import type { Graph } from "@/types/graph/graph";
 import type {
   GraphPatch,
   GraphRevision,
-  GraphSnapshot,
 } from "@/types/graph/graph-sync";
-
-export async function loadGraphSnapshot(
-  userId: string,
-): Promise<GraphSnapshot | null> {
-  for (let attempt = 0; attempt < MAX_GRAPH_WRITE_ATTEMPTS; attempt++) {
-    const head = await latestCommit(userId);
-    if (!head) {
-      const legacyGraph = await loadLegacyGraph(userId);
-      if (!legacyGraph) return null;
-      if (!isGraph(legacyGraph)) {
-        throw new Error(
-          "The saved graph is invalid. Restore a backup in Preferences.",
-        );
-      }
-      await replaceGraph(userId, legacyGraph, true);
-      continue;
-    }
-
-    const records = await currentGraphRecords(userId, head);
-    const unchangedHead = (await latestCommit(userId))?._id === head._id;
-    if (unchangedHead) {
-      return {
-        revision: graphRevision(head.generation, head.sequence),
-        records,
-      };
-    }
-  }
-  throw new Error("The workspace is changing. Please retry loading it.");
-}
-
-export async function loadLatestGraph(userId: string): Promise<Graph | null> {
-  const snapshot = await loadGraphSnapshot(userId);
-  return snapshot ? recordsGraph(snapshot.records) : null;
-}
 
 export async function patchGraph(userId: string, patch: GraphPatch) {
   const digest = createHash("sha256")
@@ -110,34 +70,6 @@ export async function patchGraph(userId: string, patch: GraphPatch) {
   throw new Error("The workspace is busy. Please retry saving.");
 }
 
-export async function replaceGraph(
-  userId: string,
-  graph: Graph,
-  onlyIfMissing = false,
-) {
-  const head = await latestCommit(userId);
-  if (onlyIfMissing && head) return null;
-  const base = head
-    ? {
-        revision: graphRevision(head.generation, head.sequence),
-        records: [],
-      }
-    : null;
-  try {
-    return await writeGraphCommit(
-      userId,
-      graph,
-      base,
-      crypto.randomUUID(),
-      "snapshot",
-      true,
-    );
-  } catch (error) {
-    if (isDuplicateKeyError(error) && onlyIfMissing) return null;
-    throw error;
-  }
-}
-
 export async function updateGraphVersion(
   userId: string,
   update: (graph: Graph) => Graph,
@@ -162,8 +94,4 @@ export async function updateGraphVersion(
     }
   }
   throw new Error("The workspace is busy. Please retry importing.");
-}
-
-export function restoreGraphVersion(userId: string, graph: Graph) {
-  return replaceGraph(userId, graph);
 }

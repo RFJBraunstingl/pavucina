@@ -1,8 +1,8 @@
 import { auth } from "@/auth";
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error";
 import { readBoundedJson } from "@/services/http/request-json";
 import { isUserPreferences } from "@/services/preferences/preferences-service";
-import { isSettingsPatch } from "@/services/preferences/settings-patch-service";
+import { isSettingsPatch } from "@/services/preferences/patch/settings-patch-validation";
 import {
   loadPreferences,
   patchPreferences,

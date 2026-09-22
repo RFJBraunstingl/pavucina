@@ -41,13 +41,7 @@ export default function SyncConflictDialog({
     >
       <h2 id={titleId}>Resolve conflicting changes</h2>
       <p>Your edits are kept until you choose which values to save.</p>
-      <div
-        style={{
-          maxHeight: "50dvh",
-          overflow: "auto",
-          overflowWrap: "anywhere",
-        }}
-      >
+      <div className="sync-conflict-list">
         {conflicts.map((conflict, index) => (
           <div key={index}>
             <strong>{conflict.field}</strong>

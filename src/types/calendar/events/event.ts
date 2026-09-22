@@ -49,6 +49,12 @@ export type NativeEventInput = EventTimeRange & {
   timeZone: string;
 };
 
+export type EventDateTimeFieldsProps = {
+  values: NativeEventInput;
+  allDay: boolean;
+  onAllDayChange: (allDay: boolean) => void;
+};
+
 export type EventDraft = {
   id: string;
   creating: boolean;

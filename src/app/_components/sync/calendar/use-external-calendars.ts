@@ -2,7 +2,6 @@ import { signIn, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { removeConflictingChanges, selectedCalendars } from "./calendar-selection-conflicts";
-import SyncConflictDialog from "../sync-conflict-dialog";
 import {
   applyCalendarSelectionChanges,
   diffCalendarSelections,
@@ -13,23 +12,16 @@ import {
   loadCalendars,
   saveCalendarSelections,
 } from "@/services/calendar/import/storage/remote-calendar-store";
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service";
-import {
-  calendarAuthProvider,
-  calendarRange,
-} from "@/utils/calendar/events/external-calendar";
-import type { CalendarSelectionChange } from "@/types/calendar/calendar-selection-patch";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error";
+import { calendarRange } from "@/utils/calendar/events/external-calendar-layout";
+import { calendarAuthProvider } from "@/utils/calendar/events/external-calendar-source";
+import type { PendingCalendarSelection } from "@/types/calendar/calendar-selection-patch";
 import type {
   CalendarSelection,
   CalendarSource,
   CalendarsResponse,
 } from "@/types/calendar/events/external-calendar";
 import type { SyncConflict } from "@/types/graph/graph-sync";
-
-type PendingSelectionChanges = {
-  connectionId: string;
-  changes: CalendarSelectionChange[];
-};
 
 export function useExternalCalendars(
   days: string[],
@@ -41,7 +33,7 @@ export function useExternalCalendars(
   const [data, setData] = useState<CalendarsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [conflicts, setConflicts] = useState<SyncConflict[]>([]);
-  const [pending, setPending] = useState<PendingSelectionChanges | null>(null);
+  const [pending, setPending] = useState<PendingCalendarSelection | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
@@ -68,34 +60,36 @@ export function useExternalCalendars(
     return () => controller.abort();
   }, [refresh, status]);
 
-  async function runUpdate<T>(key: string, operation: () => Promise<T>) {
+  async function runUpdate(key: string, operation: () => Promise<unknown>) {
     setBusy(key);
     setError(null);
     try {
-      const result = await operation();
+      await operation();
       setData(
         await loadCalendars(range.start, range.end, undefined, includeEvents),
       );
-      return result;
+      return true;
     } catch (value) {
       if (value instanceof GraphConflictError) setConflicts(value.conflicts);
       setError(
         value instanceof Error ? value.message : "Could not update calendars",
       );
+      return false;
     } finally {
       setBusy(null);
     }
   }
 
-  function save(connectionId: string, calendars: CalendarSelection[]) {
+  async function save(connectionId: string, calendars: CalendarSelection[]) {
     const before = selectedCalendars(data, connectionId);
     setPending({
       connectionId,
       changes: diffCalendarSelections(before, calendars),
     });
-    return runUpdate(connectionId, () =>
+    const saved = await runUpdate(connectionId, () =>
       saveCalendarSelections(connectionId, calendars, before),
     );
+    if (saved) setPending(null);
   }
 
   function disconnect(connectionId: string) {
@@ -148,9 +142,6 @@ export function useExternalCalendars(
     setError(null);
   }
 
-  const conflictDialog = (
-    <SyncConflictDialog conflicts={conflicts} onResolve={resolveConflict} />
-  );
   return {
     data,
     error,
@@ -159,6 +150,7 @@ export function useExternalCalendars(
     save,
     disconnect,
     connect,
-    conflictDialog,
+    conflicts,
+    resolveConflict,
   };
 }

@@ -26,7 +26,7 @@ export default function InboxView() {
   } = useGraph();
   const {
     preferences,
-    setPreferences,
+    patchPreferences,
     syncError: preferencesError,
     retry: retryPreferences,
   } = usePreferences();
@@ -53,7 +53,7 @@ export default function InboxView() {
   const actions = useInboxActions({
     preferences,
     scheduleMode,
-    setPreferences,
+    patchPreferences,
     onSelect: setSelectedId,
   });
   const drag = useInboxDrag(actions.moveTask);
@@ -107,10 +107,10 @@ export default function InboxView() {
           dropTargetId={drag.targetId}
           onGraphChange={setGraph}
           onCollapsedIdsChange={(ids) =>
-            setPreferences({ ...preferences, collapsedTaskIds: [...ids] })
+            patchPreferences({ collapsedTaskIds: [...ids] })
           }
           onHideDoneChange={(hideDone) =>
-            setPreferences({ ...preferences, hideDone })
+            patchPreferences({ hideDone })
           }
           onSelect={setSelectedId}
         />

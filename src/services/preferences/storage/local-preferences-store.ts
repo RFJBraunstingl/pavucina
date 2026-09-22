@@ -8,7 +8,7 @@ import {
   DEFAULT_USER_PREFERENCES,
   parseUserPreferences,
 } from "../preferences-service.ts";
-import { applyPreferencesPatch } from "../settings-patch-service.ts";
+import { applyPreferencesPatch } from "../patch/settings-patch-service.ts";
 import type { UserPreferences } from "@/types/preferences/preferences.ts";
 import type { SettingsPatch } from "@/types/preferences/settings-sync.ts";
 
@@ -47,21 +47,16 @@ export async function loadGuestPreferences() {
   return preferences;
 }
 
-export async function saveGuestPreferences(
-  preferences: UserPreferences,
-  patch?: SettingsPatch,
+async function updateGuestPreferences(
+  update: (current: UserPreferences) => UserPreferences,
 ) {
   const database = await browserDatabase();
   const transaction = database.transaction("meta", "readwrite");
   const completed = idbCompletion(transaction);
   const store = transaction.objectStore("meta");
   const before = await storedPreferenceFields(store);
-  const next = patch
-    ? applyPreferencesPatch(
-        parseUserPreferences(before) ?? DEFAULT_USER_PREFERENCES,
-        patch,
-      )
-    : preferences;
+  const current = parseUserPreferences(before) ?? DEFAULT_USER_PREFERENCES;
+  const next = update(current);
 
   for (const [key, change] of Object.entries(
     changedFields(before, { ...next }),
@@ -72,4 +67,14 @@ export async function saveGuestPreferences(
   }
   await completed;
   return true;
+}
+
+export function saveGuestPreferences(preferences: UserPreferences) {
+  return updateGuestPreferences(() => preferences);
+}
+
+export function applyGuestPreferencePatch(patch: SettingsPatch) {
+  return updateGuestPreferences((current) =>
+    applyPreferencesPatch(current, patch),
+  );
 }

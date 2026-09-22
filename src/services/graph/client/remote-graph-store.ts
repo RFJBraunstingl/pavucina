@@ -1,6 +1,6 @@
 import { isGraph } from "../core/graph-service.ts";
-import { GraphConflictError } from "../sync/graph-patch-service.ts";
-import { mergeRecords, recordsGraph } from "../sync/graph-record-service.ts";
+import { GraphConflictError } from "../sync/graph-conflict-error.ts";
+import { mergeRecords, recordsGraph } from "../sync/records/graph-record-service.ts";
 import { isGraphRevision } from "../sync/graph-sync-validation.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 import type {

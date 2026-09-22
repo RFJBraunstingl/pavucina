@@ -18,3 +18,8 @@ export type PreferenceChanges = {
   revision: number;
   fields: Record<string, { after?: unknown }>;
 };
+
+export type PreferencesUpdate =
+  | UserPreferences
+  | null
+  | ((current: UserPreferences | null) => UserPreferences | null);

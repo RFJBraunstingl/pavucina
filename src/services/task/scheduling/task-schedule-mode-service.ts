@@ -1,7 +1,7 @@
 import {
   getTaskDate,
   removeUnusedDates,
-} from "./task-date-service.ts";
+} from "./dates/task-date-service.ts";
 import type {
   DateRelationshipType,
   Graph,

@@ -15,7 +15,10 @@ import { listenForSyncRefresh } from "@/app/_components/sync/sync-refresh";
 import { GraphSyncController } from "@/services/graph/sync/controller/graph-sync-controller";
 import { todayIso } from "@/utils/shared/temporal/date";
 import type { Graph } from "@/types/graph/graph";
-import type { GraphSyncView } from "@/types/graph/graph-sync-controller";
+import type {
+  GraphSyncView,
+  GraphUpdate,
+} from "@/types/graph/graph-sync-controller";
 
 const INITIAL_VIEW: GraphSyncView = {
   graph: null,
@@ -56,15 +59,15 @@ function useGraphState() {
     return () => window.clearTimeout(timer);
   }, [view.graph]);
 
-  function setGraph(
-    next: Graph | null | ((current: Graph | null) => Graph | null),
-  ) {
+  function setGraph(next: GraphUpdate) {
     controller.current?.change(next);
   }
 
   async function saveGraphNow(next: Graph) {
-    controller.current?.change(next);
-    await controller.current?.flush();
+    const sync = controller.current;
+    if (!sync) throw new Error("Workspace is loading");
+    sync.change(next);
+    await sync.flush();
   }
 
   function retry() {
@@ -79,6 +82,11 @@ function useGraphState() {
     await controller.current.restore(graph);
   }
 
+  async function refreshGraph() {
+    if (!controller.current) throw new Error("Workspace is loading");
+    await controller.current.flush();
+  }
+
   return {
     graph: view.graph,
     setGraph,
@@ -88,9 +96,7 @@ function useGraphState() {
     retry,
     saveGraphNow,
     restoreGraph,
-    adoptImportedGraph: async () => {
-      await controller.current?.flush();
-    },
+    refreshGraph,
     conflicts: view.conflicts,
     resolveConflict: async (keepMine: boolean) => {
       await controller.current?.resolve(keepMine);

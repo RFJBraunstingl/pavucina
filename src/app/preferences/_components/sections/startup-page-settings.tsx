@@ -1,20 +1,11 @@
 import { APP_PAGES } from "@/utils/navigation";
 import type { StartPage } from "@/types/preferences/navigation";
-import type { UserPreferences } from "@/types/preferences/preferences";
+import type {
+  StartupPageSelectProps,
+  StartupPageSettingsProps,
+} from "@/types/preferences/preferences-components";
 
-type Props = {
-  preferences: UserPreferences;
-  onChange: (changes: Partial<UserPreferences>) => void;
-};
-
-type SelectProps = {
-  label: string;
-  description: string;
-  value: StartPage;
-  onChange: (value: StartPage) => void;
-};
-
-function StartupPageSelect(props: SelectProps) {
+function StartupPageSelect(props: StartupPageSelectProps) {
   return (
     <label>
       <span>
@@ -34,7 +25,10 @@ function StartupPageSelect(props: SelectProps) {
   );
 }
 
-export default function StartupPageSettings({ preferences, onChange }: Props) {
+export default function StartupPageSettings({
+  preferences,
+  onChange,
+}: StartupPageSettingsProps) {
   return (
     <section className="preferences-card" aria-labelledby="startup-page-heading">
       <header>

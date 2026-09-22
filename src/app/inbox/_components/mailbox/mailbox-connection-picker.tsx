@@ -1,21 +1,9 @@
 import { useState } from "react";
 
 import { MAILBOX_SOURCES, mailboxSourceLabel } from "@/utils/mailbox";
-import type {
-  MailboxConnectionSummary,
-  MailboxSource,
-} from "@/types/mailbox/mailbox";
+import type { MailboxConnectionPickerProps } from "@/types/inbox/inbox-components";
 
-type Props = {
-  connections: MailboxConnectionSummary[] | null;
-  available?: Record<MailboxSource, boolean>;
-  busy: boolean;
-  selectedId?: string;
-  onSelect: (id: string) => void;
-  onConnect: (source: MailboxSource) => void;
-};
-
-export default function MailboxConnectionPicker(props: Props) {
+export default function MailboxConnectionPicker(props: MailboxConnectionPickerProps) {
   const [adding, setAdding] = useState(false);
   const connections = props.connections ?? [];
   const selected = connections.find(({ id }) => id === props.selectedId)

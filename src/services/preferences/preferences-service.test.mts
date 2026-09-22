@@ -8,7 +8,7 @@ import {
 } from "./preferences-service.ts";
 import {
   loadRemotePreferences,
-  saveRemotePreferences,
+  restoreRemotePreferences,
 } from "./storage/remote-preferences-store.ts";
 
 const taskId = "00000000-0000-4000-8000-000000000001";
@@ -93,7 +93,7 @@ test("remote preferences load and save the complete preference object", async ()
 
   try {
     assert.deepEqual(await loadRemotePreferences(), preferences);
-    await saveRemotePreferences(preferences);
+    await restoreRemotePreferences(preferences);
     assert.equal(requests[0].input, "/api/preferences");
     assert.equal(requests[0].init?.cache, "no-store");
     assert.equal(requests[1].init?.method, "PUT");

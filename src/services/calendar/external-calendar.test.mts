@@ -5,12 +5,13 @@ import {
   normalizeGoogleCalendarEvent,
   normalizeOutlookCalendarEvent,
 } from "./core/calendar-event.ts";
-import { calendarItem, layoutCalendarItems } from "@/utils/calendar/calendar.ts";
+import { calendarItem } from "@/utils/calendar/calendar.ts";
+import { layoutCalendarItems } from "@/utils/calendar/calendar-layout.ts";
 import {
   allDayEventsForDay,
   externalCalendarItems,
-  parseCalendarSelections,
-} from "@/utils/calendar/events/external-calendar.ts";
+} from "@/utils/calendar/events/external-calendar-layout.ts";
+import { parseCalendarSelections } from "@/utils/calendar/events/external-calendar-source.ts";
 import type {
   CalendarConnectionDocument,
   CalendarSelection,

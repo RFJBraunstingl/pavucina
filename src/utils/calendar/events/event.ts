@@ -1,7 +1,11 @@
-import { isCalendarColor, isCalendarSource } from "./external-calendar.ts";
+import { isCalendarColor, isCalendarSource } from "./external-calendar-source.ts";
 import { isUuid } from "@/utils/shared/id.ts";
 import { isTime } from "@/utils/shared/temporal/time.ts";
-import type { CalendarEventOrigin, EventProperties, ImportedEventNode } from "@/types/calendar/events/event.ts";
+import type {
+  CalendarEventOrigin,
+  EventProperties,
+  ImportedEventNode,
+} from "@/types/calendar/events/event.ts";
 import type { GraphNode } from "@/types/graph/graph.ts";
 
 export function isImportedEvent(node: GraphNode): node is ImportedEventNode {

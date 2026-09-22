@@ -9,24 +9,9 @@ import {
   getParentTaskIds,
   renameTask,
 } from "@/services/task/core/task-service";
-import type { Graph } from "@/types/graph/graph";
-import type { ScheduleMode } from "@/types/preferences/preferences";
+import type { InboxTaskPanelProps } from "@/types/inbox/inbox-components";
 
-type Props = {
-  graph: Graph;
-  scheduleMode: ScheduleMode;
-  today: string;
-  selectedId: string | null;
-  hideDone: boolean;
-  collapsedIds: ReadonlySet<string>;
-  dropTargetId: string | null;
-  onGraphChange: (graph: Graph) => void;
-  onCollapsedIdsChange: (ids: Set<string>) => void;
-  onHideDoneChange: (hideDone: boolean) => void;
-  onSelect: (id: string) => void;
-};
-
-export default function InboxTaskPanel(props: Props) {
+export default function InboxTaskPanel(props: InboxTaskPanelProps) {
   const tasks = useMemo(
     () => flattenTasks(props.graph, props.collapsedIds).filter(
       ({ task }) => !props.hideDone || !isNodeDone(props.graph, task.id),

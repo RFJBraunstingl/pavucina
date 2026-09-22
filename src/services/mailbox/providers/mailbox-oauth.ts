@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 
 import {
   openMailboxCredentials,
-  openMailboxValue,
   sealMailboxCredentials,
   sealMailboxValue,
 } from "./mailbox-crypto";
@@ -13,24 +12,13 @@ import {
   saveMailboxConnection,
 } from "../mailbox-repository";
 import { resolveUserId } from "@/services/account/auth/user-identity";
-import { isUuid } from "@/utils/shared/id";
+import { readOAuthConnectRequest } from "@/services/http/oauth/oauth-client";
 import { isMailboxSource } from "@/utils/mailbox";
+import type { OAuthProviderTokens } from "@/types/auth/oauth";
 import type { MailboxCredentials, MailboxSource } from "@/types/mailbox/mailbox";
 
 export const MAILBOX_CONNECT_COOKIE = "pavucina.mailbox-connect";
 export const MAILBOX_CONNECT_MAX_AGE = 10 * 60;
-
-type ConnectRequest = {
-  source: MailboxSource;
-  userId?: string;
-  expiresAt: number;
-};
-
-type OAuthTokens = {
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: number;
-};
 
 function authProvider(source: MailboxSource) {
   return source === "gmail" ? "google" : "microsoft-entra-id";
@@ -50,24 +38,8 @@ export function createMailboxConnectRequest(
   );
 }
 
-export function readMailboxConnectRequest(value?: string): ConnectRequest | null {
-  if (!value) return null;
-  try {
-    const request = openMailboxValue(
-      value,
-      "mailbox-connect",
-    ) as Record<string, unknown>;
-    if (
-      !isMailboxSource(request.source) ||
-      (request.userId !== undefined &&
-        (typeof request.userId !== "string" || !isUuid(request.userId))) ||
-      typeof request.expiresAt !== "number" ||
-      request.expiresAt < Date.now()
-    ) return null;
-    return request as ConnectRequest;
-  } catch {
-    return null;
-  }
+export function readMailboxConnectRequest(value?: string) {
+  return readOAuthConnectRequest(value, "mailbox-connect", isMailboxSource);
 }
 
 async function currentRequest(source: MailboxSource) {
@@ -88,7 +60,7 @@ export async function connectMailboxFromOAuth(
   source: MailboxSource,
   providerAccountId: string,
   address: string,
-  tokens: OAuthTokens,
+  tokens: OAuthProviderTokens,
 ) {
   if (!tokens.access_token) throw new Error("Mailbox access was not granted");
   const userId = await targetUserId(source, providerAccountId);

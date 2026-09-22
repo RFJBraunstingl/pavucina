@@ -1,4 +1,4 @@
-import { removeUnusedDates } from "@/services/task/scheduling/task-date-service.ts";
+import { removeUnusedDates } from "@/services/task/scheduling/dates/task-date-service.ts";
 import { importedEventSchedule } from "../event-schedule-service.ts";
 import { importedEventProperties } from "./event-import-properties.ts";
 import {
@@ -48,7 +48,11 @@ export function upsertImportedEvents(
       properties,
     };
     if (existing) {
-      nodes[nodeIndexes.get(existing.id)!] = node;
+      const existingIndex = nodeIndexes.get(existing.id);
+      if (existingIndex === undefined) {
+        throw new Error("Imported event index is inconsistent");
+      }
+      nodes[existingIndex] = node;
     } else {
       nodeIndexes.set(node.id, nodes.length);
       nodes.push(node);

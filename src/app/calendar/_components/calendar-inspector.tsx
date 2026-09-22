@@ -1,16 +1,6 @@
 import TaskInspector from "@/app/_components/task/task-inspector";
 import EventInspector from "./editor/event-inspector";
-import type { Graph } from "@/types/graph/graph";
-import type { ScheduleMode } from "@/types/preferences/preferences";
-
-type CalendarInspectorProps = {
-  graph: Graph;
-  selectedId: string | null;
-  scheduleMode: ScheduleMode;
-  scheduleDate: string;
-  onEditEvent: (eventId: string) => void;
-  onDeleteTask: () => void;
-};
+import type { CalendarInspectorProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarInspector({
   graph,

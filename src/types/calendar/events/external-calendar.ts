@@ -121,3 +121,10 @@ export type CalendarImportError = {
   calendarId?: string;
   message: string;
 };
+
+export type CalendarConnectionSync = {
+  batches: CalendarSyncBatch[];
+  calendars?: ProviderCalendar[];
+  errors: CalendarImportError[];
+  states: CalendarEventSyncState[];
+};

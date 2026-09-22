@@ -1,10 +1,10 @@
-import { getTaskDate } from "../task-date-service.ts";
+import { getTaskDate } from "../dates/task-date-service.ts";
 import { getTaskTime } from "../task-time-service.ts";
 import {
-  calendarItemEnd,
   CALENDAR_END,
   CALENDAR_RESIZE_STEP,
 } from "@/utils/calendar/calendar.ts";
+import { calendarItemEnd } from "@/utils/calendar/calendar-layout.ts";
 import { graphCalendarItems } from "@/utils/calendar/events/graph-calendar.ts";
 import { timeToMinutes } from "@/utils/shared/temporal/time.ts";
 import type { EventNode } from "@/types/calendar/events/event.ts";

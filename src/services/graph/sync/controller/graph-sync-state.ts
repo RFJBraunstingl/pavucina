@@ -4,18 +4,29 @@ import {
   loadRemoteGraph,
   saveRemoteGraph,
 } from "../../client/remote-graph-store.ts";
-import {
-  applyGraphOperations,
-  diffGraph,
-  GraphConflictError,
-} from "../graph-patch-service.ts";
-import { recordsGraph } from "../graph-record-service.ts";
+import { GraphConflictError } from "../graph-conflict-error.ts";
+import { applyGraphOperations } from "../graph-patch-service.ts";
+import { diffGraph } from "../graph-diff-service.ts";
+import { recordsGraph } from "../records/graph-record-service.ts";
 import { withoutConflictingOperations } from "@/utils/shared/sync-conflicts.ts";
+import type { Graph } from "@/types/graph/graph.ts";
 import type {
   GraphPatch,
+  GraphRevision,
   GraphSnapshot,
   SyncConflict,
 } from "@/types/graph/graph-sync.ts";
+
+export function createGraphPatch(
+  before: Graph,
+  after: Graph,
+  baseRevision: GraphRevision,
+) {
+  const operations = diffGraph(before, after);
+  return operations.length
+    ? { mutationId: crypto.randomUUID(), baseRevision, operations }
+    : null;
+}
 
 export function graphWithPendingPatches(
   snapshot: GraphSnapshot,
@@ -39,10 +50,16 @@ export function graphWithPendingPatches(
   return graph;
 }
 
+export async function loadGuestSnapshot() {
+  const saved = await readBrowserGraph("guest");
+  if (!saved) throw new Error("Guest workspace is missing from browser storage");
+  return saved.snapshot;
+}
+
 export async function loadGuestSyncState(cacheScope: string, today: string) {
   await loadGuestGraph(today);
   return {
-    snapshot: (await readBrowserGraph("guest"))!.snapshot,
+    snapshot: await loadGuestSnapshot(),
     patches: (await readBrowserGraph(cacheScope))?.patches ?? [],
   };
 }

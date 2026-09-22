@@ -22,7 +22,10 @@ export async function graphCurrentCollection() {
   const collection = (await getMongoDatabase())
     .collection<GraphCurrentDocument>("graph_current");
   index ??= collection.createIndex({ kind: 1, userId: 1, generation: 1 })
-    .catch((error) => { index = undefined; throw error; });
+    .catch((error) => {
+      index = undefined;
+      throw error;
+    });
   await index;
   return collection;
 }
@@ -48,15 +51,21 @@ async function writeCurrentRecords(
       userId,
       generation,
     };
-    return { updateOne: {
-      filter: { _id: document._id },
-      update: [{ $replaceWith: { $cond: [
-        { $lt: [{ $ifNull: ["$sequence", -1] }, record.sequence] },
-        { $literal: document },
-        "$$ROOT",
-      ] } }],
-      upsert: true,
-    } };
+    return {
+      updateOne: {
+        filter: { _id: document._id },
+        update: [{
+          $replaceWith: {
+            $cond: [
+              { $lt: [{ $ifNull: ["$sequence", -1] }, record.sequence] },
+              { $literal: document },
+              "$$ROOT",
+            ],
+          },
+        }],
+        upsert: true,
+      },
+    };
   });
   await (await graphCurrentCollection()).bulkWrite(operations, { ordered: false });
 }
@@ -75,9 +84,15 @@ async function advanceHead(
     sequence: target.sequence,
   };
   if (!before) {
-    try { await collection.insertOne(document); return true; }
-    catch (error) {
-      if (error && typeof error === "object" && "code" in error && error.code === 11000) return false;
+    try {
+      await collection.insertOne(document);
+      return true;
+    } catch (error) {
+      const duplicateHead = error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === 11000;
+      if (duplicateHead) return false;
       throw error;
     }
   }
@@ -95,7 +110,10 @@ export async function advanceCurrentGraph(userId: string, target: GraphCommit) {
     const before = await projectedHead(userId);
     if (before && before.sequence >= target.sequence) return;
     const after = before?.generation === target.generation ? before.sequence : -1;
-    const records = await publishedRecords(userId, target, true, after);
+    const records = await publishedRecords(userId, target, {
+      includeDeleted: true,
+      after,
+    });
     await writeCurrentRecords(userId, target.generation, records);
     if (await advanceHead(userId, before, target)) return;
   }
@@ -110,7 +128,14 @@ export async function currentGraphRecords(userId: string, target: GraphCommit) {
     generation: target.generation,
     deleted: { $ne: true },
   }).toArray() as GraphCurrentRecordDocument[];
-  return documents.map(({ collection, id, value, order, deleted, sequence }) => ({
-    collection, id, value, order, deleted, sequence,
-  }));
+  return documents.map(
+    ({ collection, id, value, order, deleted, sequence }) => ({
+      collection,
+      id,
+      value,
+      order,
+      deleted,
+      sequence,
+    }),
+  );
 }

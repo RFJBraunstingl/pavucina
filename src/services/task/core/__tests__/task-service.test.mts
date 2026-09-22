@@ -9,8 +9,8 @@ import {
 } from "../task-service.ts";
 import {
   getTaskDate,
-  setTaskDates,
-} from "../../scheduling/task-date-service.ts";
+} from "../../scheduling/dates/task-date-service.ts";
+import { setTaskDates } from "../../scheduling/dates/task-date-range-service.ts";
 import {
   ensureRootNode,
   isGraph,

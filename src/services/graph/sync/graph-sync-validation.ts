@@ -1,6 +1,7 @@
 import { GRAPH_COLLECTIONS } from "./graph-patch-service.ts";
 import { isUuid as matchesUuid } from "@/utils/shared/id.ts";
 import type {
+  GraphCollection,
   GraphOperation,
   GraphPatch,
   GraphRevision,
@@ -21,6 +22,11 @@ function optionalUuid(value: unknown) {
   return value === null || isUuid(value);
 }
 
+function isGraphCollection(value: unknown): value is GraphCollection {
+  return typeof value === "string" &&
+    GRAPH_COLLECTIONS.some((collection) => collection === value);
+}
+
 function isFieldChanges(value: unknown) {
   return object(value) && Object.entries(value).every(([field, change]) =>
     EDITABLE_FIELD.test(field) &&
@@ -32,7 +38,7 @@ function isFieldChanges(value: unknown) {
 
 function isGraphOperation(value: unknown): value is GraphOperation {
   if (!object(value) ||
-    !GRAPH_COLLECTIONS.includes(value.collection as never) ||
+    !isGraphCollection(value.collection) ||
     !isUuid(value.id)) {
     return false;
   }

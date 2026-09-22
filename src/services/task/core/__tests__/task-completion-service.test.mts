@@ -7,7 +7,7 @@ import {
   reopenNode,
 } from "@/services/event/completion-service.ts";
 import { isGraph } from "@/services/graph/core/graph-service.ts";
-import { removeUnusedDates } from "../../scheduling/task-date-service.ts";
+import { removeUnusedDates } from "../../scheduling/dates/task-date-service.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph.ts";
 
 const task = (name: string): TaskNode => ({

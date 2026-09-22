@@ -1,4 +1,4 @@
-import { setTaskDates } from "@/services/task/scheduling/task-date-service.ts";
+import { setTaskDates } from "@/services/task/scheduling/dates/task-date-range-service.ts";
 import { setTaskTimes } from "@/services/task/scheduling/task-time-service.ts";
 import { clearParentTaskSchedules } from "@/services/task/scheduling/task-schedule-mode-service.ts";
 import { ensureRootNode } from "@/services/graph/core/graph-service.ts";

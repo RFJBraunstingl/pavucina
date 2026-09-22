@@ -14,7 +14,10 @@ import SyncConflictDialog from "./sync-conflict-dialog";
 import { listenForSyncRefresh } from "./sync-refresh";
 import { PreferencesSyncController } from "@/services/preferences/preferences-sync-controller";
 import type { UserPreferences } from "@/types/preferences/preferences";
-import type { PreferencesView } from "@/types/preferences/preferences-sync";
+import type {
+  PreferencesUpdate,
+  PreferencesView,
+} from "@/types/preferences/preferences-sync";
 
 const INITIAL_VIEW: PreferencesView = {
   preferences: null,
@@ -40,13 +43,12 @@ function usePreferencesState() {
     };
   }, [scope, status]);
 
-  function setPreferences(
-    next:
-      | UserPreferences
-      | null
-      | ((current: UserPreferences | null) => UserPreferences | null),
-  ) {
+  function setPreferences(next: PreferencesUpdate) {
     controller.current?.change(next);
+  }
+
+  function patchPreferences(changes: Partial<UserPreferences>) {
+    setPreferences((current) => current ? { ...current, ...changes } : current);
   }
 
   async function restorePreferences(next: UserPreferences) {
@@ -58,6 +60,7 @@ function usePreferencesState() {
     preferences: view.preferences,
     syncError: view.error,
     setPreferences,
+    patchPreferences,
     retry: () => void controller.current?.flush().catch(() => undefined),
     restorePreferences,
     conflicts: view.conflicts,

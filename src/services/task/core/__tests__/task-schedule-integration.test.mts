@@ -4,15 +4,17 @@ import test from "node:test";
 import {
   addChildTask,
   flattenTasks,
-  getLeafTasksForDate,
 } from "../task-service.ts";
+import { getLeafTasksForDate } from "../../scheduling/day/task-day-view-service.ts";
 import {
   getTaskDate,
+  setTaskDate,
+} from "../../scheduling/dates/task-date-service.ts";
+import {
   moveTask,
   resizeTask,
-  setTaskDate,
   setTaskDates,
-} from "../../scheduling/task-date-service.ts";
+} from "../../scheduling/dates/task-date-range-service.ts";
 import {
   getTaskTime,
   moveScheduledTask,

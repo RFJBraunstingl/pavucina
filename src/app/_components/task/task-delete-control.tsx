@@ -1,9 +1,5 @@
 import { useRef } from "react";
-
-type TaskDeleteControlProps = {
-  taskName: string;
-  onDelete: () => void;
-};
+import type { TaskDeleteControlProps } from "@/types/timeline/timeline-task";
 
 export default function TaskDeleteControl({
   taskName,

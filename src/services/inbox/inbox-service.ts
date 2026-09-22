@@ -67,7 +67,8 @@ export function setInboxTaskDescription(
   id: string,
   description: string,
 ) {
-  const task = graph.inboxNodes?.find((node) => node.id === id);
+  const inboxNodes = graph.inboxNodes ?? [];
+  const task = inboxNodes.find((node) => node.id === id);
   const value = description || undefined;
   if (!task || task.properties.description === value) return graph;
   return {
@@ -94,13 +95,14 @@ export function moveInboxTask(
   parentId: string,
   scheduleMode: ScheduleMode,
 ) {
-  const task = graph.inboxNodes?.find((node) => node.id === id);
+  const inboxNodes = graph.inboxNodes ?? [];
+  const task = inboxNodes.find((node) => node.id === id);
   if (!task) return graph;
   const withChild = addChildTask(graph, parentId, task.id, scheduleMode);
   if (withChild === graph) return graph;
   return {
     ...withChild,
     nodes: withChild.nodes.map((node) => node.id === task.id ? task : node),
-    inboxNodes: graph.inboxNodes!.filter((node) => node.id !== id),
+    inboxNodes: inboxNodes.filter((node) => node.id !== id),
   };
 }

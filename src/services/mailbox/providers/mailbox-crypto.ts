@@ -2,7 +2,7 @@ import {
   openOAuthCredentials,
   openOAuthValue,
   sealOAuthValue,
-} from "@/services/http/oauth-client.ts";
+} from "@/services/http/oauth/oauth-crypto.ts";
 import type { MailboxCredentials } from "@/types/mailbox/mailbox";
 
 export const sealMailboxValue = sealOAuthValue;

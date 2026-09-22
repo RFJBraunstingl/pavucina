@@ -1,15 +1,7 @@
 import { mailboxSourceLabel } from "@/utils/mailbox";
-import type { MailMessage } from "@/types/mailbox/mailbox";
+import type { MailMessageListProps } from "@/types/inbox/inbox-components";
 
-type Props = {
-  messages: MailMessage[];
-  loading: boolean;
-  busy: string | null;
-  onAdd: (message: MailMessage) => void;
-  onIgnore: (message: MailMessage) => void;
-};
-
-export default function MailMessageList(props: Props) {
+export default function MailMessageList(props: MailMessageListProps) {
   if (props.loading) return <p className="source-empty">Loading unread mail…</p>;
   if (!props.messages.length) {
     return <p className="source-empty">No unread inbox mail.</p>;

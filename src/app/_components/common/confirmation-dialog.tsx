@@ -1,19 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef } from "react";
+import type { ConfirmationDialogProps } from "@/types/shared/components";
 
-type Props = {
-  open: boolean;
-  title: string;
-  message: ReactNode;
-  confirmLabel: string;
-  busy?: boolean;
-  busyLabel?: string;
-  onConfirm: () => void;
-  onClose: () => void;
-};
-
-export default function ConfirmationDialog(props: Props) {
+export default function ConfirmationDialog(props: ConfirmationDialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const headingId = useId();
 

@@ -1,4 +1,5 @@
-import { calendarItemEnd, CALENDAR_RESIZE_STEP } from "./calendar.ts";
+import { CALENDAR_RESIZE_STEP } from "./calendar.ts";
+import { calendarItemEnd } from "./calendar-layout.ts";
 import { addDays } from "@/utils/shared/temporal/date.ts";
 import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time.ts";
 import type { CalendarLayoutItem } from "@/types/calendar/calendar-layout.ts";
@@ -38,8 +39,15 @@ export function suggestCalendarEvent(
 }
 
 export function defaultCalendarEvent(items: CalendarLayoutItem[], date: string): EventTimeRange {
+  const fallback = {
+    startDate: date,
+    endDate: date,
+    startTime: "09:00",
+    endTime: "10:00",
+  };
   const gap = calendarFreeGaps(items, date).find(([, end]) => end > 9 * 60);
-  if (!gap) return { startDate: date, endDate: date, startTime: "09:00", endTime: "10:00" };
-  const range = suggestCalendarEvent(items, date, Math.max(gap[0], 9 * 60))!;
+  if (!gap) return fallback;
+  const range = suggestCalendarEvent(items, date, Math.max(gap[0], 9 * 60));
+  if (!range) return fallback;
   return range.startTime < "09:00" ? { ...range, startTime: "09:00" } : range;
 }

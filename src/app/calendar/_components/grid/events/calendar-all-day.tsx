@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { allDayEventsForDay } from "@/utils/calendar/events/external-calendar";
+import { allDayEventsForDay } from "@/utils/calendar/events/external-calendar-layout";
 import { importedAllDayEvents } from "@/utils/calendar/events/graph-calendar";
 import type { ExternalCalendarEvent } from "@/types/calendar/events/external-calendar";
 import type { EventNode } from "@/types/calendar/events/event";

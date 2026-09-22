@@ -9,9 +9,9 @@ import {
 } from "@/services/task/scheduling/day/task-day-schedule-service";
 import {
   getTaskDate,
-  updateTaskDate,
-} from "@/services/task/scheduling/task-date-service";
-import { setTaskTime } from "@/services/task/core/task-service";
+} from "@/services/task/scheduling/dates/task-date-service";
+import { updateTaskDate } from "@/services/task/scheduling/dates/task-date-range-service";
+import { setTaskTime } from "@/services/task/scheduling/task-time-service";
 import { compactDateLabel } from "@/utils/shared/temporal/date";
 import type { DateRelationshipType, TimeProperty } from "@/types/graph/graph";
 import type { TaskScheduleFieldsProps } from "@/types/timeline/timeline-task";

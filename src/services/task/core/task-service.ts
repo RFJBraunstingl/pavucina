@@ -1,15 +1,8 @@
-import {
-  getTaskDate,
-  removeUnusedDates,
-} from "../scheduling/task-date-service.ts";
+import { removeUnusedDates } from "../scheduling/dates/task-date-service.ts";
 import { clearTaskSchedule } from "../scheduling/task-schedule-mode-service.ts";
-import {
-  flattenTasks,
-  getTaskAndDescendantIds,
-} from "./task-tree-service.ts";
+import { getTaskAndDescendantIds } from "./task-tree-service.ts";
 import { ensureRootNode } from "@/services/graph/core/graph-service.ts";
-import { isTime } from "@/utils/shared/temporal/time.ts";
-import type { Graph, TimeProperty } from "@/types/graph/graph";
+import type { Graph } from "@/types/graph/graph";
 import type { ScheduleMode } from "@/types/preferences/preferences";
 
 export {
@@ -52,26 +45,6 @@ export function setTaskDescription(
   };
 }
 
-export function setTaskTime(
-  graph: Graph,
-  taskId: string,
-  type: TimeProperty,
-  value: string,
-) {
-  if (value && !isTime(value)) throw new Error(`Invalid time: ${value}`);
-  return {
-    ...graph,
-    nodes: graph.nodes.map((node) =>
-      node.id === taskId && node.type === "task"
-        ? {
-            ...node,
-            properties: { ...node.properties, [type]: value || undefined },
-          }
-        : node,
-    ),
-  };
-}
-
 export function deleteTask(graph: Graph, taskId: string) {
   const deletedIds = getTaskAndDescendantIds(graph, taskId);
   if (!deletedIds.size) return graph;
@@ -85,29 +58,6 @@ export function deleteTask(graph: Graph, taskId: string) {
         !deletedIds.has(relationship.targetId),
     ),
   });
-}
-
-export function getLeafTasksForDate(graph: Graph, date: string) {
-  const parentIds = new Set(
-    graph.relationships
-      .filter((relationship) => relationship.type === "child")
-      .map((relationship) => relationship.sourceId),
-  );
-  return flattenTasks(graph)
-    .map(({ task }) => task)
-    .filter((task) => {
-      const start = getTaskDate(graph, task.id, "plannedStartDate");
-      const end = getTaskDate(graph, task.id, "plannedEndDate") ?? start;
-      return Boolean(
-        !parentIds.has(task.id) && start && end && start <= date && date <= end,
-      );
-    })
-    .sort(
-      (left, right) =>
-        (left.properties.plannedStartTime ?? "24:00").localeCompare(
-          right.properties.plannedStartTime ?? "24:00",
-        ) || left.properties.name.localeCompare(right.properties.name),
-    );
 }
 
 export function addChildTask(
@@ -146,6 +96,7 @@ export function addChildTask(
 
 export function addTopLevelTask(graph: Graph, taskId: string) {
   const rootedGraph = ensureRootNode(graph);
-  const root = rootedGraph.nodes.find((node) => node.type === "root")!;
+  const root = rootedGraph.nodes.find((node) => node.type === "root");
+  if (!root) throw new Error("Could not create the workspace root");
   return addChildTask(rootedGraph, root.id, taskId);
 }

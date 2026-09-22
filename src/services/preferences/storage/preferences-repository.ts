@@ -6,7 +6,7 @@ import {
   DEFAULT_USER_PREFERENCES,
   parseUserPreferences,
 } from "../preferences-service.ts";
-import { applyPreferencesPatch } from "../settings-patch-service.ts";
+import { applyPreferencesPatch } from "../patch/settings-patch-service.ts";
 import type {
   UserPreferences,
   UserSettingsDocument,
@@ -74,7 +74,7 @@ function settingsUpdate(
     else set[`settings.${key}`] = change.after;
   }
   return {
-    ...(Object.keys(set).length && { $set: set }),
+    $set: set,
     ...(Object.keys(unset).length && { $unset: unset }),
   };
 }
@@ -96,7 +96,8 @@ export async function patchPreferences(
   );
 
   for (let attempt = 0; attempt < MAX_PATCH_ATTEMPTS; attempt++) {
-    const document = (await collection.findOne({ userId }))!;
+    const document = await collection.findOne({ userId });
+    if (!document) throw new Error("Stored preferences disappeared during update");
     const current = parseUserPreferences(document.settings);
     if (!current) throw new Error("Stored preferences are invalid");
     const next = applyPreferencesPatch(current, patch);

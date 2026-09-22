@@ -1,4 +1,4 @@
-import { readBrowserGraph, writeBrowserGraph } from "../../client/browser-database.ts";
+import { writeBrowserGraph } from "../../client/browser-database.ts";
 import { saveGuestGraph } from "../../client/local-graph-store.ts";
 import {
   loadRemoteGraph,
@@ -7,13 +7,12 @@ import {
   sendGraphPatch,
 } from "../../client/remote-graph-store.ts";
 import { commitGuestPatches } from "../guest-graph-commit.ts";
+import { GraphConflictError } from "../graph-conflict-error.ts";
 import {
-  diffGraph,
-  GraphConflictError,
-} from "../graph-patch-service.ts";
-import {
+  createGraphPatch,
   graphWithPendingPatches,
   loadAccountSyncState,
+  loadGuestSnapshot,
   loadGuestSyncState,
   resolvePendingPatches,
 } from "./graph-sync-state.ts";
@@ -24,7 +23,10 @@ import type {
   GraphSnapshot,
   SyncConflict,
 } from "@/types/graph/graph-sync.ts";
-import type { GraphSyncListener } from "@/types/graph/graph-sync-controller.ts";
+import type {
+  GraphSyncListener,
+  GraphUpdate,
+} from "@/types/graph/graph-sync-controller.ts";
 
 export class GraphSyncController {
   graph: Graph | null = null;
@@ -33,43 +35,42 @@ export class GraphSyncController {
 
   private patches: GraphPatch[] = [];
   private conflicts: SyncConflict[] = [];
-  private running: Promise<void> | null = null;
-  private disk: Promise<void> = Promise.resolve();
-  private readonly cacheScope: string;
+  private syncPromise: Promise<void> | null = null;
+  private cacheWrite: Promise<void> = Promise.resolve();
+  private readonly cacheKey: string;
 
   constructor(
     readonly scope: string,
-    private readonly listener: GraphSyncListener,
+    private readonly onStateChange: GraphSyncListener,
   ) {
-    this.cacheScope = `${scope}:${browserTabId()}`;
+    this.cacheKey = `${scope}:${browserTabId()}`;
   }
 
   get hasPending() {
     return this.patches.length > 0;
   }
 
-  private notify(error: string | null = null) {
-    if (this.active) {
-      this.listener({ graph: this.graph, error, conflicts: this.conflicts });
-    }
+  private publishState(error: string | null = null) {
+    if (!this.active) return;
+    this.onStateChange({ graph: this.graph, error, conflicts: this.conflicts });
   }
 
   private saveCache() {
     if (!this.snapshot) return Promise.resolve();
     const snapshot = this.snapshot;
     const patches = [...this.patches];
-    this.disk = this.disk
+    this.cacheWrite = this.cacheWrite
       .catch(() => undefined)
-      .then(() => writeBrowserGraph(this.cacheScope, snapshot, patches));
-    return this.disk;
+      .then(() => writeBrowserGraph(this.cacheKey, snapshot, patches));
+    return this.cacheWrite;
   }
 
   async open(today: string) {
     try {
       const state = this.scope === "guest"
-        ? await loadGuestSyncState(this.cacheScope, today)
+        ? await loadGuestSyncState(this.cacheKey, today)
         : await loadAccountSyncState(
-            this.cacheScope,
+            this.cacheKey,
             today,
             () => this.active,
           );
@@ -77,65 +78,56 @@ export class GraphSyncController {
       this.snapshot = state.snapshot;
       this.patches = state.patches;
       this.graph = graphWithPendingPatches(this.snapshot, this.patches);
-      this.notify();
+      this.publishState();
       await this.flush();
     } catch (error) {
-      this.fail(error);
+      this.publishError(error);
     }
   }
 
-  change(next: Graph | null | ((current: Graph | null) => Graph | null)) {
+  change(next: GraphUpdate) {
     const graph = typeof next === "function" ? next(this.graph) : next;
     if (!graph || !this.snapshot || !this.graph) return;
-    const operations = diffGraph(this.graph, graph);
-    if (operations.length) {
-      this.patches.push({
-        mutationId: crypto.randomUUID(),
-        baseRevision: this.snapshot.revision,
-        operations,
-      });
-    }
+    const patch = createGraphPatch(this.graph, graph, this.snapshot.revision);
+    if (patch) this.patches.push(patch);
     this.graph = graph;
-    this.notify();
-    void this.saveCache().catch((error) => this.fail(error));
+    this.publishState();
+    void this.saveCache().catch((error) => this.publishError(error));
   }
 
-  private fail(error: unknown) {
+  private publishError(error: unknown) {
     if (error instanceof GraphConflictError) this.conflicts = error.conflicts;
-    this.notify(
+    this.publishState(
       error instanceof Error ? error.message : "Could not synchronize workspace",
     );
   }
 
   flush(): Promise<void> {
-    if (this.running) return this.running;
-    this.running = this.synchronize().then(
-      () => {
-        this.running = null;
+    if (this.syncPromise) return this.syncPromise;
+    this.syncPromise = this.synchronize()
+      .finally(() => {
+        this.syncPromise = null;
+      })
+      .then(() => {
         if (this.active && !this.conflicts.length && this.patches.length) {
           return this.flush();
         }
-      },
-      (error) => {
-        this.running = null;
-        throw error;
-      },
-    );
-    return this.running;
+      });
+    return this.syncPromise;
   }
 
   private async synchronize() {
     try {
-      await this.disk;
+      await this.cacheWrite;
       if (!this.active || !this.snapshot) return;
       if (this.conflicts.length) throw new GraphConflictError(this.conflicts);
       if (this.scope === "guest") await this.synchronizeGuest();
-      else await this.synchronizeAccount();
+      else await this.synchronizeAccount(this.snapshot);
       if (!this.active) return;
       await this.saveCache();
-      this.notify();
+      this.publishState();
     } catch (error) {
-      this.fail(error);
+      this.publishError(error);
       throw error;
     }
   }
@@ -147,26 +139,28 @@ export class GraphSyncController {
     this.graph = graphWithPendingPatches(this.snapshot, this.patches);
   }
 
-  private async synchronizeAccount() {
+  private async synchronizeAccount(snapshot: GraphSnapshot) {
     while (this.patches.length && this.active) {
       await sendGraphPatch(this.patches[0]);
       if (!this.active) return;
-      this.snapshot = await pullGraphChanges(this.snapshot!);
+      snapshot = await pullGraphChanges(snapshot);
+      this.snapshot = snapshot;
       if (!this.active) return;
       this.patches.shift();
       await this.saveCache();
     }
     if (!this.active) return;
-    this.snapshot = await pullGraphChanges(this.snapshot!);
+    snapshot = await pullGraphChanges(snapshot);
+    this.snapshot = snapshot;
     if (this.active) {
-      this.graph = graphWithPendingPatches(this.snapshot, this.patches);
+      this.graph = graphWithPendingPatches(snapshot, this.patches);
     }
   }
 
   async resolve(keepMine: boolean) {
     if (!this.snapshot) return;
     this.snapshot = this.scope === "guest"
-      ? (await readBrowserGraph("guest"))!.snapshot
+      ? await loadGuestSnapshot()
       : await pullGraphChanges(this.snapshot);
     const resolved = resolvePendingPatches(
       this.snapshot,
@@ -178,25 +172,25 @@ export class GraphSyncController {
     this.conflicts = [];
     this.graph = resolved.graph;
     await this.saveCache();
-    this.notify();
+    this.publishState();
     await this.flush();
   }
 
   async restore(graph: Graph) {
-    await this.running?.catch(() => undefined);
+    await this.syncPromise?.catch(() => undefined);
     this.ensureActiveRestore();
     if (this.scope === "guest") await saveGuestGraph(graph, true);
     else await restoreRemoteGraph(graph);
     this.ensureActiveRestore();
     this.snapshot = this.scope === "guest"
-      ? (await readBrowserGraph("guest"))!.snapshot
+      ? await loadGuestSnapshot()
       : await loadRemoteGraph();
     this.ensureActiveRestore();
     this.patches = [];
     this.conflicts = [];
     this.graph = graph;
     await this.saveCache();
-    this.notify();
+    this.publishState();
   }
 
   private ensureActiveRestore() {

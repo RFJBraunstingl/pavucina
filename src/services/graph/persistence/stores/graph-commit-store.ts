@@ -50,9 +50,13 @@ export async function latestCommit(userId: string) {
 export async function publishedRecords(
   userId: string,
   revision: GraphRevision,
-  includeDeleted = false,
-  after = -1,
+  options: {
+    includeDeleted?: boolean;
+    after?: number;
+    ids?: string[];
+  } = {},
 ) {
+  const { includeDeleted = false, after = -1, ids } = options;
   const { records } = await graphCollections();
   return records.aggregate<PublishedGraphRecord>([
     {
@@ -60,6 +64,7 @@ export async function publishedRecords(
         userId,
         generation: revision.generation,
         sequence: { $gt: after, $lte: revision.sequence },
+        ...(ids && { id: { $in: ids } }),
       },
     },
     {

@@ -1,15 +1,8 @@
-import {
-  getTaskDate,
-  setTaskDates,
-} from "../task-date-service.ts";
-import { setTaskTimes } from "../task-time-service.ts";
-import { flattenTasks, setTaskTime } from "../../core/task-service.ts";
+import { setTaskDates } from "../dates/task-date-range-service.ts";
+import { setTaskTime, setTaskTimes } from "../task-time-service.ts";
 import { findAvailableStart } from "./task-availability-service.ts";
-import { isNodeDone } from "@/services/event/completion-service.ts";
-import { isTaskSchedulable } from "../task-schedule-mode-service.ts";
-import { layoutCalendarItems } from "@/utils/calendar/calendar.ts";
 import { isIsoDate } from "@/utils/shared/temporal/date.ts";
-import { dayScheduleItem, DAY_END } from "@/utils/calendar/day-schedule.ts";
+import { DAY_END } from "@/utils/calendar/day-schedule.ts";
 import {
   addDateTime,
   isTime,
@@ -17,8 +10,6 @@ import {
   timeToMinutes,
 } from "@/utils/shared/temporal/time.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph";
-import type { ScheduleMode } from "@/types/preferences/preferences";
-import type { DaySchedule } from "@/types/calendar/events/schedule";
 
 const DEFAULT_DURATION = 60;
 
@@ -55,63 +46,6 @@ export function scheduleTaskOnDay(graph: Graph, taskId: string, day: string) {
     startTime,
     end.time,
   );
-}
-
-export function getDaySchedule(
-  graph: Graph,
-  date: string,
-  scheduleMode: ScheduleMode,
-  hideDone: boolean,
-): DaySchedule {
-  const events = [];
-  const unscheduled = [];
-  for (const { task } of flattenTasks(graph)) {
-    if (!isTaskSchedulable(graph, task.id, scheduleMode)) continue;
-    if (hideDone && isNodeDone(graph, task.id)) continue;
-    const startDate = getTaskDate(graph, task.id, "plannedStartDate");
-    const endDate = getTaskDate(graph, task.id, "plannedEndDate");
-    if (!startDate || !endDate || date < startDate || date > endDate) continue;
-    const duration = taskDuration(task);
-    if (startDate === date && endDate === date && duration) {
-      events.push(
-        dayScheduleItem(
-          task,
-          date,
-          task.properties.plannedStartTime!,
-          task.properties.plannedEndTime!,
-        ),
-      );
-    } else {
-      unscheduled.push({ task, startDate, endDate });
-    }
-  }
-  return { events: layoutCalendarItems(events), unscheduled };
-}
-
-export function getOverdueTasks(
-  graph: Graph,
-  today: string,
-  scheduleMode: ScheduleMode,
-) {
-  return flattenTasks(graph)
-    .flatMap(({ task }) => {
-      if (
-        isNodeDone(graph, task.id) ||
-        !isTaskSchedulable(graph, task.id, scheduleMode)
-      ) {
-        return [];
-      }
-      const startDate = getTaskDate(graph, task.id, "plannedStartDate");
-      const endDate = getTaskDate(graph, task.id, "plannedEndDate");
-      return startDate && endDate && endDate < today
-        ? [{ task, startDate, endDate }]
-        : [];
-    })
-    .sort(
-      (left, right) =>
-        left.endDate.localeCompare(right.endDate) ||
-        left.task.properties.name.localeCompare(right.task.properties.name),
-    );
 }
 
 export function scheduleTaskForDay(

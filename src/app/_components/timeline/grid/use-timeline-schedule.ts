@@ -5,7 +5,7 @@ import { isTaskSchedulable } from "@/services/task/scheduling/task-schedule-mode
 import {
   moveTask,
   resizeTask,
-} from "@/services/task/scheduling/task-date-service";
+} from "@/services/task/scheduling/dates/task-date-range-service";
 import type {
   DragMode,
   DragState,

@@ -3,13 +3,12 @@ import "server-only";
 import { getMongoDatabase } from "@/services/infrastructure/mongodb";
 import type {
   CalendarConnectionDocument,
-  CalendarEventSyncState,
   CalendarSource,
 } from "@/types/calendar/events/external-calendar";
 
 let indexesPromise: Promise<unknown> | undefined;
 
-async function connections() {
+export async function calendarConnections() {
   const collection = (await getMongoDatabase()).collection<CalendarConnectionDocument>(
     "calendar_connections",
   );
@@ -28,7 +27,7 @@ async function connections() {
 }
 
 export async function listCalendarConnections(userId: string) {
-  return (await connections())
+  return (await calendarConnections())
     .find({ userId })
     .sort({ source: 1, address: 1 })
     .toArray();
@@ -38,7 +37,7 @@ export async function findCalendarConnection(
   userId: string,
   connectionId: string,
 ) {
-  return (await connections()).findOne({ _id: connectionId, userId });
+  return (await calendarConnections()).findOne({ _id: connectionId, userId });
 }
 
 export async function findCalendarConnectionByAccount(
@@ -46,7 +45,7 @@ export async function findCalendarConnectionByAccount(
   source: CalendarSource,
   providerAccountId: string,
 ) {
-  return (await connections()).findOne({ userId, source, providerAccountId });
+  return (await calendarConnections()).findOne({ userId, source, providerAccountId });
 }
 
 export async function saveCalendarConnection(
@@ -57,7 +56,7 @@ export async function saveCalendarConnection(
   credentials: string,
 ) {
   const now = new Date();
-  return (await connections()).findOneAndUpdate(
+  return (await calendarConnections()).findOneAndUpdate(
     { userId, source, providerAccountId },
     {
       $set: { address, credentials, updatedAt: now },
@@ -71,53 +70,9 @@ export async function updateCalendarCredentials(
   connection: CalendarConnectionDocument,
   credentials: string,
 ) {
-  await (await connections()).updateOne(
+  await (await calendarConnections()).updateOne(
     { _id: connection._id, userId: connection.userId },
     { $set: { credentials, updatedAt: new Date() } },
-  );
-}
-
-export async function updateCalendarEventSyncStates(
-  userId: string,
-  connectionId: string,
-  before: CalendarEventSyncState[],
-  after: CalendarEventSyncState[],
-) {
-  const collection = await connections();
-  const calendarIds = new Set(
-    [...before, ...after].map((state) => state.calendarId),
-  );
-  for (const calendarId of calendarIds) {
-    const previous = before.find((state) => state.calendarId === calendarId);
-    const next = after.find((state) => state.calendarId === calendarId);
-    if (JSON.stringify(previous) === JSON.stringify(next)) continue;
-    const onlyIfSyncStateUnchanged = {
-      _id: connectionId,
-      userId,
-      eventSyncStates: previous
-        ? { $elemMatch: previous }
-        : { $not: { $elemMatch: { calendarId } } },
-    };
-    if (!next) {
-      await collection.updateOne(onlyIfSyncStateUnchanged, {
-        $pull: { eventSyncStates: { calendarId } },
-      });
-    } else if (previous) {
-      await collection.updateOne(onlyIfSyncStateUnchanged, {
-        $set: { "eventSyncStates.$": next },
-      });
-    } else {
-      await collection.updateOne(onlyIfSyncStateUnchanged, {
-        $push: { eventSyncStates: next },
-      });
-    }
-  }
-}
-
-export async function clearCalendarEventSyncStates(userId: string) {
-  return (await connections()).updateMany(
-    { userId },
-    { $set: { eventSyncStates: [], updatedAt: new Date() } },
   );
 }
 
@@ -125,5 +80,5 @@ export async function deleteCalendarConnection(
   userId: string,
   connectionId: string,
 ) {
-  return (await connections()).deleteOne({ _id: connectionId, userId });
+  return (await calendarConnections()).deleteOne({ _id: connectionId, userId });
 }

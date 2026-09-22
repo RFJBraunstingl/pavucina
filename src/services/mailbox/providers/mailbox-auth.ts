@@ -1,5 +1,8 @@
 import { openMailboxCredentials, sealMailboxCredentials } from "./mailbox-crypto";
-import { createOAuthRequest } from "@/services/http/oauth-client";
+import {
+  createOAuthRequest,
+} from "@/services/http/oauth/oauth-client";
+import { refreshOAuthCredentials } from "@/services/http/oauth/oauth-token-refresh";
 import { updateMailboxCredentials } from "../mailbox-repository";
 import type {
   MailboxConnectionDocument,
@@ -41,36 +44,14 @@ async function refreshedCredentials(
   credentials: MailboxCredentials,
 ) {
   const config = sourceConfig(connection.source);
-  if (!config.clientId || !config.clientSecret || !credentials.refreshToken) {
-    throw new Error("Reconnect this mailbox to continue");
-  }
-  const body = new URLSearchParams({
-    client_id: config.clientId,
-    client_secret: config.clientSecret,
-    grant_type: "refresh_token",
-    refresh_token: credentials.refreshToken,
-  });
-  if (connection.source === "outlook") body.set("scope", MICROSOFT_SCOPES);
-  const response = await fetch(config.tokenUrl, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  const value: unknown = await response.json().catch(() => null);
-  const token = value && typeof value === "object"
-    ? value as Record<string, unknown>
-    : {};
-  if (!response.ok || typeof token.access_token !== "string") {
-    throw new Error("Reconnect this mailbox to continue");
-  }
-  const next: MailboxCredentials = {
-    accessToken: token.access_token,
-    refreshToken: typeof token.refresh_token === "string"
-      ? token.refresh_token
-      : credentials.refreshToken,
-    expiresAt: Date.now() +
-      (typeof token.expires_in === "number" ? token.expires_in : 3600) * 1_000,
-  };
+  const next = await refreshOAuthCredentials(
+    credentials,
+    {
+      ...config,
+      scope: connection.source === "outlook" ? MICROSOFT_SCOPES : undefined,
+    },
+    "Reconnect this mailbox to continue",
+  );
   await updateMailboxCredentials(connection, sealMailboxCredentials(next));
   return next;
 }

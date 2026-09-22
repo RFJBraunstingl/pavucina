@@ -18,7 +18,7 @@ export default function PreferencesView() {
     useGraph();
   const {
     preferences,
-    setPreferences,
+    patchPreferences,
     restorePreferences,
     syncError: preferencesError,
     retry: retryPreferences,
@@ -39,18 +39,14 @@ export default function PreferencesView() {
   const scheduleMode = resolvedScheduleMode(preferences);
 
   function updateScheduleMode(mode: "leaf" | "all") {
-    setPreferences((current) =>
-      current ? { ...current, scheduleMode: mode } : current,
-    );
+    patchPreferences({ scheduleMode: mode });
   }
 
   function enableLeafMode() {
     setGraph((current) =>
       current ? clearParentTaskSchedules(current) : current,
     );
-    setPreferences((current) =>
-      current ? { ...current, scheduleMode: "leaf" } : current,
-    );
+    patchPreferences({ scheduleMode: "leaf" });
   }
 
   return (
@@ -66,11 +62,7 @@ export default function PreferencesView() {
       />
       <StartupPageSettings
         preferences={preferences}
-        onChange={(changes) =>
-          setPreferences((current) =>
-            current ? { ...current, ...changes } : current,
-          )
-        }
+        onChange={patchPreferences}
       />
       <CalendarImportSettings />
       <AccountLinks />

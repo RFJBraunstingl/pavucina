@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { syncGoogleCalendar } from "./google/google-calendar-sync.ts";
 import { syncOutlookCalendar } from "./outlook/outlook-calendar-sync.ts";
-import { OAuthRequestError } from "@/services/http/oauth-client.ts";
+import { OAuthRequestError } from "@/services/http/oauth/oauth-client.ts";
 import type {
   CalendarConnectionDocument,
   ProviderCalendar,

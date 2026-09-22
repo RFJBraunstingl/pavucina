@@ -1,9 +1,6 @@
-import {
-  normalizeGoogleCalendarEvent,
-  providerRecords,
-  providerText,
-} from "../../core/calendar-event.ts";
-import { OAuthRequestError } from "@/services/http/oauth-client.ts";
+import { normalizeGoogleCalendarEvent } from "../../core/calendar-event.ts";
+import { providerRecords, providerText } from "../../core/provider-response.ts";
+import { OAuthRequestError } from "@/services/http/oauth/oauth-client.ts";
 import type {
   CalendarConnectionDocument,
   CalendarEventChange,

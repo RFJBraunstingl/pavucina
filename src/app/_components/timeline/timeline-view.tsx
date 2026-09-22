@@ -7,32 +7,26 @@ import { GraphLoading, GraphSyncError } from "../sync/graph-state";
 import TaskInspector from "../task/task-inspector";
 import TimelineFilters from "./filters/timeline-filters";
 import TimelineGrid from "./grid/timeline-grid";
+import { createTimelineTaskActions } from "./timeline-task-actions";
 import TimelineToolbar from "./timeline-toolbar";
+import { useTimelineRange } from "./use-timeline-range";
 import { usePreferences } from "../sync/use-preferences";
 import { useTimelineFilters } from "./filters/use-timeline-filters";
 import { useGraph } from "@/providers/graph-provider";
-import {
-  addChildTask,
-  addTopLevelTask,
-  getParentTaskIds,
-  renameTask,
-} from "@/services/task/core/task-service";
-import { addDays, makeDateRange } from "@/utils/shared/temporal/date";
+import { getParentTaskIds } from "@/services/task/core/task-service";
 import { DEFAULT_TASK_COLUMN_WIDTH } from "@/utils/task-column";
 import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
-import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function TimelineView() {
   const { graph, setGraph, today, hydrated, syncError, retry } = useGraph();
   const {
     preferences,
-    setPreferences,
+    patchPreferences,
     syncError: preferencesError,
     retry: retryPreferences,
   } = usePreferences();
-  const [rangeStart, setRangeStart] = useState(() => addDays(today, -14));
+  const range = useTimelineRange(today);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const days = useMemo(() => makeDateRange(rangeStart), [rangeStart]);
   const collapsedIds = useMemo(
     () => new Set(preferences?.collapsedTaskIds),
     [preferences?.collapsedTaskIds],
@@ -55,42 +49,19 @@ export default function TimelineView() {
     );
   }
   const scheduleMode = resolvedScheduleMode(preferences);
-
-  function updatePreferences(changes: Partial<UserPreferences>) {
-    setPreferences((current) => current ? { ...current, ...changes } : current);
-  }
-
-  function updateName(taskId: string, value: string) {
-    setGraph((current) =>
-      current ? renameTask(current, taskId, value) : current,
-    );
-  }
-
-  function addChild(parentId: string) {
-    const childId = crypto.randomUUID();
-    setGraph((current) =>
-      current
-        ? addChildTask(current, parentId, childId, scheduleMode)
-        : current,
-    );
-    setSelectedId(childId);
-  }
-
-  function addTask() {
-    const taskId = crypto.randomUUID();
-    setGraph((current) =>
-      current ? addTopLevelTask(current, taskId) : current,
-    );
-    setSelectedId(taskId);
-  }
+  const taskActions = createTimelineTaskActions({
+    scheduleMode,
+    onGraphChange: setGraph,
+    onSelect: setSelectedId,
+  });
 
   function collapseAll() {
     if (!graph) return;
-    updatePreferences({ collapsedTaskIds: [...getParentTaskIds(graph)] });
+    patchPreferences({ collapsedTaskIds: [...getParentTaskIds(graph)] });
   }
 
   function expandAll() {
-    updatePreferences({ collapsedTaskIds: [] });
+    patchPreferences({ collapsedTaskIds: [] });
   }
 
   function updateFilters(depth: number, selectedIds: string[]) {
@@ -109,14 +80,14 @@ export default function TimelineView() {
       <div className="workspace">
         <section className="timeline-card" aria-labelledby="timeline-heading">
           <TimelineToolbar
-            days={days}
+            days={range.days}
             hideDone={preferences.hideDone}
-            onHideDoneChange={(hideDone) => updatePreferences({ hideDone })}
+            onHideDoneChange={(hideDone) => patchPreferences({ hideDone })}
             onCollapseAll={collapseAll}
             onExpandAll={expandAll}
-            onPrevious={() => setRangeStart((value) => addDays(value, -28))}
-            onToday={() => setRangeStart(addDays(today, -14))}
-            onNext={() => setRangeStart((value) => addDays(value, 28))}
+            onPrevious={range.showPrevious}
+            onToday={range.showToday}
+            onNext={range.showNext}
           />
 
           <TimelineFilters
@@ -129,9 +100,9 @@ export default function TimelineView() {
           <TimelineGrid
             graph={graph}
             scheduleMode={scheduleMode}
-            days={days}
+            days={range.days}
             today={today}
-            rangeStart={rangeStart}
+            rangeStart={range.rangeStart}
             selectedId={selectedId}
             tasks={filters.tasks}
             filterExpandedIds={filters.expandedTaskIds}
@@ -142,15 +113,15 @@ export default function TimelineView() {
             collapsedIds={collapsedIds}
             onGraphChange={setGraph}
             onCollapsedIdsChange={(ids) =>
-              updatePreferences({ collapsedTaskIds: [...ids] })
+              patchPreferences({ collapsedTaskIds: [...ids] })
             }
             onTaskColumnWidthChange={(taskColumnWidth) =>
-              updatePreferences({ taskColumnWidth })
+              patchPreferences({ taskColumnWidth })
             }
             onSelect={setSelectedId}
-            onNameChange={updateName}
-            onAddChild={addChild}
-            onCreate={addTask}
+            onNameChange={taskActions.rename}
+            onAddChild={taskActions.addChild}
+            onCreate={taskActions.addTopLevel}
           />
         </section>
 

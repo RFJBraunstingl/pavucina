@@ -1,4 +1,5 @@
 import { addDays, isIsoDate } from "@/utils/shared/temporal/date.ts";
+import { removeUnusedDates } from "@/services/task/scheduling/dates/task-date-service.ts";
 import type { ExternalCalendarEvent } from "@/types/calendar/events/external-calendar.ts";
 import type { DateNode, EventDateRelationshipType, Graph } from "@/types/graph/graph.ts";
 
@@ -58,4 +59,57 @@ export function getEventDate(
     (node): node is DateNode =>
       node.type === "date" && node.id === relationship?.targetId,
   )?.properties.value;
+}
+
+function setEventDate(
+  graph: Graph,
+  eventId: string,
+  type: EventDateRelationshipType,
+  value: string,
+) {
+  const existingDate = graph.nodes.find(
+    (node) => node.type === "date" && node.properties.value === value,
+  );
+  const date = existingDate ?? {
+    id: crypto.randomUUID(),
+    type: "date" as const,
+    properties: { value },
+  };
+  const existingRelationship = graph.relationships.find(
+    (relationship) =>
+      relationship.sourceId === eventId && relationship.type === type,
+  );
+  return {
+    ...graph,
+    nodes: existingDate ? graph.nodes : [...graph.nodes, date],
+    relationships: [
+      ...graph.relationships.filter(
+        (relationship) =>
+          relationship.sourceId !== eventId || relationship.type !== type,
+      ),
+      {
+        id: existingRelationship?.id ?? crypto.randomUUID(),
+        type,
+        sourceId: eventId,
+        targetId: date.id,
+      },
+    ],
+  };
+}
+
+export function setEventDates(
+  graph: Graph,
+  eventId: string,
+  startDate: string,
+  endDate: string,
+) {
+  const withStart = setEventDate(
+    graph,
+    eventId,
+    "eventStartDate",
+    startDate,
+  );
+  return removeUnusedDates(
+    setEventDate(withStart, eventId, "eventEndDate", endDate),
+  );
 }

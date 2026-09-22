@@ -1,4 +1,4 @@
-import { recordKey } from "../sync/graph-record-service.ts";
+import { recordKey } from "../sync/records/graph-record-service.ts";
 import { equalValue } from "@/utils/shared/field-changes.ts";
 import type {
   GraphPatch,
@@ -29,6 +29,7 @@ export function browserDatabase() {
       reject(request.error);
     };
     request.onblocked = () => {
+      opening = undefined;
       reject(new Error("Close other Pavucina tabs to upgrade browser storage."));
     };
   });

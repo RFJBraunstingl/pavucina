@@ -17,6 +17,11 @@ export type TaskInspectorProps = {
   onDeleted: () => void;
 };
 
+export type TaskDeleteControlProps = {
+  taskName: string;
+  onDelete: () => void;
+};
+
 export type TaskScheduleFieldsProps = {
   task: TaskNode;
   scheduleMode: ScheduleMode;

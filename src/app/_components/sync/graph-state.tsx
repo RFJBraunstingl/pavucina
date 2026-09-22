@@ -1,11 +1,10 @@
 import Link from "next/link";
+import type {
+  GraphLoadingProps,
+  SyncStatusProps,
+} from "@/types/shared/components";
 
-type Props = {
-  error: string | null;
-  onRetry: () => void;
-};
-
-export function GraphLoading({ label, error, onRetry }: Props & { label: string }) {
+export function GraphLoading({ label, error, onRetry }: GraphLoadingProps) {
   return (
     <main className="loading-screen">
       {!error && <span className="brand-mark" aria-hidden="true" />}
@@ -16,7 +15,7 @@ export function GraphLoading({ label, error, onRetry }: Props & { label: string 
   );
 }
 
-export function GraphSyncError({ error, onRetry }: Props) {
+export function GraphSyncError({ error, onRetry }: SyncStatusProps) {
   if (!error) return null;
   return (
     <p className="sync-error" role="alert">

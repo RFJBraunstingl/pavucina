@@ -1,6 +1,5 @@
-import { GraphConflictError } from "@/services/graph/sync/graph-patch-service.ts";
+import { GraphConflictError } from "@/services/graph/sync/graph-conflict-error.ts";
 import { parseUserPreferences } from "../preferences-service.ts";
-import { diffPreferences } from "../settings-patch-service.ts";
 import type { UserPreferences } from "@/types/preferences/preferences.ts";
 import type { PreferenceChanges } from "@/types/preferences/preferences-sync.ts";
 import type { SettingsPatch } from "@/types/preferences/settings-sync.ts";
@@ -22,21 +21,16 @@ export async function loadRemotePreferences() {
   return preferences;
 }
 
-export async function saveRemotePreferences(
-  preferences: UserPreferences,
-  before?: UserPreferences,
-) {
+export async function restoreRemotePreferences(preferences: UserPreferences) {
   const response = await fetch("/api/preferences", {
-    method: before ? "PATCH" : "PUT",
+    method: "PUT",
     headers: {
       "content-type": "application/json",
-      ...(!before && { "x-pavucina-restore": "true" }),
+      "x-pavucina-restore": "true",
     },
-    body: JSON.stringify(
-      before ? diffPreferences(before, preferences) : preferences,
-    ),
+    body: JSON.stringify(preferences),
   });
-  await requireSaved(response, "Could not save your preferences");
+  await requireSaved(response, "Could not restore your preferences");
 }
 
 export async function sendPreferencePatch(patch: SettingsPatch) {

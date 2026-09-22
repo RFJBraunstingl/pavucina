@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { auth } from "@/auth";
 import { CALENDAR_CONNECT_COOKIE } from "@/services/calendar/providers/calendar-oauth";
-import { calendarSourceAvailability } from "@/services/calendar/providers/calendar-provider";
+import { calendarSourceAvailability } from "@/services/calendar/providers/calendar-auth";
 import { loadExternalCalendars } from "@/services/calendar/core/calendar-service";
 
 const MAX_RANGE_MS = 8 * 24 * 60 * 60 * 1_000;

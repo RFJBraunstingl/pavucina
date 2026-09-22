@@ -10,7 +10,8 @@ import {
   setInboxTaskDescription,
 } from "./inbox-service.ts";
 import { isGraph } from "@/services/graph/core/graph-service.ts";
-import { getTaskDate, setTaskDates } from "@/services/task/scheduling/task-date-service.ts";
+import { getTaskDate } from "@/services/task/scheduling/dates/task-date-service.ts";
+import { setTaskDates } from "@/services/task/scheduling/dates/task-date-range-service.ts";
 import { createSeedGraph } from "@/data/seed-graph.ts";
 import type { TaskNode } from "@/types/graph/graph.ts";
 
