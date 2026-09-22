@@ -3,7 +3,7 @@ import {
   dayOfMonth,
   isWeekend,
   monthLabel,
-} from "@/utils/shared/date";
+} from "@/utils/shared/temporal/date";
 import type { TimelineGridHeaderProps } from "@/types/timeline/timeline";
 
 export default function TimelineGridHeader({

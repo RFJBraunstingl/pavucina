@@ -6,7 +6,7 @@ import type {
   CalendarConnectionSummary,
   CalendarOption,
   ExternalCalendarEvent,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 export async function loadExternalCalendars(
   userId: string,

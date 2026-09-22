@@ -12,7 +12,7 @@ import {
   updateTaskDate,
 } from "@/services/task/scheduling/task-date-service";
 import { setTaskTime } from "@/services/task/core/task-service";
-import { compactDateLabel } from "@/utils/shared/date";
+import { compactDateLabel } from "@/utils/shared/temporal/date";
 import type { DateRelationshipType, TimeProperty } from "@/types/graph/graph";
 import type { TaskScheduleFieldsProps } from "@/types/timeline/timeline-task";
 

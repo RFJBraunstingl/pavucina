@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useGraph } from "@/providers/graph-provider";
 import { deleteNativeEvent, nativeEventInput, saveNativeEvent } from "@/services/event/native/native-event-service";
-import type { EventEditorState, EventTimeRange, NativeEventInput } from "@/types/calendar/event";
+import type { EventEditorState, EventTimeRange, NativeEventInput } from "@/types/calendar/events/event";
 
 export function useEventEditor(onSelect: (id: string | null) => void) {
   const { graph, setGraph } = useGraph();

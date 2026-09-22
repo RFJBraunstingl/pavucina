@@ -17,7 +17,7 @@ import {
 import type {
   CalendarConnectionDocument,
   CalendarCredentials,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 const MICROSOFT_SCOPES =
   "openid profile email offline_access User.Read Calendars.Read.Shared";

@@ -5,7 +5,13 @@ import {
   useState,
 } from "react";
 
-import { dropTargetAt, taskName, visibleSibling } from "./task-order-utils";
+import {
+  dropTargetAt,
+  isTaskOrderKey,
+  keyboardOrderTarget,
+  scrollTaskListNearEdge,
+  taskName,
+} from "./task-order-utils";
 import { placeTask } from "@/services/task/ordering/task-order-service";
 import type { TaskPlacement } from "@/types/graph/graph";
 import type {
@@ -15,8 +21,6 @@ import type {
 } from "@/types/timeline/timeline-interaction";
 
 const DRAG_THRESHOLD = 4;
-const SCROLL_EDGE = 32;
-const SCROLL_STEP = 20;
 
 export function useTaskOrder({
   graph,
@@ -75,14 +79,7 @@ export function useTaskOrder({
     if (Math.abs(event.clientY - active.originY) < DRAG_THRESHOLD) return;
     event.preventDefault();
 
-    const scroll = scrollRef.current;
-    if (scroll) {
-      const bounds = scroll.getBoundingClientRect();
-      if (event.clientY < bounds.top + SCROLL_EDGE) scroll.scrollBy(0, -SCROLL_STEP);
-      else if (event.clientY > bounds.bottom - SCROLL_EDGE) {
-        scroll.scrollBy(0, SCROLL_STEP);
-      }
-    }
+    scrollTaskListNearEdge(scrollRef.current, event.clientY);
 
     const target = dropTargetAt(event, tasks);
     if (!target) return setPreview(null);
@@ -117,29 +114,15 @@ export function useTaskOrder({
   }
 
   function handleOrderKey(event: KeyboardEvent<HTMLButtonElement>, taskId: string) {
-    if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
-      return;
-    }
+    if (!isTaskOrderKey(event.key)) return;
     event.preventDefault();
-    const parents = new Map(
-      graph.relationships
-        .filter((relationship) => relationship.type === "child")
-        .map((relationship) => [relationship.targetId, relationship.sourceId]),
+    const target = keyboardOrderTarget(
+      graph,
+      tasks,
+      taskId,
+      event.key,
     );
-    if (event.key === "ArrowLeft") {
-      const parentId = parents.get(taskId);
-      const parent = graph.nodes.find(
-        (node) => node.id === parentId && node.type === "task",
-      );
-      if (parent) applyOrder(taskId, parent.id, "after");
-      return;
-    }
-    const direction = event.key === "ArrowDown" ? 1 : -1;
-    const targetId = visibleSibling(tasks, parents, taskId, direction);
-    if (!targetId) return;
-    const placement =
-      event.key === "ArrowRight" ? "inside" : direction < 0 ? "before" : "after";
-    applyOrder(taskId, targetId, placement);
+    if (target) applyOrder(taskId, target.targetId, target.placement);
   }
 
   return {

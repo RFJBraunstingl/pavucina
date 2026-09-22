@@ -1,5 +1,5 @@
 import { getTaskAndDescendantIds } from "@/services/task/core/task-tree-service.ts";
-import { isIsoDate } from "@/utils/shared/date.ts";
+import { isIsoDate } from "@/utils/shared/temporal/date.ts";
 import type { CompletionRelationshipType, DateNode, Graph, RelationshipType } from "@/types/graph/graph";
 
 export function isCompletionRelationship(type: RelationshipType): type is CompletionRelationshipType {

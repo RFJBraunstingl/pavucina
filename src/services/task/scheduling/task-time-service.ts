@@ -3,7 +3,7 @@ import {
   addDateTime,
   isTime,
   minutesBetweenDateTimes,
-} from "@/utils/shared/time.ts";
+} from "@/utils/shared/temporal/time.ts";
 import type { Graph, TaskNode, TimeProperty } from "@/types/graph/graph";
 
 export function getTaskTime(graph: Graph, taskId: string, type: TimeProperty) {

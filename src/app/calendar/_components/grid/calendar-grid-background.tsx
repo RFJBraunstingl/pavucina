@@ -1,6 +1,6 @@
 import { HOUR_HEIGHT, HOUR_LABELS } from "@/utils/calendar/calendar";
-import { isWeekend } from "@/utils/shared/date";
-import type { CalendarGridBackgroundProps } from "@/types/calendar/calendar";
+import { isWeekend } from "@/utils/shared/temporal/date";
+import type { CalendarGridBackgroundProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarGridBackground({
   days,

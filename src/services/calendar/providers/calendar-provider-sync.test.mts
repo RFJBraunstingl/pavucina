@@ -7,7 +7,7 @@ import { OAuthRequestError } from "@/services/http/oauth-client.ts";
 import type {
   CalendarConnectionDocument,
   ProviderCalendar,
-} from "@/types/calendar/external-calendar.ts";
+} from "@/types/calendar/events/external-calendar.ts";
 import type { OAuthRequest } from "@/types/auth/oauth.ts";
 
 const calendar: ProviderCalendar = { id: "work", name: "Work", color: "#4285f4" };

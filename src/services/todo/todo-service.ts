@@ -1,8 +1,8 @@
 import { getEventDate } from "@/services/event/event-schedule-service.ts";
 import { getTaskDate } from "@/services/task/scheduling/task-date-service.ts";
 import { getLeafTasksForDate } from "@/services/task/core/task-service.ts";
-import { visibleCalendarEvents } from "@/utils/calendar/event-calendar.ts";
-import type { CalendarConnectionSummary } from "@/types/calendar/external-calendar.ts";
+import { visibleCalendarEvents } from "@/utils/calendar/events/graph-calendar.ts";
+import type { CalendarConnectionSummary } from "@/types/calendar/events/external-calendar.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 import type { TodoItem } from "@/types/timeline/todo.ts";
 

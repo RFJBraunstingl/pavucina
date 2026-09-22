@@ -1,12 +1,12 @@
-import { isIsoDate } from "@/utils/shared/date.ts";
+import { isIsoDate } from "@/utils/shared/temporal/date.ts";
 import { isUuid } from "@/utils/shared/id.ts";
-import { isTime } from "@/utils/shared/time.ts";
+import { isTime } from "@/utils/shared/temporal/time.ts";
 import { isMailTaskOrigin } from "@/utils/mailbox.ts";
 import {
   calendarEventOriginKey,
   isEventProperties,
-} from "@/utils/calendar/event.ts";
-import type { EventNode } from "@/types/calendar/event";
+} from "@/utils/calendar/events/event.ts";
+import type { EventNode } from "@/types/calendar/events/event";
 import type {
   DateNode,
   GraphNode,

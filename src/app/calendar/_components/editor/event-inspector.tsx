@@ -1,6 +1,6 @@
 import { getEventDate } from "@/services/event/event-service";
-import { calendarSourceLabel } from "@/utils/calendar/external-calendar";
-import type { EventInspectorProps } from "@/types/calendar/event";
+import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar";
+import type { EventInspectorProps } from "@/types/calendar/events/event";
 
 export default function EventInspector({ graph, event, onEdit }: EventInspectorProps) {
   const start = getEventDate(graph, event.id, "eventStartDate");

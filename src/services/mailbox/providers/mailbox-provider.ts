@@ -1,7 +1,7 @@
 import "server-only";
 
-import { loadUnreadGmailMessages, markGmailMessageRead } from "./gmail-mailbox-client";
-import { loadUnreadOutlookMessages, markOutlookMessageRead } from "./outlook-mailbox-client";
+import { loadUnreadGmailMessages, markGmailMessageRead } from "./clients/gmail-mailbox-client";
+import { loadUnreadOutlookMessages, markOutlookMessageRead } from "./clients/outlook-mailbox-client";
 import type { MailboxConnectionDocument } from "@/types/mailbox/mailbox";
 
 export { mailboxSourceAvailability } from "./mailbox-auth";

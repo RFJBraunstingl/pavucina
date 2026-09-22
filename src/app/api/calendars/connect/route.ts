@@ -7,7 +7,7 @@ import {
   createCalendarConnectRequest,
 } from "@/services/calendar/providers/calendar-oauth";
 import { calendarSourceAvailability } from "@/services/calendar/providers/calendar-provider";
-import { isCalendarSource } from "@/utils/calendar/external-calendar";
+import { isCalendarSource } from "@/utils/calendar/events/external-calendar";
 
 export const runtime = "nodejs";
 

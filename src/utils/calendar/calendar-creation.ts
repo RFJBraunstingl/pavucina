@@ -1,8 +1,8 @@
 import { calendarItemEnd, CALENDAR_RESIZE_STEP } from "./calendar.ts";
-import { addDays } from "@/utils/shared/date.ts";
-import { minutesToTime, timeToMinutes } from "@/utils/shared/time.ts";
-import type { CalendarLayoutItem } from "@/types/calendar/calendar.ts";
-import type { EventTimeRange } from "@/types/calendar/event.ts";
+import { addDays } from "@/utils/shared/temporal/date.ts";
+import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time.ts";
+import type { CalendarLayoutItem } from "@/types/calendar/calendar-layout.ts";
+import type { EventTimeRange } from "@/types/calendar/events/event.ts";
 
 export function calendarFreeGaps(items: CalendarLayoutItem[], date: string) {
   const occupied = items.filter((item) => item.startDate === date)

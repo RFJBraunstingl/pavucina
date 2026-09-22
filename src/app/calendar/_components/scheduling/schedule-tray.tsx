@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
-import { compactDateLabel } from "@/utils/shared/date";
-import type { DayScheduleTask, ScheduleTrayProps } from "@/types/calendar/schedule";
+import { compactDateLabel } from "@/utils/shared/temporal/date";
+import type { DayScheduleTask, ScheduleTrayProps } from "@/types/calendar/events/schedule";
 
 export default function ScheduleTray(props: ScheduleTrayProps) {
   const taskCount = new Set(

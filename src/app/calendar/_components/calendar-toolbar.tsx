@@ -1,6 +1,6 @@
 import CalendarRangeControls from "./navigation/calendar-range-controls";
-import { compactDateLabel, rangeLabel } from "@/utils/shared/date";
-import type { CalendarToolbarProps } from "@/types/calendar/calendar";
+import { compactDateLabel, rangeLabel } from "@/utils/shared/temporal/date";
+import type { CalendarToolbarProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarToolbar({
   days,

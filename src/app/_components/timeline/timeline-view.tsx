@@ -17,7 +17,7 @@ import {
   getParentTaskIds,
   renameTask,
 } from "@/services/task/core/task-service";
-import { addDays, makeDateRange } from "@/utils/shared/date";
+import { addDays, makeDateRange } from "@/utils/shared/temporal/date";
 import { DEFAULT_TASK_COLUMN_WIDTH } from "@/utils/task-column";
 import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
 import type { UserPreferences } from "@/types/preferences/preferences";

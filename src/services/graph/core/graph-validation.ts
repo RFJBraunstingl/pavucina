@@ -1,5 +1,5 @@
-import { daysBetween } from "@/utils/shared/date.ts";
-import { minutesBetweenDateTimes } from "@/utils/shared/time.ts";
+import { daysBetween } from "@/utils/shared/temporal/date.ts";
+import { minutesBetweenDateTimes } from "@/utils/shared/temporal/time.ts";
 import type { Graph, GraphNode } from "@/types/graph/graph.ts";
 
 export function hasAcyclicTaskHierarchy(

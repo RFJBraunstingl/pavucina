@@ -8,7 +8,7 @@ import {
   getTaskAndDescendantIds,
 } from "./task-tree-service.ts";
 import { ensureRootNode } from "@/services/graph/core/graph-service.ts";
-import { isTime } from "@/utils/shared/time.ts";
+import { isTime } from "@/utils/shared/temporal/time.ts";
 import type { Graph, TimeProperty } from "@/types/graph/graph";
 import type { ScheduleMode } from "@/types/preferences/preferences";
 

@@ -7,9 +7,9 @@ import { isGraph } from "@/services/graph/core/graph-service.ts";
 import { createBackupArchive, readBackupArchive } from "@/services/backup/backup-service.ts";
 import { DEFAULT_USER_PREFERENCES } from "@/services/preferences/preferences-service.ts";
 import { reconcileCalendarBatch, removeImportedEvents, replaceImportedEventSubgraph } from "../event-service.ts";
-import { visibleCalendarEvents } from "@/utils/calendar/event-calendar.ts";
-import type { NativeEventInput } from "@/types/calendar/event.ts";
-import type { CalendarSyncBatch } from "@/types/calendar/external-calendar.ts";
+import { visibleCalendarEvents } from "@/utils/calendar/events/graph-calendar.ts";
+import type { NativeEventInput } from "@/types/calendar/events/event.ts";
+import type { CalendarSyncBatch } from "@/types/calendar/events/external-calendar.ts";
 
 const day = "2026-09-13";
 const input: NativeEventInput = {

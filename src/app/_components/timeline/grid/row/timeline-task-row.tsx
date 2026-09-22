@@ -1,7 +1,7 @@
 import TaskRowLabel from "./task-row-label";
 import TaskScheduleBar from "./task-schedule-bar";
 import { getEffectiveTaskDate } from "@/services/task/scheduling/task-schedule-mode-service";
-import { daysBetween, isWeekend } from "@/utils/shared/date";
+import { daysBetween, isWeekend } from "@/utils/shared/temporal/date";
 import type { TimelineTaskRowProps } from "@/types/timeline/timeline-task";
 
 export default function TimelineTaskRow({
@@ -45,10 +45,16 @@ export default function TimelineTaskRow({
   const visibleEnd = Math.min(days.length - 1, endOffset);
   const unscheduled = !start && !end;
   const barVisible = start && end && visibleStart <= visibleEnd;
+  const rowClassName = [
+    "timeline-row task-row",
+    selected && "selected",
+    ordering && "ordering",
+    dropPlacement && `drop-${dropPlacement}`,
+  ].filter(Boolean).join(" ");
 
   return (
     <div
-      className={`timeline-row task-row ${selected ? "selected" : ""} ${ordering ? "ordering" : ""} ${dropPlacement ? `drop-${dropPlacement}` : ""}`}
+      className={rowClassName}
       data-depth={Math.min(depth, 2)}
       data-task-id={task.id}
     >
@@ -70,7 +76,11 @@ export default function TimelineTaskRow({
       />
 
       {days.map((day, index) => {
-        const className = `day-cell ${isWeekend(day) ? "weekend" : ""} ${day === today ? "today" : ""}`;
+        const className = [
+          "day-cell",
+          isWeekend(day) && "weekend",
+          day === today && "today",
+        ].filter(Boolean).join(" ");
         const style = { gridColumn: index + 2 };
         return unscheduled ? (
           <button

@@ -3,24 +3,23 @@
 import { useMemo, useRef, useState } from "react";
 
 import CalendarControls from "./navigation/calendar-controls";
+import CalendarInspector from "./calendar-inspector";
 import CalendarToolbar from "./calendar-toolbar";
 import CalendarGrid from "./grid/calendar-grid";
 import EventDialog from "./editor/event-dialog";
-import EventInspector from "./editor/event-inspector";
 import ScheduleTray from "./scheduling/schedule-tray";
 import { useCalendarDayCount } from "./navigation/use-calendar-day-count";
 import { useCalendarItems } from "./grid/use-calendar-items";
-import { useExternalCalendars } from "@/app/_components/sync/use-external-calendars";
+import { useExternalCalendars } from "@/app/_components/sync/calendar/use-external-calendars";
 import { useTraySchedule } from "./scheduling/use-tray-schedule";
 import { useEventEditor } from "./editor/use-event-editor";
 import AppHeader from "@/app/_components/common/app-header";
 import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
-import TaskInspector from "@/app/_components/task/task-inspector";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
 import { scheduleTaskForDay } from "@/services/task/scheduling/day/task-day-schedule-service";
-import { makeDateRange, startOfWeek } from "@/utils/shared/date";
+import { makeDateRange, startOfWeek } from "@/utils/shared/temporal/date";
 import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function CalendarView() {
@@ -34,34 +33,39 @@ export default function CalendarView() {
   const calendarImport = useCalendarImport();
   const [day, setDay] = useState(today);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const editor = useEventEditor(setSelectedId);
+  const eventEditor = useEventEditor(setSelectedId);
   const [scheduleDate, setScheduleDate] = useState(today);
-  const [mobileLocked, setMobileLocked] = useState(true);
-  const body = useRef<HTMLDivElement>(null);
+  const [singleDayLocked, setSingleDayLocked] = useState(true);
+  const calendarBodyRef = useRef<HTMLDivElement>(null);
   const dayCount = useCalendarDayCount();
-  const mobile = dayCount === 1;
+  const singleDay = dayCount === 1;
   const days = useMemo(
-    () => makeDateRange(mobile ? day : startOfWeek(day), dayCount), [day, dayCount, mobile]);
-  const calendars = useExternalCalendars(
+    () => makeDateRange(singleDay ? day : startOfWeek(day), dayCount),
+    [day, dayCount, singleDay],
+  );
+  const externalCalendars = useExternalCalendars(
     days,
     calendarImport.disconnect,
     !calendarImport.enabled,
   );
   const { scheduleMode, schedules, taskEvents, overdue, graphEvents } =
-    useCalendarItems(graph, preferences, days, today, calendars.data?.connections);
-  const selectedEvent = graph?.nodes.find((node) => node.id === selectedId);
-  const locked = mobile && mobileLocked;
-  const externalEvents = calendarImport.enabled ? [] : calendars.data?.events ?? [];
-  const tray = useTraySchedule({
+    useCalendarItems(
+      graph,
+      preferences,
+      days,
+      today,
+      externalCalendars.data?.connections,
+    );
+  const locked = singleDay && singleDayLocked;
+  const externalEvents = calendarImport.enabled
+    ? []
+    : externalCalendars.data?.events ?? [];
+  const traySchedule = useTraySchedule({
     days,
-    bodyRef: body,
+    bodyRef: calendarBodyRef,
     locked,
     onSelect: selectTask,
-    onSchedule: (taskId, date, startTime, endTime) => setGraph((current) =>
-      current
-        ? scheduleTaskForDay(current, taskId, date, startTime, endTime)
-        : current,
-    ),
+    onSchedule: scheduleTask,
   });
 
   if (!hydrated || !graph) {
@@ -80,11 +84,29 @@ export default function CalendarView() {
     setScheduleDate(date);
   }
 
+  function scheduleTask(
+    taskId: string,
+    date: string,
+    startTime: string,
+    endTime: string,
+  ) {
+    setGraph((current) =>
+      current
+        ? scheduleTaskForDay(current, taskId, date, startTime, endTime)
+        : current,
+    );
+  }
+
+  async function refreshCalendars() {
+    if (calendarImport.enabled) await calendarImport.syncNow();
+    await externalCalendars.refresh();
+  }
+
   function showDay(date: string) {
     setDay(date);
     setScheduleDate(date);
     setSelectedId(null);
-    editor.close();
+    eventEditor.close();
   }
 
   return (
@@ -92,7 +114,10 @@ export default function CalendarView() {
       <AppHeader active="calendar" title="Calendar" />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
-      <GraphSyncError error={calendars.error} onRetry={() => void calendars.refresh()} />
+      <GraphSyncError
+        error={externalCalendars.error}
+        onRetry={() => void externalCalendars.refresh()}
+      />
       <GraphSyncError error={calendarImport.error} onRetry={() => void calendarImport.syncNow()} />
       <div className="workspace">
         <section className="calendar-card" aria-labelledby="calendar-heading">
@@ -103,17 +128,14 @@ export default function CalendarView() {
             dayCount={dayCount}
             locked={locked}
             hideDone={preferences.hideDone}
-            onToggleLock={() => setMobileLocked((current) => !current)}
+            onToggleLock={() => setSingleDayLocked((current) => !current)}
             onHideDone={(hideDone) => updatePreferences({ hideDone })}
             onShowDay={showDay}
             controls={
               <CalendarControls
-                calendars={calendars}
+                calendars={externalCalendars}
                 importBusy={calendarImport.busy}
-                onRefresh={async () => {
-                  if (calendarImport.enabled) await calendarImport.syncNow();
-                  await calendars.refresh();
-                }}
+                onRefresh={refreshCalendars}
               />
             }
           />
@@ -127,10 +149,10 @@ export default function CalendarView() {
             selectedDate={scheduleDate}
             locked={locked}
             onSelect={selectTask}
-            onDragStart={tray.beginDrag}
-            onDragMove={tray.continueDrag}
-            onDragEnd={tray.endDrag}
-            onDragCancel={tray.cancelDrag}
+            onDragStart={traySchedule.beginDrag}
+            onDragMove={traySchedule.continueDrag}
+            onDragEnd={traySchedule.endDrag}
+            onDragCancel={traySchedule.cancelDrag}
           />
           <CalendarGrid
             graph={graph}
@@ -142,33 +164,31 @@ export default function CalendarView() {
             graphEvents={graphEvents}
             selectedId={selectedId}
             locked={locked}
-            bodyRef={body}
+            bodyRef={calendarBodyRef}
             onGraphChange={setGraph}
             onSelect={selectTask}
-            onSelectEvent={editor.select}
-            onCreateEvent={editor.create}
-            creating={Boolean(editor.draft)}
+            onSelectEvent={eventEditor.select}
+            onCreateEvent={eventEditor.create}
+            creating={Boolean(eventEditor.draft)}
           />
         </section>
-        {selectedEvent?.type === "event" ? (
-          <EventInspector
-            graph={graph}
-            event={selectedEvent}
-            onEdit={() => editor.select(selectedEvent.id)}
-          />
-        ) : (
-          <TaskInspector
-            selectedId={selectedId}
-            scheduleMode={scheduleMode}
-            scheduleDate={scheduleDate}
-            helpText="Move or resize the event, or enter exact times above."
-            onDeleted={() => setSelectedId(null)}
-          />
-        )}
+        <CalendarInspector
+          graph={graph}
+          selectedId={selectedId}
+          scheduleMode={scheduleMode}
+          scheduleDate={scheduleDate}
+          onEditEvent={eventEditor.select}
+          onDeleteTask={() => setSelectedId(null)}
+        />
       </div>
-      {graph && editor.draft && (
-        <EventDialog key={editor.draft.id} draft={editor.draft}
-          onSave={editor.save} onDelete={editor.remove} onClose={editor.close} />
+      {graph && eventEditor.draft && (
+        <EventDialog
+          key={eventEditor.draft.id}
+          draft={eventEditor.draft}
+          onSave={eventEditor.save}
+          onDelete={eventEditor.remove}
+          onClose={eventEditor.close}
+        />
       )}
     </main>
   );

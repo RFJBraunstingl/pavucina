@@ -9,16 +9,9 @@ import InboxTaskPanel from "./tasks/inbox-task-panel";
 import MoveTaskDialog from "./tasks/move-task-dialog";
 import ScratchpadPanel from "./tasks/scratchpad-panel";
 import SourcePanel from "./mailbox/source-panel";
+import { useInboxActions } from "./tasks/use-inbox-actions";
 import { useInboxDrag } from "./tasks/use-inbox-drag";
 import { useGraph } from "@/providers/graph-provider";
-import {
-  addInboxTask,
-  addMailboxInboxTask,
-  deleteInboxTask,
-  moveInboxTask,
-  renameInboxTask,
-  setInboxTaskDescription,
-} from "@/services/inbox/inbox-service";
 import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
 import { flattenTasks, getParentTaskNames } from "@/services/task/core/task-service";
 
@@ -57,22 +50,13 @@ export default function InboxView() {
     [graph],
   );
   const scheduleMode = preferences ? resolvedScheduleMode(preferences) : "leaf";
-
-  function moveTask(taskId: string, parentId: string) {
-    if (!graph || !preferences) return;
-    const next = moveInboxTask(graph, taskId, parentId, scheduleMode);
-    if (next === graph) return;
-    setGraph(next);
-    setPreferences({
-      ...preferences,
-      collapsedTaskIds: preferences.collapsedTaskIds.filter(
-        (id) => id !== parentId,
-      ),
-    });
-    setSelectedId(taskId);
-  }
-
-  const drag = useInboxDrag(moveTask);
+  const actions = useInboxActions({
+    preferences,
+    scheduleMode,
+    setPreferences,
+    onSelect: setSelectedId,
+  });
+  const drag = useInboxDrag(actions.moveTask);
 
   if (!hydrated || !graph) {
     return (
@@ -99,41 +83,14 @@ export default function InboxView() {
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <div className="inbox-workspace">
-        <SourcePanel
-          onAdd={(message) => {
-            const id = crypto.randomUUID();
-            setGraph((current) =>
-              current ? addMailboxInboxTask(current, id, message) : current,
-            );
-          }}
-        />
+        <SourcePanel onAdd={actions.addMessage} />
         <ScratchpadPanel
           nodes={graph.inboxNodes ?? []}
           draggingId={drag.draggingId}
-          onCreate={(name) =>
-            setGraph((current) =>
-              current
-                ? addInboxTask(current, crypto.randomUUID(), name)
-                : current,
-            )
-          }
-          onRename={(id, name) =>
-            setGraph((current) =>
-              current ? renameInboxTask(current, id, name) : current,
-            )
-          }
-          onDescriptionChange={(id, description) =>
-            setGraph((current) =>
-              current
-                ? setInboxTaskDescription(current, id, description)
-                : current,
-            )
-          }
-          onDelete={(id) =>
-            setGraph((current) =>
-              current ? deleteInboxTask(current, id) : current,
-            )
-          }
+          onCreate={actions.createTask}
+          onRename={actions.renameTask}
+          onDescriptionChange={actions.updateDescription}
+          onDelete={actions.deleteTask}
           onMoveRequest={setMoveTaskId}
           onDragStart={drag.begin}
           onDragMove={drag.move}
@@ -161,7 +118,7 @@ export default function InboxView() {
       <MoveTaskDialog
         taskId={moveTaskId}
         parents={parentOptions}
-        onMove={moveTask}
+        onMove={actions.moveTask}
         onClose={() => setMoveTaskId(null)}
       />
     </main>

@@ -10,12 +10,12 @@ import {
   allDayEventsForDay,
   externalCalendarItems,
   parseCalendarSelections,
-} from "@/utils/calendar/external-calendar.ts";
+} from "@/utils/calendar/events/external-calendar.ts";
 import type {
   CalendarConnectionDocument,
   CalendarSelection,
   ExternalCalendarEvent,
-} from "@/types/calendar/external-calendar.ts";
+} from "@/types/calendar/events/external-calendar.ts";
 import type { TaskNode } from "@/types/graph/graph.ts";
 
 const connection: CalendarConnectionDocument = {

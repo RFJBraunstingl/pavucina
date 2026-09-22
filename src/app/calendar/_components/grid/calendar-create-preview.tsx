@@ -1,6 +1,6 @@
 import { HOUR_HEIGHT } from "@/utils/calendar/calendar";
-import { minutesBetweenDateTimes, timeToMinutes } from "@/utils/shared/time";
-import type { CalendarCreatePreviewProps } from "@/types/calendar/calendar";
+import { minutesBetweenDateTimes, timeToMinutes } from "@/utils/shared/temporal/time";
+import type { CalendarCreatePreviewProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarCreatePreview({
   preview,

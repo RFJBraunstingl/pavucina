@@ -7,8 +7,8 @@ import { getDaySchedule, scheduleTaskForDay } from "@/services/task/scheduling/d
 import { getTaskDate } from "@/services/task/scheduling/task-date-service.ts";
 import { getTaskTime } from "@/services/task/scheduling/task-time-service.ts";
 import { calendarResizeEdges, canRescheduleCalendarItem, moveCalendarItem, resizeCalendarItem } from "./calendar-schedule-service.ts";
-import { importedCalendarItems } from "@/utils/calendar/event-calendar.ts";
-import { makeDateRange } from "@/utils/shared/date.ts";
+import { graphCalendarItems } from "@/utils/calendar/events/graph-calendar.ts";
+import { makeDateRange } from "@/utils/shared/temporal/date.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 
 const day = "2026-09-13";
@@ -20,7 +20,7 @@ function scheduled(startTime = "09:00", endTime = "10:00", endDate = day) {
   }, true);
 }
 function items(graph: Graph) {
-  return importedCalendarItems(graph, graph.nodes.filter((node) => node.type === "event"), makeDateRange(day));
+  return graphCalendarItems(graph, graph.nodes.filter((node) => node.type === "event"), makeDateRange(day));
 }
 function range(graph: Graph) {
   const node = graph.nodes.find((node) => node.id === id);
@@ -92,15 +92,29 @@ test("imported, deleted, and all-day events cannot be rescheduled", () => {
 
 test("task moves and edge adjustments still use task schedule rules", () => {
   const graph = createSeedGraph(day);
-  // The seed's leaf tasks span dates; give one a concrete single-day slot.
-  const task = graph.nodes.find((node) => node.type === "task" && node.properties.name === "Timeline interactions")!;
-  const scheduled = scheduleTaskForDay(graph, task.id, day, "09:00", "10:00");
+  const singleDayTask = graph.nodes.find(
+    (node) =>
+      node.type === "task" && node.properties.name === "Timeline interactions",
+  )!;
+  const scheduled = scheduleTaskForDay(
+    graph,
+    singleDayTask.id,
+    day,
+    "09:00",
+    "10:00",
+  );
   const item = getDaySchedule(scheduled, day, "leaf", false).events[0];
   assert.equal(canRescheduleCalendarItem(scheduled, item, "leaf"), true);
   const moved = moveCalendarItem(scheduled, item, "2026-09-14", "11:30");
-  assert.equal(getTaskDate(moved, task.id, "plannedStartDate"), "2026-09-14");
-  assert.equal(getTaskTime(moved, task.id, "plannedStartTime"), "11:30");
-  assert.equal(getTaskTime(moved, task.id, "plannedEndTime"), "12:30");
+  assert.equal(
+    getTaskDate(moved, singleDayTask.id, "plannedStartDate"),
+    "2026-09-14",
+  );
+  assert.equal(getTaskTime(moved, singleDayTask.id, "plannedStartTime"), "11:30");
+  assert.equal(getTaskTime(moved, singleDayTask.id, "plannedEndTime"), "12:30");
   const resized = resizeCalendarItem(scheduled, item, "end", 15);
-  assert.equal(getTaskTime(resized, task.id, "plannedEndTime"), "10:15");
+  assert.equal(
+    getTaskTime(resized, singleDayTask.id, "plannedEndTime"),
+    "10:15",
+  );
 });

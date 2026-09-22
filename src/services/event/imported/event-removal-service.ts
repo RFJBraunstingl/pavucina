@@ -1,6 +1,6 @@
 import { removeUnusedDates } from "@/services/task/scheduling/task-date-service.ts";
-import { isImportedEvent } from "@/utils/calendar/event.ts";
-import type { ImportedEventNode } from "@/types/calendar/event.ts";
+import { isImportedEvent } from "@/utils/calendar/events/event.ts";
+import type { ImportedEventNode } from "@/types/calendar/events/event.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 
 export function removeImportedEvents(

@@ -17,7 +17,7 @@ import { updateGraphVersion } from "@/services/graph/persistence/graph-repositor
 import { loadPreferences } from "@/services/preferences/storage/preferences-repository.ts";
 import type {
   CalendarConnectionDocument,
-} from "@/types/calendar/external-calendar.ts";
+} from "@/types/calendar/events/external-calendar.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 
 function removeUnavailableEvents(

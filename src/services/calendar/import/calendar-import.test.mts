@@ -12,7 +12,7 @@ import { isGraph } from "@/services/graph/core/graph-service.ts";
 import type {
   CalendarSyncBatch,
   ExternalCalendarEvent,
-} from "@/types/calendar/external-calendar.ts";
+} from "@/types/calendar/events/external-calendar.ts";
 
 const connectionId = "00000000-0000-4000-8000-000000000099";
 const calendar = { id: "work", name: "Work", color: "#4285f4" };

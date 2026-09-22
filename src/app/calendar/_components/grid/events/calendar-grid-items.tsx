@@ -2,7 +2,7 @@ import CalendarEvent from "./calendar-event";
 import ExternalCalendarEvent from "./external-calendar-event";
 import GraphCalendarEvent from "./graph-calendar-event";
 import { calendarResizeEdges } from "@/services/calendar/core/calendar-schedule-service";
-import type { CalendarGridItemsProps } from "@/types/calendar/calendar";
+import type { CalendarGridItemsProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarGridItems({
   graph,

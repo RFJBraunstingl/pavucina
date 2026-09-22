@@ -1,4 +1,4 @@
-import type { CalendarSelection } from "./external-calendar";
+import type { CalendarSelection } from "./events/external-calendar";
 import type { FieldChange } from "@/types/graph/graph-sync";
 export type CalendarSelectionChange = { id: string } & (
   | { kind: "create"; value: CalendarSelection }

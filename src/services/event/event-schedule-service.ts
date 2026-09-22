@@ -1,5 +1,5 @@
-import { addDays, isIsoDate } from "@/utils/shared/date.ts";
-import type { ExternalCalendarEvent } from "@/types/calendar/external-calendar.ts";
+import { addDays, isIsoDate } from "@/utils/shared/temporal/date.ts";
+import type { ExternalCalendarEvent } from "@/types/calendar/events/external-calendar.ts";
 import type { DateNode, EventDateRelationshipType, Graph } from "@/types/graph/graph.ts";
 
 function zonedDateTime(value: string, timeZone: string) {

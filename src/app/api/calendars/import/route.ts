@@ -5,7 +5,7 @@ import {
 } from "@/services/calendar/import/calendar-import-service";
 import { updateCalendarImportPreference } from "@/services/preferences/storage/preferences-repository";
 import { clearCalendarEventSyncStates } from "@/services/calendar/providers/calendar-repository";
-import { isTimeZone } from "@/utils/calendar/event";
+import { isTimeZone } from "@/utils/calendar/events/event";
 
 export const runtime = "nodejs";
 

@@ -1,4 +1,4 @@
-import { isWeekend } from "@/utils/shared/date";
+import { isWeekend } from "@/utils/shared/temporal/date";
 import type { TimelineNewTaskRowProps } from "@/types/timeline/timeline";
 
 export default function TimelineNewTaskRow({

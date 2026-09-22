@@ -6,14 +6,14 @@ import {
 } from "./calendar-provider.ts";
 import { syncGoogleCalendar } from "./google/google-calendar-sync.ts";
 import { syncOutlookCalendar } from "./outlook/outlook-calendar-sync.ts";
-import { addDays } from "@/utils/shared/date.ts";
+import { addDays } from "@/utils/shared/temporal/date.ts";
 import type {
   CalendarConnectionDocument,
   CalendarEventSyncState,
   CalendarImportError,
   CalendarSyncBatch,
   ProviderCalendar,
-} from "@/types/calendar/external-calendar.ts";
+} from "@/types/calendar/events/external-calendar.ts";
 import type { OAuthRequest } from "@/types/auth/oauth.ts";
 
 export type ConnectionSync = {

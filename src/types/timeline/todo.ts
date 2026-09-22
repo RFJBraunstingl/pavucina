@@ -1,5 +1,5 @@
 import type { Graph, TaskNode } from "@/types/graph/graph";
-import type { EventNode } from "@/types/calendar/event";
+import type { EventNode } from "@/types/calendar/events/event";
 
 export type TodoItem = TaskNode | EventNode;
 

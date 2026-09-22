@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import type { ExternalCalendarItem } from "@/types/calendar/calendar";
+import type { ExternalCalendarItem } from "@/types/calendar/calendar-layout";
 
 export default function ExternalCalendarEvent({
   item,

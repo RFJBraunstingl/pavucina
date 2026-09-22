@@ -1,6 +1,5 @@
-import { useRef } from "react";
-
 import { useGraph } from "@/providers/graph-provider";
+import TaskDeleteControl from "./task-delete-control";
 import TaskScheduleFields from "./task-schedule-fields";
 import {
   deleteTask,
@@ -24,7 +23,6 @@ export default function TaskInspector({
   onDeleted,
 }: TaskInspectorProps) {
   const { graph, setGraph, today } = useGraph();
-  const deleteDialog = useRef<HTMLDialogElement>(null);
   const selected = graph?.nodes.find(
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
   );
@@ -54,8 +52,11 @@ export default function TaskInspector({
     );
   }
 
-  function removeTask(taskId: string) {
-    setGraph((current) => (current ? deleteTask(current, taskId) : current));
+  function removeSelectedTask() {
+    if (!selected) return;
+    setGraph((current) =>
+      current ? deleteTask(current, selected.id) : current,
+    );
     onDeleted();
   }
 
@@ -63,17 +64,10 @@ export default function TaskInspector({
     <aside className="inspector" aria-labelledby="inspector-heading">
       {selected ? (
         <>
-          <button
-            type="button"
-            className="delete-task"
-            aria-label={`Delete ${selected.properties.name}`}
-            title="Delete task"
-            onClick={() => deleteDialog.current?.showModal()}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5" />
-            </svg>
-          </button>
+          <TaskDeleteControl
+            taskName={selected.properties.name}
+            onDelete={removeSelectedTask}
+          />
           <p className="eyebrow">Selected task</p>
           <h2 id="inspector-heading">Edit details</h2>
           {parentNames.length > 0 && (
@@ -120,29 +114,6 @@ export default function TaskInspector({
           >
             {done ? "Reopen" : "Mark as done"}
           </button>
-          <dialog
-            ref={deleteDialog}
-            className="app-dialog"
-            aria-labelledby="delete-dialog-heading"
-          >
-            <form method="dialog">
-              <h3 id="delete-dialog-heading">Delete task?</h3>
-              <p>
-                <strong>{selected.properties.name}</strong> and all of its child
-                tasks will be permanently deleted.
-              </p>
-              <div className="dialog-actions">
-                <button type="submit" autoFocus>Cancel</button>
-                <button
-                  type="submit"
-                  className="dialog-danger"
-                  onClick={() => removeTask(selected.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </form>
-          </dialog>
         </>
       ) : (
         <div className="empty-inspector">

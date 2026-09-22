@@ -1,10 +1,10 @@
-import { daysBetween, todayIso } from "@/utils/shared/date.ts";
-import { minutesToTime, timeToMinutes } from "@/utils/shared/time.ts";
+import { daysBetween, todayIso } from "@/utils/shared/temporal/date.ts";
+import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time.ts";
 import type {
   CalendarItem,
   CalendarLayoutItem,
-  CalendarResizeEdge,
-} from "@/types/calendar/calendar";
+} from "@/types/calendar/calendar-layout";
+import type { CalendarResizeEdge } from "@/types/calendar/calendar-interaction";
 import type { TaskNode } from "@/types/graph/graph";
 
 export const CALENDAR_START = 0;

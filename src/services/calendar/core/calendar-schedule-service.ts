@@ -3,9 +3,10 @@ import { moveTaskWithinDay } from "@/services/task/scheduling/day/task-day-sched
 import { isTaskSchedulable } from "@/services/task/scheduling/task-schedule-mode-service.ts";
 import { setTaskTimes } from "@/services/task/scheduling/task-time-service.ts";
 import { CALENDAR_RESIZE_STEP, resizeTimeRange } from "@/utils/calendar/calendar.ts";
-import { addDays } from "@/utils/shared/date.ts";
-import { addDateTime, minutesBetweenDateTimes } from "@/utils/shared/time.ts";
-import type { CalendarResizeEdge, EditableCalendarItem } from "@/types/calendar/calendar.ts";
+import { addDays } from "@/utils/shared/temporal/date.ts";
+import { addDateTime, minutesBetweenDateTimes } from "@/utils/shared/temporal/time.ts";
+import type { EditableCalendarItem } from "@/types/calendar/calendar-layout.ts";
+import type { CalendarResizeEdge } from "@/types/calendar/calendar-interaction.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 import type { ScheduleMode } from "@/types/preferences/preferences.ts";
 

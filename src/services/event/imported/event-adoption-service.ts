@@ -1,54 +1,115 @@
 import { isCompletionRelationship } from "../completion-service.ts";
 import { removeUnusedDates } from "@/services/task/scheduling/task-date-service.ts";
-import { calendarEventOriginKey, isImportedEvent } from "@/utils/calendar/event.ts";
+import {
+  calendarEventOriginKey,
+  isImportedEvent,
+} from "@/utils/calendar/events/event.ts";
 import type { DateNode, Graph, Relationship } from "@/types/graph/graph.ts";
 
-function importedEvents(graph: Graph) {
-  return new Map(graph.nodes.filter(isImportedEvent).map((node) =>
-    [calendarEventOriginKey(node.properties.externalOrigin), node]));
+function importedEventsByOrigin(graph: Graph) {
+  return new Map(
+    graph.nodes
+      .filter(isImportedEvent)
+      .map((node) => [
+        calendarEventOriginKey(node.properties.externalOrigin),
+        node,
+      ]),
+  );
 }
 
-function completionEdges(graph: Graph, id?: string) {
-  return graph.relationships.filter((edge) =>
-    edge.sourceId === id && isCompletionRelationship(edge.type));
+function relationshipsBySource(graph: Graph) {
+  const bySource = new Map<string, Relationship[]>();
+  for (const relationship of graph.relationships) {
+    bySource.set(relationship.sourceId, [
+      ...(bySource.get(relationship.sourceId) ?? []),
+      relationship,
+    ]);
+  }
+  return bySource;
 }
 
-export function replaceImportedEventSubgraph(current: Graph, remote: Graph, base = current) {
-  const currentEvents = importedEvents(current);
-  const baseEvents = importedEvents(base);
-  const removedIds = new Set([...currentEvents.values()].map(({ id }) => id));
-  const nodes = current.nodes.filter((node) => !removedIds.has(node.id));
-  const relationships = current.relationships.filter((edge) =>
-    !removedIds.has(edge.sourceId) && !removedIds.has(edge.targetId));
-  const dates = new Map(nodes.flatMap((node) => node.type === "date"
-    ? [[node.properties.value, node] as const] : []));
+function completionRelationships(
+  relationships: Map<string, Relationship[]>,
+  sourceId?: string,
+) {
+  return (relationships.get(sourceId ?? "") ?? [])
+    .filter(({ type }) => isCompletionRelationship(type));
+}
 
-  function appendEdges(graph: Graph, edges: Relationship[], sourceId: string) {
-    const sourceDates = new Map(graph.nodes.flatMap((node) => node.type === "date"
-      ? [[node.id, node] as const] : []));
-    for (const edge of edges) {
-      const date = sourceDates.get(edge.targetId);
-      if (!date) continue;
-      let target: DateNode | undefined = dates.get(date.properties.value);
+export function replaceImportedEventSubgraph(
+  current: Graph,
+  remote: Graph,
+  base = current,
+) {
+  const currentEvents = importedEventsByOrigin(current);
+  const baseEvents = importedEventsByOrigin(base);
+  const currentRelationships = relationshipsBySource(current);
+  const baseRelationships = relationshipsBySource(base);
+  const remoteRelationships = relationshipsBySource(remote);
+  const removedEventIds = new Set(
+    [...currentEvents.values()].map(({ id }) => id),
+  );
+  const nodes = current.nodes.filter((node) => !removedEventIds.has(node.id));
+  const relationships = current.relationships.filter((relationship) =>
+    !removedEventIds.has(relationship.sourceId) &&
+    !removedEventIds.has(relationship.targetId));
+  const datesByValue = new Map(nodes.flatMap((node) =>
+    node.type === "date" ? [[node.properties.value, node] as const] : []));
+
+  function appendDateRelationships(
+    graph: Graph,
+    sourceRelationships: Relationship[],
+    sourceId: string,
+  ) {
+    const datesById = new Map(graph.nodes.flatMap((node) =>
+      node.type === "date" ? [[node.id, node] as const] : []));
+    for (const relationship of sourceRelationships) {
+      const sourceDate = datesById.get(relationship.targetId);
+      if (!sourceDate) continue;
+      let target: DateNode | undefined = datesByValue.get(
+        sourceDate.properties.value,
+      );
       if (!target) {
-        target = date;
-        dates.set(date.properties.value, target);
+        target = sourceDate;
+        datesByValue.set(sourceDate.properties.value, target);
         nodes.push(target);
       }
-      relationships.push({ ...edge, sourceId, targetId: target.id });
+      relationships.push({
+        ...relationship,
+        sourceId,
+        targetId: target.id,
+      });
     }
   }
 
-  // ponytail: scan edges per event; index by source ID if large imports make adoption slow.
-  for (const [origin, event] of importedEvents(remote)) {
+  for (const [origin, event] of importedEventsByOrigin(remote)) {
     nodes.push(event);
-    appendEdges(remote, remote.relationships.filter((edge) =>
-      edge.sourceId === event.id && !isCompletionRelationship(edge.type)), event.id);
-    const localEdges = completionEdges(current, currentEvents.get(origin)?.id);
-    const baseEdges = completionEdges(base, baseEvents.get(origin)?.id);
-    const changedLocally = JSON.stringify(localEdges) !== JSON.stringify(baseEdges);
-    appendEdges(changedLocally ? current : remote,
-      changedLocally ? localEdges : completionEdges(remote, event.id), event.id);
+    const remoteEventRelationships = remoteRelationships.get(event.id) ?? [];
+    appendDateRelationships(
+      remote,
+      remoteEventRelationships.filter(
+        ({ type }) => !isCompletionRelationship(type),
+      ),
+      event.id,
+    );
+
+    const localCompletion = completionRelationships(
+      currentRelationships,
+      currentEvents.get(origin)?.id,
+    );
+    const baseCompletion = completionRelationships(
+      baseRelationships,
+      baseEvents.get(origin)?.id,
+    );
+    const completionChangedLocally =
+      JSON.stringify(localCompletion) !== JSON.stringify(baseCompletion);
+    appendDateRelationships(
+      completionChangedLocally ? current : remote,
+      completionChangedLocally
+        ? localCompletion
+        : completionRelationships(remoteRelationships, event.id),
+      event.id,
+    );
   }
   return removeUnusedDates({ ...current, nodes, relationships });
 }

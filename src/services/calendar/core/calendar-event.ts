@@ -1,10 +1,10 @@
-import { isIsoDate } from "@/utils/shared/date.ts";
-import { isCalendarProviderId } from "@/utils/calendar/event.ts";
+import { isIsoDate } from "@/utils/shared/temporal/date.ts";
+import { isCalendarProviderId } from "@/utils/calendar/events/event.ts";
 import type {
   CalendarConnectionDocument,
   CalendarSelection,
   ExternalCalendarEvent,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 function record(value: unknown) {
   return value && typeof value === "object"

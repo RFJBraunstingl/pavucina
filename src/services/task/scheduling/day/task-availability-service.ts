@@ -5,9 +5,9 @@ import {
   CALENDAR_END,
   CALENDAR_RESIZE_STEP,
 } from "@/utils/calendar/calendar.ts";
-import { importedCalendarItems } from "@/utils/calendar/event-calendar.ts";
-import { timeToMinutes } from "@/utils/shared/time.ts";
-import type { EventNode } from "@/types/calendar/event.ts";
+import { graphCalendarItems } from "@/utils/calendar/events/graph-calendar.ts";
+import { timeToMinutes } from "@/utils/shared/temporal/time.ts";
+import type { EventNode } from "@/types/calendar/events/event.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 
 function taskRange(graph: Graph, taskId: string) {
@@ -26,18 +26,17 @@ export function findAvailableStart(
   day: string,
   duration: number,
 ): number | null {
-  // ponytail: graph scans match current storage; index schedules when click latency proves it necessary.
   const taskRanges = graph.nodes
     .filter((node) => node.type === "task" && node.id !== taskId &&
       getTaskDate(graph, node.id, "plannedStartDate") === day)
     .map((node) => taskRange(graph, node.id));
-  // The graph-event projection also handles native events and clips overnight ones.
-  const eventRanges = importedCalendarItems(
+  const occupiedEventRanges = graphCalendarItems(
     graph,
     graph.nodes.filter((node): node is EventNode => node.type === "event"),
     [day],
   ).map((item) => [timeToMinutes(item.startTime), calendarItemEnd(item)] as const);
-  const busy = [...taskRanges, ...eventRanges].sort(([left], [right]) => left - right);
+  const busy = [...taskRanges, ...occupiedEventRanges]
+    .sort(([left], [right]) => left - right);
   let candidate = timeToMinutes("09:00");
 
   for (const [start, end] of busy) {

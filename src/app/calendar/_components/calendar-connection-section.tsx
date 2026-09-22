@@ -1,8 +1,8 @@
-import { calendarSourceLabel } from "@/utils/calendar/external-calendar";
+import { calendarSourceLabel } from "@/utils/calendar/events/external-calendar";
 import type {
   CalendarConnectionSectionProps,
   CalendarSelection,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 function selections({ calendars }: CalendarConnectionSectionProps["connection"]) {
   return calendars

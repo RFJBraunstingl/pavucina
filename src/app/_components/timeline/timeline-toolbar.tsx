@@ -1,4 +1,4 @@
-import { rangeLabel } from "@/utils/shared/date";
+import { rangeLabel } from "@/utils/shared/temporal/date";
 import type { TimelineToolbarProps } from "@/types/timeline/timeline";
 
 export default function TimelineToolbar({

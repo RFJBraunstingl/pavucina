@@ -1,10 +1,10 @@
 import { getEventDate } from "../event-schedule-service.ts";
 import { removeUnusedDates } from "@/services/task/scheduling/task-date-service.ts";
-import { isIsoDate } from "@/utils/shared/date.ts";
-import { EVENT_TEXT_LIMITS, isTimeZone } from "@/utils/calendar/event.ts";
-import { isTime, minutesBetweenDateTimes } from "@/utils/shared/time.ts";
+import { isIsoDate } from "@/utils/shared/temporal/date.ts";
+import { EVENT_TEXT_LIMITS, isTimeZone } from "@/utils/calendar/events/event.ts";
+import { isTime, minutesBetweenDateTimes } from "@/utils/shared/temporal/time.ts";
 import { isUuid } from "@/utils/shared/id.ts";
-import type { EventNode, NativeEventInput } from "@/types/calendar/event.ts";
+import type { EventNode, NativeEventInput } from "@/types/calendar/events/event.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 
 export function validateNativeEvent(input: NativeEventInput) {

@@ -4,6 +4,7 @@ import CalendarAllDay from "./events/calendar-all-day";
 import CalendarGridItems from "./events/calendar-grid-items";
 import CalendarGridBackground from "./calendar-grid-background";
 import CalendarCreatePreview from "./calendar-create-preview";
+import CalendarDaysHeader from "./calendar-days-header";
 import { useCalendarSchedule } from "../scheduling/use-calendar-schedule";
 import { useCalendarCreation } from "../scheduling/use-calendar-creation";
 import {
@@ -13,11 +14,10 @@ import {
   HOUR_LABELS,
   layoutCalendarItems,
 } from "@/utils/calendar/calendar";
-import { dayLabel, dayOfMonth } from "@/utils/shared/date";
 import { defaultCalendarEvent } from "@/utils/calendar/calendar-creation";
-import { externalCalendarItems } from "@/utils/calendar/external-calendar";
-import { importedCalendarItems } from "@/utils/calendar/event-calendar";
-import type { CalendarGridProps } from "@/types/calendar/calendar";
+import { externalCalendarItems } from "@/utils/calendar/events/external-calendar";
+import { graphCalendarItems } from "@/utils/calendar/events/graph-calendar";
+import type { CalendarGridProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarGrid({
   graph,
@@ -42,7 +42,7 @@ export default function CalendarGrid({
   const items = useMemo(
     () => layoutCalendarItems([
       ...taskEvents,
-      ...importedCalendarItems(graph, graphEvents, days),
+      ...graphCalendarItems(graph, graphEvents, days),
       ...externalCalendarItems(externalEvents, days),
     ]),
     [days, externalEvents, graph, graphEvents, taskEvents],
@@ -75,15 +75,7 @@ export default function CalendarGrid({
         className={`calendar-week${days.length === 1 ? " single-day" : ""}`}
         style={{ "--calendar-days": days.length } as CSSProperties}
       >
-        <div className="calendar-days-header">
-          <div className="calendar-corner" />
-          {days.map((day) => (
-            <div className={day === today ? "today" : ""} key={day}>
-              <span>{dayLabel(day)}</span>
-              <strong>{dayOfMonth(day)}</strong>
-            </div>
-          ))}
-        </div>
+        <CalendarDaysHeader days={days} today={today} />
         <CalendarAllDay
           days={days}
           externalEvents={externalEvents}

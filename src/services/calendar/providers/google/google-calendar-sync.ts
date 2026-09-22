@@ -9,7 +9,7 @@ import type {
   CalendarEventChange,
   CalendarProviderSync,
   ProviderCalendar,
-} from "@/types/calendar/external-calendar.ts";
+} from "@/types/calendar/events/external-calendar.ts";
 import type { OAuthRequest } from "@/types/auth/oauth.ts";
 
 async function syncOnce(

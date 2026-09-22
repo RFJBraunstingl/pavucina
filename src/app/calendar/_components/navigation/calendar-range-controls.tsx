@@ -1,6 +1,6 @@
 import CalendarEditLock from "../editor/calendar-edit-lock";
-import { addDays } from "@/utils/shared/date";
-import type { CalendarRangeControlsProps } from "@/types/calendar/calendar";
+import { addDays } from "@/utils/shared/temporal/date";
+import type { CalendarRangeControlsProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarRangeControls(props: CalendarRangeControlsProps) {
   const mobile = props.dayCount === 1;

@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 
 import CalendarConnectionSection from "./calendar-connection-section";
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
-import { CALENDAR_SOURCES, calendarSourceLabel } from "@/utils/calendar/external-calendar";
+import { CALENDAR_SOURCES, calendarSourceLabel } from "@/utils/calendar/events/external-calendar";
 import type {
   CalendarConnectionSummary,
   CalendarManagerProps,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 export default function CalendarManager({
   open,

@@ -3,14 +3,14 @@ import {
   providerRecords,
   providerText,
 } from "../../core/calendar-event";
-import { defaultCalendarColor, isCalendarColor } from "@/utils/calendar/external-calendar";
-import { isCalendarProviderId } from "@/utils/calendar/event";
+import { defaultCalendarColor, isCalendarColor } from "@/utils/calendar/events/external-calendar";
+import { isCalendarProviderId } from "@/utils/calendar/events/event";
 import type {
   CalendarConnectionDocument,
   CalendarSelection,
   ExternalCalendarEvent,
   ProviderCalendar,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 import type { OAuthRequest } from "@/types/auth/oauth";
 
 export async function listGoogleCalendars(request: OAuthRequest) {

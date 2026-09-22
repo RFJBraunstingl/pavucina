@@ -1,7 +1,7 @@
 import "server-only";
 
-import { graphCurrentCollection } from "./graph-current-store";
-import { graphCollections } from "./graph-commit-store";
+import { graphCurrentCollection } from "./stores/graph-current-store";
+import { graphCollections } from "./stores/graph-commit-store";
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
 const BATCH_SIZE = 1_000;

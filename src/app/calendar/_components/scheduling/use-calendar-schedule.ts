@@ -13,13 +13,13 @@ import {
 import {
   CALENDAR_RESIZE_STEP,
 } from "@/utils/calendar/calendar";
-import { timeToMinutes } from "@/utils/shared/time";
+import { timeToMinutes } from "@/utils/shared/temporal/time";
 import type {
   CalendarDragMode,
   CalendarDragState,
   CalendarInteractionOptions,
-  EditableCalendarItem,
-} from "@/types/calendar/calendar";
+} from "@/types/calendar/calendar-interaction";
+import type { EditableCalendarItem } from "@/types/calendar/calendar-layout";
 
 export function useCalendarSchedule({
   graph,
@@ -45,10 +45,11 @@ export function useCalendarSchedule({
       return;
     }
     event.stopPropagation();
-    // Native events can gain or lose day segments; capture on the stable grid.
-    const capture = "eventNode" in item ? bodyRef.current : event.currentTarget;
-    if (!capture) return;
-    capture.setPointerCapture(event.pointerId);
+    const pointerCaptureTarget = "eventNode" in item
+      ? bodyRef.current
+      : event.currentTarget;
+    if (!pointerCaptureTarget) return;
+    pointerCaptureTarget.setPointerCapture(event.pointerId);
     onSelect("task" in item ? item.task.id : item.eventNode.id, item.startDate);
     drag.current = {
       pointerId: event.pointerId,

@@ -1,5 +1,5 @@
 import { isUuid } from "@/utils/shared/id.ts";
-import { isTime } from "@/utils/shared/time.ts";
+import { isTime } from "@/utils/shared/temporal/time.ts";
 import { isMailTaskOrigin } from "@/utils/mailbox.ts";
 import type { TaskNode } from "@/types/graph/graph";
 

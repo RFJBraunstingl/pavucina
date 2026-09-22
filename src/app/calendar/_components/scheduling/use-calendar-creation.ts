@@ -1,6 +1,10 @@
 import { useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { suggestCalendarEvent } from "@/utils/calendar/calendar-creation";
-import type { CalendarCreationOptions, CalendarPointerOrigin, CalendarPreview } from "@/types/calendar/calendar";
+import type {
+  CalendarCreationOptions,
+  CalendarPointerOrigin,
+  CalendarPreview,
+} from "@/types/calendar/calendar-interaction";
 
 export function useCalendarCreation(options: CalendarCreationOptions) {
   const [hover, setHover] = useState<CalendarPreview | null>(null);
@@ -46,9 +50,8 @@ export function useCalendarCreation(options: CalendarCreationOptions) {
   }
 
   function leave(event: PointerEvent<HTMLDivElement>) {
-    // Touch pointers leave before their compatibility click is dispatched.
-    if (event.pointerType === "mouse") clear();
-    else setHover(null);
+    setHover(null);
+    if (event.pointerType === "mouse") origin.current = null;
   }
 
   return { preview, move, begin, click, clear, leave };

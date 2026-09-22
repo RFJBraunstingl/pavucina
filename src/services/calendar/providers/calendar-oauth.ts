@@ -12,12 +12,12 @@ import {
   sealOAuthValue,
 } from "@/services/http/oauth-client";
 import { resolveUserId } from "@/services/account/auth/user-identity";
-import { calendarAuthProvider, isCalendarSource } from "@/utils/calendar/external-calendar";
+import { calendarAuthProvider, isCalendarSource } from "@/utils/calendar/events/external-calendar";
 import { isUuid } from "@/utils/shared/id";
 import type {
   CalendarCredentials,
   CalendarSource,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 export const CALENDAR_CONNECT_COOKIE = "pavucina.calendar-connect";
 export const CALENDAR_CONNECT_MAX_AGE = 10 * 60;

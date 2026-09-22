@@ -8,17 +8,17 @@ import { findAvailableStart } from "./task-availability-service.ts";
 import { isNodeDone } from "@/services/event/completion-service.ts";
 import { isTaskSchedulable } from "../task-schedule-mode-service.ts";
 import { layoutCalendarItems } from "@/utils/calendar/calendar.ts";
-import { isIsoDate } from "@/utils/shared/date.ts";
+import { isIsoDate } from "@/utils/shared/temporal/date.ts";
 import { dayScheduleItem, DAY_END } from "@/utils/calendar/day-schedule.ts";
 import {
   addDateTime,
   isTime,
   minutesToTime,
   timeToMinutes,
-} from "@/utils/shared/time.ts";
+} from "@/utils/shared/temporal/time.ts";
 import type { Graph, TaskNode } from "@/types/graph/graph";
 import type { ScheduleMode } from "@/types/preferences/preferences";
-import type { DaySchedule } from "@/types/calendar/schedule";
+import type { DaySchedule } from "@/types/calendar/events/schedule";
 
 const DEFAULT_DURATION = 60;
 

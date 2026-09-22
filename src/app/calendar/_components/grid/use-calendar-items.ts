@@ -6,8 +6,8 @@ import {
 } from "@/services/task/scheduling/day/task-day-schedule-service";
 import { isNodeDone } from "@/services/event/completion-service";
 import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
-import { visibleCalendarEvents } from "@/utils/calendar/event-calendar";
-import type { CalendarConnectionSummary } from "@/types/calendar/external-calendar";
+import { visibleCalendarEvents } from "@/utils/calendar/events/graph-calendar";
+import type { CalendarConnectionSummary } from "@/types/calendar/events/external-calendar";
 import type { Graph } from "@/types/graph/graph";
 import type { UserPreferences } from "@/types/preferences/preferences";
 

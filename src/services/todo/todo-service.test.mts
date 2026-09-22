@@ -7,8 +7,8 @@ import { saveNativeEvent } from "@/services/event/native/native-event-service.ts
 import { getLeafTasksForDate, setTaskTime } from "@/services/task/core/task-service.ts";
 import { isNodeDone, markNodeDone, reopenNode } from "@/services/event/completion-service.ts";
 import { getTodoItemsForDate, getTodoSchedule } from "./todo-service.ts";
-import { visibleImportedEvents } from "@/utils/calendar/event-calendar.ts";
-import type { CalendarConnectionSummary, ExternalCalendarEvent } from "@/types/calendar/external-calendar.ts";
+import { visibleImportedEvents } from "@/utils/calendar/events/graph-calendar.ts";
+import type { CalendarConnectionSummary, ExternalCalendarEvent } from "@/types/calendar/events/external-calendar.ts";
 import type { Graph } from "@/types/graph/graph.ts";
 
 const today = "2026-09-13";

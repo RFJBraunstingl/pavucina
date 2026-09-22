@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 
 import TodoDetailsDialog from "./todo-details-dialog";
+import TodoHeader from "./todo-header";
 import TodoListItem from "./todo-list-item";
 import AppHeader from "@/app/_components/common/app-header";
 import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
-import { useExternalCalendars } from "@/app/_components/sync/use-external-calendars";
+import { useExternalCalendars } from "@/app/_components/sync/calendar/use-external-calendars";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
@@ -16,7 +17,6 @@ import {
   markNodeDone,
   reopenNode,
 } from "@/services/event/completion-service";
-import { compactDateLabel } from "@/utils/shared/date";
 import type { UserPreferences } from "@/types/preferences/preferences";
 
 export default function TodoView() {
@@ -87,39 +87,17 @@ export default function TodoView() {
       <GraphSyncError error={calendarImport.error} onRetry={() =>
         void calendarImport.syncNow().catch(() => undefined)} />
       <section className="todo-card" aria-labelledby="todo-heading">
-        <header className="todo-heading">
-          <div>
-            <p className="eyebrow">Daily checklist</p>
-            <h2 id="todo-heading">
-              <time dateTime={today}>{compactDateLabel(today)}</time>
-            </h2>
-          </div>
-          <div className="todo-heading-actions">
-            <label className="done-toggle todo-heading-toggle">
-              <input
-                type="checkbox"
-                checked={preferences.hideDone}
-                onChange={(event) =>
-                  updatePreferences({ hideDone: event.target.checked })
-                }
-              />
-              Hide done
-            </label>
-            <label className="done-toggle todo-heading-toggle">
-              <input
-                type="checkbox"
-                checked={preferences.showFullTaskPath ?? false}
-                onChange={(event) =>
-                  updatePreferences({ showFullTaskPath: event.target.checked })
-                }
-              />
-              Show full path
-            </label>
-            <p className="todo-count" aria-live="polite">
-              {doneCount} of {items.length} done
-            </p>
-          </div>
-        </header>
+        <TodoHeader
+          date={today}
+          doneCount={doneCount}
+          itemCount={items.length}
+          hideDone={preferences.hideDone}
+          showFullTaskPath={preferences.showFullTaskPath ?? false}
+          onHideDoneChange={(hideDone) => updatePreferences({ hideDone })}
+          onShowFullTaskPathChange={(showFullTaskPath) =>
+            updatePreferences({ showFullTaskPath })
+          }
+        />
 
         {loadingEvents && (
           <p className="todo-empty" role="status">Loading calendar events…</p>

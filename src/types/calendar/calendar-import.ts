@@ -1,4 +1,4 @@
-import type { CalendarImportError } from "./external-calendar";
+import type { CalendarImportError } from "./events/external-calendar";
 import type { GraphRevision } from "@/types/graph/graph-sync";
 
 export type CalendarImportResponse = {

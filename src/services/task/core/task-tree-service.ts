@@ -105,7 +105,6 @@ export function getTaskAndDescendantIds(graph: Graph, taskId: string) {
 }
 
 export function getParentTaskNames(graph: Graph, taskId: string) {
-  // ponytail: rebuild maps per call; cache paths if large ToDo lists make this measurable.
   const tasks = new Map(
     graph.nodes.flatMap((node) => node.type === "task" ? [[node.id, node]] : []),
   );

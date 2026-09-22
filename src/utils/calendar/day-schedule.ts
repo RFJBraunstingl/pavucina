@@ -6,8 +6,8 @@ import {
   HOUR_HEIGHT,
   HOUR_LABELS,
 } from "./calendar.ts";
-import { minutesToTime, timeToMinutes } from "@/utils/shared/time.ts";
-import type { CalendarItem } from "@/types/calendar/calendar";
+import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time.ts";
+import type { CalendarItem } from "@/types/calendar/calendar-layout";
 import type { TaskNode } from "@/types/graph/graph";
 
 export const DAY_START = CALENDAR_START;

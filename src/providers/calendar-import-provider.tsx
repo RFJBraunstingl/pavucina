@@ -16,8 +16,8 @@ import { useGraph } from "./graph-provider";
 import {
   setCalendarEventImport,
   syncImportedCalendarEvents,
-} from "@/services/calendar/import/remote-calendar-import-store";
-import { disconnectCalendar } from "@/services/calendar/import/remote-calendar-store";
+} from "@/services/calendar/import/storage/remote-calendar-import-store";
+import { disconnectCalendar } from "@/services/calendar/import/storage/remote-calendar-store";
 import type { CalendarImportResponse } from "@/types/calendar/calendar-import";
 
 const HOUR_MS = 60 * 60 * 1_000;

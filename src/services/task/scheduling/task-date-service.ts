@@ -1,11 +1,10 @@
-import { addDays, daysBetween, isIsoDate } from "@/utils/shared/date.ts";
+import { addDays, daysBetween, isIsoDate } from "@/utils/shared/temporal/date.ts";
 import type {
   DateNode,
   DateRelationshipType,
   Graph,
 } from "@/types/graph/graph";
 
-// ponytail: linear graph scans are enough for local data; index nodes when real datasets make rendering slow.
 export function getTaskDate(
   graph: Graph,
   taskId: string,

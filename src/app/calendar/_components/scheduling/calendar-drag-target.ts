@@ -6,11 +6,9 @@ import {
   CALENDAR_START,
   HOUR_HEIGHT,
 } from "@/utils/calendar/calendar";
-import { minutesToTime, timeToMinutes } from "@/utils/shared/time";
-import type {
-  CalendarDragState,
-  EditableCalendarItem,
-} from "@/types/calendar/calendar";
+import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time";
+import type { CalendarDragState } from "@/types/calendar/calendar-interaction";
+import type { EditableCalendarItem } from "@/types/calendar/calendar-layout";
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.max(minimum, Math.min(maximum, value));

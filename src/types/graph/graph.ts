@@ -1,5 +1,5 @@
 import type { MailTaskOrigin } from "@/types/mailbox/mailbox";
-import type { EventNode } from "@/types/calendar/event";
+import type { EventNode } from "@/types/calendar/events/event";
 
 export type TimeProperty = "plannedStartTime" | "plannedEndTime";
 
@@ -57,4 +57,7 @@ export type Graph = {
   inboxNodes?: TaskNode[];
 };
 
-export type FlatTask = { task: TaskNode; depth: number };
+export type FlatTask = {
+  task: TaskNode;
+  depth: number;
+};

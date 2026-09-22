@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
-import { compactDateLabel } from "@/utils/shared/date";
-import type { CalendarEventProps } from "@/types/calendar/calendar";
+import { compactDateLabel } from "@/utils/shared/temporal/date";
+import type { CalendarEventProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarEvent({
   item,

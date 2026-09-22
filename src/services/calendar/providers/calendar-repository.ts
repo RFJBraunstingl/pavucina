@@ -5,7 +5,7 @@ import type {
   CalendarConnectionDocument,
   CalendarEventSyncState,
   CalendarSource,
-} from "@/types/calendar/external-calendar";
+} from "@/types/calendar/events/external-calendar";
 
 let indexesPromise: Promise<unknown> | undefined;
 
@@ -84,16 +84,33 @@ export async function updateCalendarEventSyncStates(
   after: CalendarEventSyncState[],
 ) {
   const collection = await connections();
-  for (const calendarId of new Set([...before, ...after].map((state) => state.calendarId))) {
+  const calendarIds = new Set(
+    [...before, ...after].map((state) => state.calendarId),
+  );
+  for (const calendarId of calendarIds) {
     const previous = before.find((state) => state.calendarId === calendarId);
     const next = after.find((state) => state.calendarId === calendarId);
     if (JSON.stringify(previous) === JSON.stringify(next)) continue;
-    const filter = { _id: connectionId, userId, eventSyncStates: previous
-      ? { $elemMatch: previous } : { $not: { $elemMatch: { calendarId } } } };
-    // A concurrent refresh won: leave its cursor intact and refresh again next time.
-    if (!next) await collection.updateOne(filter, { $pull: { eventSyncStates: { calendarId } } });
-    else if (previous) await collection.updateOne(filter, { $set: { "eventSyncStates.$": next } });
-    else await collection.updateOne(filter, { $push: { eventSyncStates: next } });
+    const onlyIfSyncStateUnchanged = {
+      _id: connectionId,
+      userId,
+      eventSyncStates: previous
+        ? { $elemMatch: previous }
+        : { $not: { $elemMatch: { calendarId } } },
+    };
+    if (!next) {
+      await collection.updateOne(onlyIfSyncStateUnchanged, {
+        $pull: { eventSyncStates: { calendarId } },
+      });
+    } else if (previous) {
+      await collection.updateOne(onlyIfSyncStateUnchanged, {
+        $set: { "eventSyncStates.$": next },
+      });
+    } else {
+      await collection.updateOne(onlyIfSyncStateUnchanged, {
+        $push: { eventSyncStates: next },
+      });
+    }
   }
 }
 

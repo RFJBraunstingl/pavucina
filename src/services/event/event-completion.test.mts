@@ -9,7 +9,7 @@ import { saveNativeEvent, deleteNativeEvent } from "./native/native-event-servic
 import { reconcileCalendarBatch, removeImportedEvents, replaceImportedEventSubgraph } from "./event-service.ts";
 import { getTodoItemsForDate } from "@/services/todo/todo-service.ts";
 import type { Graph } from "@/types/graph/graph.ts";
-import type { CalendarSyncBatch } from "@/types/calendar/external-calendar.ts";
+import type { CalendarSyncBatch } from "@/types/calendar/events/external-calendar.ts";
 
 const day = "2026-09-13";
 const nextDay = "2026-09-14";

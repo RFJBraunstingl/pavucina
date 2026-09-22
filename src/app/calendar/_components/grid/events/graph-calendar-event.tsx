@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import type { GraphCalendarEventProps } from "@/types/calendar/calendar";
+import type { GraphCalendarEventProps } from "@/types/calendar/calendar-components";
 
 export default function GraphCalendarEvent({
   item,

@@ -3,7 +3,7 @@ import { type PointerEvent, useRef } from "react";
 import { taskDuration } from "@/services/task/scheduling/day/task-day-schedule-service";
 import { droppedTimeRange } from "@/utils/calendar/day-schedule";
 import type { TaskNode } from "@/types/graph/graph";
-import type { TrayScheduleOptions } from "@/types/calendar/schedule";
+import type { TrayScheduleOptions } from "@/types/calendar/events/schedule";
 
 export function useTraySchedule(props: TrayScheduleOptions) {
   const drag = useRef<{ pointerId: number; task: TaskNode } | null>(null);
