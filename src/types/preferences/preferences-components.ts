@@ -1,6 +1,10 @@
 import type { StartPage } from "./navigation";
 import type { ScheduleMode, UserPreferences } from "./preferences";
 
+export type AppVersionProps = {
+  version: string;
+};
+
 export type StartupPageSettingsProps = {
   preferences: UserPreferences;
   onChange: (changes: Partial<UserPreferences>) => void;

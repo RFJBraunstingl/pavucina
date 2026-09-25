@@ -12,8 +12,9 @@ import TimelineSettings from "./sections/timeline-settings";
 import { useGraph } from "@/providers/graph-provider";
 import { resolvedScheduleMode } from "@/services/preferences/preferences-service";
 import { clearParentTaskSchedules } from "@/services/task/scheduling/task-schedule-mode-service";
+import type { AppVersionProps } from "@/types/preferences/preferences-components";
 
-export default function PreferencesView() {
+export default function PreferencesView({ version }: AppVersionProps) {
   const { graph, setGraph, restoreGraph, hydrated, syncError, retry } =
     useGraph();
   const {
@@ -79,7 +80,7 @@ export default function PreferencesView() {
           }
         }}
       />
-      <LegalLinks />
+      <LegalLinks version={version} />
     </main>
   );
 }

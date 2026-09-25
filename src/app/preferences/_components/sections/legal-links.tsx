@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { AppVersionProps } from "@/types/preferences/preferences-components";
 
 const LINKS = [
   ["About", "/about"],
@@ -7,7 +8,7 @@ const LINKS = [
   ["Imprint", "/imprint"],
 ] as const;
 
-export default function LegalLinks() {
+export default function LegalLinks({ version }: AppVersionProps) {
   return (
     <section className="preferences-card" aria-labelledby="legal-links-heading">
       <header>
@@ -19,6 +20,7 @@ export default function LegalLinks() {
           <Link href={href} key={href}>{label}</Link>
         ))}
       </nav>
+      <footer className="preferences-version">Pavucina version {version}</footer>
     </section>
   );
 }

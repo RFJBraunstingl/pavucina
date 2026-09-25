@@ -20,6 +20,9 @@ FROM node:${NODE_VERSION} AS builder
 
 WORKDIR /app
 
+ARG PAVUCINA_VERSION
+ENV PAVUCINA_VERSION=${PAVUCINA_VERSION}
+
 # Copy project dependencies from dependencies stage
 COPY --from=dependencies /app/node_modules ./node_modules
 
@@ -36,6 +39,9 @@ RUN npm run build
 FROM node:${NODE_VERSION} AS runner
 
 WORKDIR /app
+
+ARG PAVUCINA_VERSION
+ENV PAVUCINA_VERSION=${PAVUCINA_VERSION}
 
 # Set production environment variables
 ENV NODE_ENV=production

@@ -36,8 +36,11 @@ jobs:
             "$IMAGE" "$TAG" "$IMAGE" >> release-notes.md
 
       - name: Build Docker image
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.TAG }}
         run: |
           docker build \
+            --build-arg PAVUCINA_VERSION="$RELEASE_TAG" \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/pavucina:${{ steps.tag.outputs.TAG }} \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/pavucina:latest \
             .

@@ -43,6 +43,12 @@
   font-size: 22px;
 }
 
+.preferences-version {
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .schedule-mode-options {
   display: grid;
   margin: 0;
