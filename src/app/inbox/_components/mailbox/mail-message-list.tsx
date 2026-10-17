@@ -2,15 +2,15 @@ import { mailboxSourceLabel } from "@/utils/mailbox";
 import type { MailMessageListProps } from "@/types/inbox/inbox-components";
 
 export default function MailMessageList(props: MailMessageListProps) {
-  if (props.loading) return <p className="source-empty">Loading unread mail…</p>;
   if (!props.messages.length) {
+    if (!props.loaded) return null;
     return <p className="source-empty">No unread inbox mail.</p>;
   }
   return (
     <ul className="mail-message-list">
       {props.messages.map((message) => {
         const key = `${message.connectionId}:${message.id}`;
-        const disabled = Boolean(props.busy);
+        const disabled = props.disabled || Boolean(props.busy);
         return (
           <li key={key}>
             <div className="mail-message-meta">

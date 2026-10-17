@@ -10,8 +10,8 @@ export default function CalendarInspector({
   onEditEvent,
   onDeleteTask,
 }: CalendarInspectorProps) {
-  const selected = graph.nodes.find((node) => node.id === selectedId);
-  return selected?.type === "event" ? (
+  const selected = graph?.nodes.find((node) => node.id === selectedId);
+  return graph && selected?.type === "event" ? (
     <EventInspector
       graph={graph}
       event={selected}

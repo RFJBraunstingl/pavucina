@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import AuthProviderButtons from "./auth-provider-buttons";
+import LoadingIndicator from "../common/loading-indicator";
 
 export default function AuthControls() {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -13,7 +14,7 @@ export default function AuthControls() {
   if (status === "authenticated") {
     return (
       <div className="auth-controls">
-        <span>Signed in</span>
+        <LoadingIndicator active={false} label="" />
         <button type="button" onClick={() => void signOut()}>Sign out</button>
       </div>
     );
@@ -21,6 +22,7 @@ export default function AuthControls() {
 
   return (
     <div className="auth-controls">
+      <LoadingIndicator active={status === "loading"} label="Loading sign-in status…" />
       <button
         type="button"
         disabled={status === "loading"}

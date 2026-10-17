@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import AppHeader from "@/app/_components/common/app-header";
-import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { GraphSyncError } from "@/app/_components/sync/graph-state";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import InboxTaskPanel from "./tasks/inbox-task-panel";
 import MoveTaskDialog from "./tasks/move-task-dialog";
@@ -58,38 +58,23 @@ export default function InboxView() {
   });
   const drag = useInboxDrag(actions.moveTask);
 
-  if (!hydrated || !graph) {
-    return (
-      <GraphLoading
-        label="Loading inbox…"
-        error={syncError}
-        onRetry={retry}
-      />
-    );
-  }
-  if (!preferences) {
-    return (
-      <GraphLoading
-        label="Loading preferences…"
-        error={preferencesError}
-        onRetry={retryPreferences}
-      />
-    );
-  }
+  const ready = Boolean(hydrated && graph && preferences);
+  const loading = ((!hydrated || !graph) && !syncError) ||
+    (!preferences && !preferencesError);
 
   return (
     <main className="app-shell">
-      <AppHeader active="inbox" title="Inbox" />
+      <AppHeader active="inbox" title="Inbox" loadingLabel={loading ? "Loading inbox…" : undefined} />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <div className="inbox-workspace">
-        <SourcePanel onAdd={actions.addMessage} />
+        <SourcePanel disabled={!ready} onAdd={actions.addMessage} />
         <ScratchpadPanel
-          nodes={graph.inboxNodes ?? []}
+          nodes={graph?.inboxNodes ?? []}
+          disabled={!ready}
           draggingId={drag.draggingId}
           onCreate={actions.createTask}
           onRename={actions.renameTask}
-          onDescriptionChange={actions.updateDescription}
           onDelete={actions.deleteTask}
           onMoveRequest={setMoveTaskId}
           onDragStart={drag.begin}
@@ -102,7 +87,8 @@ export default function InboxView() {
           scheduleMode={scheduleMode}
           today={today}
           selectedId={selectedId}
-          hideDone={preferences.hideDone}
+          hideDone={preferences?.hideDone ?? true}
+          disabled={!ready}
           collapsedIds={collapsedIds}
           dropTargetId={drag.targetId}
           onGraphChange={setGraph}

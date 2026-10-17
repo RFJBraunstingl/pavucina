@@ -1,0 +1,41 @@
+.loading-indicator {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  margin-inline-start: 8px;
+  vertical-align: middle;
+}
+
+.loading-indicator-icon {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.loading-indicator-icon.is-active {
+  opacity: 1;
+  animation: loading-spin 800ms linear infinite;
+}
+
+.loading-controls {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.loading-region {
+  min-height: 160px;
+}
+
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-indicator-icon.is-active { animation: none; }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
+import LoadingIndicator from "./loading-indicator";
 import type { ConfirmationDialogProps } from "@/types/shared/components";
 
 export default function ConfirmationDialog(props: ConfirmationDialogProps) {
@@ -29,7 +30,10 @@ export default function ConfirmationDialog(props: ConfirmationDialogProps) {
           props.onConfirm();
         }}
       >
-        <h3 id={headingId}>{props.title}</h3>
+        <h3 id={headingId}>
+          {props.title}
+          <LoadingIndicator active={Boolean(props.busy)} label={props.busyLabel ?? "Working…"} />
+        </h3>
         <p>{props.message}</p>
         <div className="dialog-actions">
           <button
@@ -45,7 +49,7 @@ export default function ConfirmationDialog(props: ConfirmationDialogProps) {
             className="dialog-danger"
             disabled={props.busy}
           >
-            {props.busy ? props.busyLabel ?? props.confirmLabel : props.confirmLabel}
+            {props.confirmLabel}
           </button>
         </div>
       </form>

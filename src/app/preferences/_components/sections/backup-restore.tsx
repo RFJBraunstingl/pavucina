@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
+import LoadingIndicator from "@/app/_components/common/loading-indicator";
 import {
   createBackupArchive,
   readBackupArchive,
@@ -19,7 +20,10 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
   const [restoring, setRestoring] = useState(false);
 
   function downloadBackup() {
-    if (!graph) return;
+    if (!graph || !preferences) {
+      console.warn("Expected a loaded graph and preferences; downloading a backup was cancelled.");
+      return;
+    }
     const archive = createBackupArchive(graph, preferences);
     const url = URL.createObjectURL(
       new Blob([new Uint8Array(archive)], { type: "application/zip" }),
@@ -81,13 +85,16 @@ export default function BackupRestore({ graph, preferences, onRestore }: BackupR
     <section className="preferences-card backup-restore" aria-labelledby="backup-restore">
       <header>
         <p className="eyebrow">Data</p>
-        <h2 id="backup-restore">Backup &amp; Restore</h2>
+        <h2 id="backup-restore">
+          Backup &amp; Restore
+          <LoadingIndicator active={restoring} label="Restoring backup…" />
+        </h2>
         <p>Download all data as a ZIP, or replace it from a previous backup.</p>
       </header>
       <div className="backup-actions">
-        <button type="button" disabled={!graph} onClick={downloadBackup}>Download backup</button>
-        <button type="button" disabled={restoring} onClick={() => input.current?.click()}>
-          {restoring ? "Restoring…" : "Restore backup"}
+        <button type="button" disabled={!graph || !preferences} onClick={downloadBackup}>Download backup</button>
+        <button type="button" disabled={restoring || !preferences} onClick={() => input.current?.click()}>
+          Restore backup
         </button>
         <input
           ref={input}

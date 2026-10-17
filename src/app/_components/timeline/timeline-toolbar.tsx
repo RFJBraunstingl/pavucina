@@ -3,6 +3,7 @@ import type { TimelineToolbarProps } from "@/types/timeline/timeline";
 
 export default function TimelineToolbar({
   days,
+  disabled,
   hideDone,
   onHideDoneChange,
   onCollapseAll,
@@ -17,8 +18,8 @@ export default function TimelineToolbar({
         <p className="eyebrow">Project plan</p>
         <h2 id="timeline-heading">{rangeLabel(days[0], days.at(-1)!)}</h2>
         <div className="tree-actions" aria-label="Task hierarchy">
-          <button type="button" onClick={onCollapseAll}>Collapse all</button>
-          <button type="button" onClick={onExpandAll}>Expand all</button>
+          <button type="button" disabled={disabled} onClick={onCollapseAll}>Collapse all</button>
+          <button type="button" disabled={disabled} onClick={onExpandAll}>Expand all</button>
         </div>
       </div>
       <div className="range-controls" aria-label="Timeline range">
@@ -26,6 +27,7 @@ export default function TimelineToolbar({
           <input
             type="checkbox"
             checked={hideDone}
+            disabled={disabled}
             onChange={(event) => onHideDoneChange(event.target.checked)}
           />
           Hide done

@@ -1,6 +1,7 @@
-import { changedGraphRecords, mergeRecords } from "../src/services/graph/sync/graph-record-service.ts";
-import { applyGraphOperations, GraphConflictError } from "../src/services/graph/sync/graph-patch-service.ts";
-import { applyPreferencesPatch } from "../src/services/preferences/settings-patch-service.ts";
+import { changedGraphRecords, mergeRecords } from "../src/services/graph/sync/records/graph-record-service.ts";
+import { applyGraphOperations } from "../src/services/graph/sync/graph-patch-service.ts";
+import { GraphConflictError } from "../src/services/graph/sync/graph-conflict-error.ts";
+import { applyPreferencesPatch } from "../src/services/preferences/patch/settings-patch-service.ts";
 import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences/preferences-service.ts";
 import { changedFields } from "../src/utils/shared/field-changes.ts";
 

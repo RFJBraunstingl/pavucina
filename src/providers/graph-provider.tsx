@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -59,9 +60,14 @@ function useGraphState() {
     return () => window.clearTimeout(timer);
   }, [view.graph]);
 
-  function setGraph(next: GraphUpdate) {
-    controller.current?.change(next);
-  }
+  const setGraph = useCallback((next: GraphUpdate) => {
+    const sync = controller.current;
+    if (!sync?.active || sync.scope !== scope) {
+      console.warn("Graph edit cancelled: its workspace is no longer active.");
+      return;
+    }
+    sync.change(next);
+  }, [scope]);
 
   async function saveGraphNow(next: Graph) {
     const sync = controller.current;

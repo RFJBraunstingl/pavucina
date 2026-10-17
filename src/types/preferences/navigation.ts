@@ -7,6 +7,7 @@ export type AppPage =
 export type StartPage = AppPage | "last";
 
 export type AppHeaderProps = {
-  active: AppPage | "preferences";
+  active?: AppPage | "preferences";
   title: string;
+  loadingLabel?: string;
 };

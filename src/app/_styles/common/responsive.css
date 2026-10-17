@@ -51,6 +51,7 @@
   }
 
   .auth-controls {
+    width: auto;
     justify-content: flex-end;
   }
 

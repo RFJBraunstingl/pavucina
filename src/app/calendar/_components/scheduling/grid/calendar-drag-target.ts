@@ -1,45 +1,23 @@
-import type { PointerEvent } from "react";
-
-import {
-  CALENDAR_END,
-  CALENDAR_RESIZE_STEP,
-  CALENDAR_START,
-  HOUR_HEIGHT,
-} from "@/utils/calendar/calendar";
+import { CALENDAR_RESIZE_STEP } from "@/utils/calendar/calendar";
+import { calendarGridPoint, calendarStartMinutes, snapCalendarMinutes } from "@/utils/calendar/calendar-pointer";
 import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time";
-import type { CalendarDragState } from "@/types/calendar/calendar-interaction";
+import type { CalendarDragState, CalendarDragTarget, CalendarPointerPosition } from "@/types/calendar/calendar-interaction";
 import type { EditableCalendarItem } from "@/types/calendar/calendar-layout";
 
-const clamp = (value: number, minimum: number, maximum: number) =>
-  Math.max(minimum, Math.min(maximum, value));
-
-export function calendarResizeAmount(offsetY: number) {
-  return Math.round(offsetY / (HOUR_HEIGHT / 4)) * CALENDAR_RESIZE_STEP;
-}
-
 export function calendarPointerTarget(
-  active: CalendarDragState,
-  event: PointerEvent<HTMLElement>,
+  active: Pick<CalendarDragState, "item" | "originMinutes" | "mode">,
+  event: CalendarPointerPosition,
   days: string[],
-  calendarWidth: number,
-) {
-  const dayWidth = calendarWidth / days.length;
-  const dayIndex = clamp(
-    active.startDayIndex +
-      Math.round((event.clientX - active.originX) / dayWidth),
-    0,
-    days.length - 1,
-  );
-  const minutes = clamp(
-    timeToMinutes(active.startTime) +
-      Math.round((event.clientY - active.originY) / (HOUR_HEIGHT / 2)) * 30,
-    CALENDAR_START,
-    CALENDAR_END - 30,
-  );
+  bounds: Pick<DOMRect, "left" | "top" | "width" | "height">,
+): CalendarDragTarget {
+  const point = calendarGridPoint(event, bounds, days.length);
+  const amount = snapCalendarMinutes(point.minutes - active.originMinutes);
+  const minutes = calendarStartMinutes(timeToMinutes(active.item.startTime) + amount);
   return {
-    date: days[dayIndex],
+    date: days[point.dayIndex],
     time: minutesToTime(minutes),
-    key: `${days[dayIndex]}:${minutes}`,
+    amount,
+    key: active.mode === "move" ? `${days[point.dayIndex]}:${minutes}` : String(amount),
   };
 }
 
@@ -51,11 +29,9 @@ export function calendarKeyboardTarget(
   const horizontal = key === "ArrowLeft" ? -1 : key === "ArrowRight" ? 1 : 0;
   const date = days[item.dayIndex + horizontal];
   if (!date) return null;
-  const vertical = key === "ArrowUp" ? -30 : key === "ArrowDown" ? 30 : 0;
-  const minutes = clamp(
+  const vertical = key === "ArrowUp" ? -CALENDAR_RESIZE_STEP : key === "ArrowDown" ? CALENDAR_RESIZE_STEP : 0;
+  const minutes = calendarStartMinutes(
     timeToMinutes(item.startTime) + vertical,
-    CALENDAR_START,
-    CALENDAR_END - 30,
   );
   return { date, time: minutesToTime(minutes) };
 }

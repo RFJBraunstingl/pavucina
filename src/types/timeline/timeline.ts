@@ -35,6 +35,7 @@ export type TimelineNewTaskRowProps = Pick<
 >;
 
 export type TimelineToolbarProps = {
+  disabled: boolean;
   days: string[];
   hideDone: boolean;
   onHideDoneChange: (hideDone: boolean) => void;

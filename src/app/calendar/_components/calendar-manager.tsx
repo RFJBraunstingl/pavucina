@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import CalendarConnectionSection from "./calendar-connection-section";
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
+import LoadingIndicator from "@/app/_components/common/loading-indicator";
 import { CALENDAR_SOURCES, calendarSourceLabel } from "@/utils/calendar/events/external-calendar-source";
 import type {
   CalendarConnectionSummary,
@@ -38,7 +39,10 @@ export default function CalendarManager({
           <header>
             <div>
               <p className="eyebrow">Calendar overlay</p>
-              <h2 id="calendar-manager-heading">Connected calendars</h2>
+              <h2 id="calendar-manager-heading">
+                Connected calendars
+                <LoadingIndicator active={Boolean(busy) || (!data && !error)} label="Loading calendars…" />
+              </h2>
             </div>
             <button type="submit">Close</button>
           </header>
@@ -54,7 +58,6 @@ export default function CalendarManager({
               </button>
             ))}
           </div>
-          {!data && !error && <p>Loading calendars…</p>}
           {data?.connections.map((connection) => (
             <CalendarConnectionSection
               connection={connection}

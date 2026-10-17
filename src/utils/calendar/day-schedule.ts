@@ -7,6 +7,7 @@ import {
   HOUR_LABELS,
 } from "./calendar.ts";
 import { minutesToTime, timeToMinutes } from "@/utils/shared/temporal/time.ts";
+import { snapCalendarMinutes } from "./calendar-pointer.ts";
 import type { CalendarItem } from "@/types/calendar/calendar-layout";
 import type { TaskNode } from "@/types/graph/graph";
 
@@ -45,7 +46,7 @@ export function dayScheduleItem(
 export function droppedTimeRange(offset: number, height: number, duration: number) {
   const safeDuration = Math.min(Math.max(duration, CALENDAR_RESIZE_STEP), DAY_END);
   const raw = (offset / Math.max(height, 1)) * (DAY_END + 1);
-  const snapped = Math.round(raw / CALENDAR_RESIZE_STEP) * CALENDAR_RESIZE_STEP;
+  const snapped = snapCalendarMinutes(raw);
   const maxStart = Math.floor((DAY_END - safeDuration) / CALENDAR_RESIZE_STEP) * CALENDAR_RESIZE_STEP;
   const start = Math.max(DAY_START, Math.min(snapped, maxStart));
   return [minutesToTime(start), minutesToTime(start + safeDuration)] as const;

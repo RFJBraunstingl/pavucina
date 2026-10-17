@@ -20,6 +20,7 @@ export type ScheduleTrayDay = {
 };
 
 export type ScheduleTrayProps = {
+  loading?: boolean;
   days: ScheduleTrayDay[];
   overdue: DayScheduleTask[];
   selectedId: string | null;

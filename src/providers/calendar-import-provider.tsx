@@ -99,7 +99,7 @@ function useCalendarImportState() {
 
   return {
     enabled,
-    available: status === "authenticated" && Boolean(graph),
+    available: status === "authenticated" && Boolean(graph && preferences),
     busy,
     error,
     lastSyncedAt,

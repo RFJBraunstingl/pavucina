@@ -12,7 +12,7 @@ import { useEventEditor } from "./editor/use-event-editor";
 import { useCalendarRange } from "./state/use-calendar-range";
 import { useCalendarTaskScheduling } from "./state/use-calendar-task-scheduling";
 import AppHeader from "@/app/_components/common/app-header";
-import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { GraphSyncError } from "@/app/_components/sync/graph-state";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
 import { useCalendarImport } from "@/providers/calendar-import-provider";
@@ -51,12 +51,9 @@ export default function CalendarView() {
     ? []
     : externalCalendars.data?.events ?? [];
 
-  if (!hydrated || !graph) {
-    return <GraphLoading label="Loading calendar…" error={syncError} onRetry={retry} />;
-  }
-  if (!preferences) {
-    return <GraphLoading label="Loading preferences…" error={preferencesError} onRetry={retryPreferences} />;
-  }
+  const ready = Boolean(hydrated && graph && preferences);
+  const loading = ((!hydrated || !graph) && !syncError) ||
+    (!preferences && !preferencesError);
 
   async function refreshCalendars() {
     if (calendarImport.enabled) await calendarImport.syncNow();
@@ -71,14 +68,14 @@ export default function CalendarView() {
 
   return (
     <main className="app-shell">
-      <AppHeader active="calendar" title="Calendar" />
+      <AppHeader active="calendar" title="Calendar" loadingLabel={loading ? "Loading calendar…" : undefined} />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <GraphSyncError
         error={externalCalendars.error}
         onRetry={() => void externalCalendars.refresh()}
       />
-      <GraphSyncError error={calendarImport.error} onRetry={() => void calendarImport.syncNow()} />
+      <GraphSyncError error={calendarImport.error} onRetry={() => void calendarImport.syncNow().catch(() => undefined)} />
       <div className="workspace">
         <section className="calendar-card" aria-labelledby="calendar-heading">
           <CalendarToolbar
@@ -87,24 +84,27 @@ export default function CalendarView() {
             today={today}
             dayCount={range.dayCount}
             locked={range.locked}
-            hideDone={preferences.hideDone}
+            hideDone={preferences?.hideDone ?? true}
+            disabled={!ready}
             onToggleLock={range.toggleLock}
             onHideDone={(hideDone) => patchPreferences({ hideDone })}
             onShowDay={showDay}
             controls={
               <CalendarControls
                 calendars={externalCalendars}
+                disabled={!ready}
                 importBusy={calendarImport.busy}
                 onRefresh={refreshCalendars}
               />
             }
           />
           <ScheduleTray
-            days={schedules.map(({ date, unscheduled }) => ({
+            days={range.days.map((date) => ({
               date,
-              tasks: unscheduled,
+              tasks: schedules.find((schedule) => schedule.date === date)?.unscheduled ?? [],
             }))}
-            overdue={overdue}
+            overdue={ready ? overdue : []}
+            loading={!ready}
             selectedId={taskScheduling.selectedId}
             selectedDate={taskScheduling.scheduleDate}
             locked={range.locked}
@@ -114,23 +114,25 @@ export default function CalendarView() {
             onDragEnd={taskScheduling.tray.endDrag}
             onDragCancel={taskScheduling.tray.cancelDrag}
           />
-          <CalendarGrid
-            graph={graph}
-            scheduleMode={scheduleMode}
-            days={range.days}
-            today={today}
-            taskEvents={taskEvents}
-            externalEvents={externalEvents}
-            graphEvents={graphEvents}
-            selectedId={taskScheduling.selectedId}
-            locked={range.locked}
-            bodyRef={taskScheduling.bodyRef}
-            onGraphChange={setGraph}
-            onSelect={taskScheduling.selectTask}
-            onSelectEvent={eventEditor.select}
-            onCreateEvent={eventEditor.create}
-            creating={Boolean(eventEditor.draft)}
-          />
+          {graph && ready ? (
+            <CalendarGrid
+              graph={graph}
+              scheduleMode={scheduleMode}
+              days={range.days}
+              today={today}
+              taskEvents={taskEvents}
+              externalEvents={externalEvents}
+              graphEvents={graphEvents}
+              selectedId={taskScheduling.selectedId}
+              locked={range.locked}
+              bodyRef={taskScheduling.bodyRef}
+              onGraphChange={setGraph}
+              onSelect={taskScheduling.selectTask}
+              onSelectEvent={eventEditor.select}
+              onCreateEvent={eventEditor.create}
+              creating={Boolean(eventEditor.draft)}
+            />
+          ) : <div className="loading-region" aria-busy={loading} />}
         </section>
         <CalendarInspector
           graph={graph}

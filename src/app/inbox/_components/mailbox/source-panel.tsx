@@ -4,10 +4,11 @@ import DisconnectMailboxDialog from "./disconnect-mailbox-dialog";
 import MailboxConnectionPicker from "./mailbox-connection-picker";
 import MailMessageList from "./mail-message-list";
 import { useMailboxes } from "./use-mailboxes";
+import LoadingIndicator from "@/app/_components/common/loading-indicator";
 import { mailboxSourceLabel } from "@/utils/mailbox";
 import type { SourcePanelProps } from "@/types/inbox/inbox-components";
 
-export default function SourcePanel({ onAdd }: SourcePanelProps) {
+export default function SourcePanel({ onAdd, disabled }: SourcePanelProps) {
   const mailboxes = useMailboxes(onAdd);
   const {
     data,
@@ -23,7 +24,10 @@ export default function SourcePanel({ onAdd }: SourcePanelProps) {
       <header className="inbox-panel-heading source-heading">
         <div>
           <p className="eyebrow">Capture</p>
-          <h2 id="sources-heading">Mail</h2>
+          <h2 id="sources-heading">
+            Mail
+            <LoadingIndicator active={(!data && !message) || Boolean(busy)} label="Loading mail…" />
+          </h2>
         </div>
         <button
           type="button"
@@ -37,7 +41,7 @@ export default function SourcePanel({ onAdd }: SourcePanelProps) {
         <MailboxConnectionPicker
           connections={data?.connections ?? null}
           available={data?.available}
-          busy={Boolean(busy)}
+          busy={Boolean(busy) || (!data && !message)}
           selectedId={selectedConnection?.id}
           onSelect={mailboxes.setSelectedConnectionId}
           onConnect={(source) => void mailboxes.connect(source)}
@@ -70,7 +74,8 @@ export default function SourcePanel({ onAdd }: SourcePanelProps) {
         {message && <p className="mailbox-message" role="status">{message}</p>}
         <MailMessageList
           messages={visibleMessages}
-          loading={!data || busy === "refresh"}
+          loaded={Boolean(data)}
+          disabled={disabled}
           busy={busy}
           onAdd={(mail) => mailboxes.handleMessage(mail, true)}
           onArchive={(mail) => mailboxes.handleMessage(mail, false)}

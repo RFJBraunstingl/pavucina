@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { saveNativeEvent } from "../src/services/event/native/native-event-service.ts";
 import { incrementalFixture } from "./incremental-browser-fixture.mjs";
-import { todayIso } from "../src/utils/shared/date.ts";
+import { todayIso } from "../src/utils/shared/temporal/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
 
@@ -135,7 +135,7 @@ try {
 
   fixture.userId = null;
   await browser.send("Page.navigate", { url: `${appUrl}/calendar` });
-  await ui.wait("Boolean(document.querySelector('.calendar-edit-lock'))");
+  await ui.wait("Boolean(document.querySelector('.calendar-days')) && document.querySelector('.calendar-edit-lock')?.disabled === false");
   await ui.click(".calendar-edit-lock");
   await ui.touch(await ui.point(12 * 60));
   await ui.wait(opened);

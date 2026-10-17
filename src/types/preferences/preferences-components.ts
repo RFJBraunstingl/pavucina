@@ -6,7 +6,7 @@ export type AppVersionProps = {
 };
 
 export type StartupPageSettingsProps = {
-  preferences: UserPreferences;
+  preferences: UserPreferences | null;
   onChange: (changes: Partial<UserPreferences>) => void;
 };
 

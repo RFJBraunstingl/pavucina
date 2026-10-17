@@ -4,6 +4,7 @@ import type { CalendarRangeControlsProps } from "@/types/calendar/calendar-compo
 
 export default function CalendarRangeControls({
   day,
+  disabled,
   dayCount,
   today,
   hideDone,
@@ -20,6 +21,7 @@ export default function CalendarRangeControls({
         <input
           type="checkbox"
           checked={hideDone}
+          disabled={disabled}
           onChange={(event) => onHideDone(event.target.checked)}
         />
         Hide done

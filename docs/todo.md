@@ -30,6 +30,7 @@ Live calendar overlays that have not been imported are not included.
   Deleting an event or removing its import also removes its completion.
 - Tasks remain usable while calendar settings load or fail. Failed calendar
   loads and imports offer a retry, and imported changes update the list.
+  Loading uses a small indicator beside the heading, keeping existing rows in place.
 
 Parent tasks are not included in this daily checklist. They organize the graph,
 while their leaf tasks represent the work to complete.

@@ -18,6 +18,8 @@ export type TodoListItemProps = {
 };
 
 export type TodoHeaderProps = {
+  disabled: boolean;
+  loading: boolean;
   date: string;
   doneCount: number;
   itemCount: number;

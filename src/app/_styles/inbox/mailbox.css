@@ -152,6 +152,7 @@
 @media (max-width: 680px) {
   .source-panel {
     min-height: 0;
+    height: min(520px, 45vh);
     margin-bottom: 14px;
   }
 }

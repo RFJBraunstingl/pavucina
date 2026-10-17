@@ -2,6 +2,7 @@ import { type PointerEvent, useRef } from "react";
 
 import { taskDuration } from "@/services/task/scheduling/day/task-day-schedule-service";
 import { droppedTimeRange } from "@/utils/calendar/day-schedule";
+import { calendarGridPoint } from "@/utils/calendar/calendar-pointer";
 import type { TaskNode } from "@/types/graph/graph";
 import type { TrayScheduleOptions } from "@/types/calendar/events/schedule";
 
@@ -42,12 +43,7 @@ export function useTraySchedule(props: TrayScheduleOptions) {
       bounds.height,
       taskDuration(active.task) ?? 60,
     );
-    const dayIndex = Math.min(
-      props.days.length - 1,
-      Math.floor(
-        ((event.clientX - bounds.left) / bounds.width) * props.days.length,
-      ),
-    );
+    const { dayIndex } = calendarGridPoint(event, bounds, props.days.length);
     props.onSchedule(active.task.id, props.days[dayIndex], startTime, endTime);
   }
 

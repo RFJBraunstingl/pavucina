@@ -21,6 +21,7 @@ import {
 import { layoutCalendarItems } from "@/utils/calendar/calendar-layout";
 import { externalCalendarItems } from "@/utils/calendar/events/external-calendar-layout";
 import { graphCalendarItems } from "@/utils/calendar/events/graph-calendar";
+import { previewCalendarItems } from "@/utils/calendar/calendar-preview";
 import type { CalendarGridProps } from "@/types/calendar/calendar-components";
 
 export default function CalendarGrid({
@@ -67,6 +68,10 @@ export default function CalendarGrid({
   });
   const { creation, schedule } = interactions;
   const preview = creation.preview;
+  const displayItems = useMemo(
+    () => schedule.preview ? previewCalendarItems(items, schedule.preview) : items,
+    [items, schedule.preview],
+  );
 
   useEffect(() => {
     if (scroll.current) {
@@ -97,7 +102,9 @@ export default function CalendarGrid({
         />
         <div className="calendar-body">
           <div className="calendar-times" style={{ height: CALENDAR_HEIGHT }}>
-            {HOUR_LABELS.map((time) => <span key={time}>{time}</span>)}
+            {HOUR_LABELS.map((time, index) => (
+              <span key={time} style={{ top: index * HOUR_HEIGHT }}>{time}</span>
+            ))}
           </div>
           <div
             className="calendar-days"
@@ -123,8 +130,8 @@ export default function CalendarGrid({
               <CalendarCreatePreview preview={preview} days={days} />
             )}
             <CalendarGridItems
-              graph={graph}
-              items={items}
+              graph={schedule.preview?.graph ?? graph}
+              items={displayItems}
               dayCount={days.length}
               selectedId={selectedId}
               locked={locked}

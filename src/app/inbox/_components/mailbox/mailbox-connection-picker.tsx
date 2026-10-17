@@ -12,7 +12,7 @@ export default function MailboxConnectionPicker(props: MailboxConnectionPickerPr
     ? `${selected.address} · ${mailboxSourceLabel(selected.source)}`
     : props.connections
       ? "No connections configured"
-      : "Loading connections…";
+      : "\u00a0";
 
   return (
     <div className="mailbox-picker">

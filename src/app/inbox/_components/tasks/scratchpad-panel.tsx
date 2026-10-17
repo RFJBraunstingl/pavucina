@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import ConfirmationDialog from "@/app/_components/common/confirmation-dialog";
+import TaskDescriptionField from "@/app/_components/task/task-description-field";
 import type { TaskNode } from "@/types/graph/graph";
 import type { ScratchpadPanelProps } from "@/types/inbox/inbox-components";
 
@@ -26,13 +27,14 @@ export default function ScratchpadPanel(props: ScratchpadPanelProps) {
         <label className="sr-only" htmlFor="scratchpad-task">New task</label>
         <input
           id="scratchpad-task"
+          disabled={props.disabled}
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Type a task and press Enter"
           autoComplete="off"
           autoFocus
         />
-        <button type="submit">Add</button>
+        <button type="submit" disabled={props.disabled}>Add</button>
       </form>
       <p id="inbox-drag-help" className="sr-only">
         Drag onto a timeline task to make this task its child.
@@ -87,19 +89,16 @@ export default function ScratchpadPanel(props: ScratchpadPanelProps) {
               >
                 <span aria-hidden="true">×</span>
               </button>
-              <textarea
+              <TaskDescriptionField
+                taskId={node.id}
                 rows={2}
                 aria-label={`Description for ${node.properties.name}`}
                 placeholder="Add a description"
-                value={node.properties.description ?? ""}
-                onChange={(event) =>
-                  props.onDescriptionChange(node.id, event.currentTarget.value)
-                }
               />
             </li>
           ))}
         </ul>
-      ) : (
+      ) : !props.disabled && (
         <p className="scratchpad-empty">Nothing captured yet.</p>
       )}
       <ConfirmationDialog

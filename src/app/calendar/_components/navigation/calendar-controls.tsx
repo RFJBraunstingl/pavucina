@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import CalendarManager from "../calendar-manager";
+import LoadingIndicator from "@/app/_components/common/loading-indicator";
 import SyncConflictDialog from "@/app/_components/sync/sync-conflict-dialog";
 import type { useExternalCalendars } from "@/app/_components/sync/calendar/use-external-calendars";
 import type { CalendarSelection } from "@/types/calendar/events/external-calendar";
@@ -19,10 +20,12 @@ export default function CalendarControls({
   calendars,
   onRefresh,
   importBusy = false,
+  disabled = false,
 }: {
   calendars: CalendarsState;
   onRefresh?: () => Promise<void>;
   importBusy?: boolean;
+  disabled?: boolean;
 }) {
   const [managerOpen, setManagerOpen] = useState(() =>
     typeof window !== "undefined" &&
@@ -52,7 +55,7 @@ export default function CalendarControls({
               <input
                 type="checkbox"
                 checked={calendar.visible}
-                disabled={Boolean(calendars.busy)}
+                disabled={disabled || Boolean(calendars.busy)}
                 aria-label={`Show ${calendar.name} from ${connection.address}`}
                 onChange={() => void calendars.save(
                   connection.id,
@@ -68,17 +71,21 @@ export default function CalendarControls({
           )),
         )}
       </div>
-      <button type="button" onClick={() => setManagerOpen(true)}>
-        {calendars.data?.connections.length ? "Manage calendars" : "Add calendar"}
+      <button type="button" disabled={disabled} onClick={() => setManagerOpen(true)}>
+        Calendars
       </button>
       <button
         type="button"
-        disabled={Boolean(calendars.busy) || importBusy}
+        disabled={disabled || Boolean(calendars.busy) || importBusy}
         onClick={() =>
           void (onRefresh?.() ?? calendars.refresh()).catch(() => undefined)}
       >
         Refresh
       </button>
+      <LoadingIndicator
+        active={(!calendars.data && !calendars.error) || Boolean(calendars.busy) || importBusy}
+        label="Loading calendars…"
+      />
       <CalendarManager
         open={managerOpen}
         data={calendars.data}

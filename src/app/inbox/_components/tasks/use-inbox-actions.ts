@@ -5,7 +5,6 @@ import {
   deleteInboxTask,
   moveInboxTask,
   renameInboxTask,
-  setInboxTaskDescription,
 } from "@/services/inbox/inbox-service";
 import type { MailMessage } from "@/types/mailbox/mailbox";
 import type { InboxActionsOptions } from "@/types/inbox/inbox-components";
@@ -40,14 +39,6 @@ export function useInboxActions({
     );
   }
 
-  function updateDescription(taskId: string, description: string) {
-    setGraph((current) =>
-      current
-        ? setInboxTaskDescription(current, taskId, description)
-        : current,
-    );
-  }
-
   function deleteTask(taskId: string) {
     setGraph((current) =>
       current ? deleteInboxTask(current, taskId) : current,
@@ -71,7 +62,6 @@ export function useInboxActions({
     addMessage,
     createTask,
     renameTask,
-    updateDescription,
     deleteTask,
     moveTask,
   };

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import AppHeader from "../common/app-header";
-import { GraphLoading, GraphSyncError } from "../sync/graph-state";
+import { GraphSyncError } from "../sync/graph-state";
 import TaskInspector from "../task/task-inspector";
 import TimelineFilters from "./filters/timeline-filters";
 import TimelineGrid from "./grid/timeline-grid";
@@ -36,19 +36,10 @@ export default function TimelineView() {
     preferences?.hideDone ?? true,
     collapsedIds,
   );
-  if (!hydrated || !graph) {
-    return <GraphLoading label="Loading timeline…" error={syncError} onRetry={retry} />;
-  }
-  if (!preferences) {
-    return (
-      <GraphLoading
-        label="Loading preferences…"
-        error={preferencesError}
-        onRetry={retryPreferences}
-      />
-    );
-  }
-  const scheduleMode = resolvedScheduleMode(preferences);
+  const ready = Boolean(hydrated && graph && preferences);
+  const loading = ((!hydrated || !graph) && !syncError) ||
+    (!preferences && !preferencesError);
+  const scheduleMode = preferences ? resolvedScheduleMode(preferences) : "leaf";
   const taskActions = createTimelineTaskActions({
     scheduleMode,
     onGraphChange: setGraph,
@@ -73,7 +64,7 @@ export default function TimelineView() {
 
   return (
     <main className="app-shell">
-      <AppHeader active="timeline" title="Timeline" />
+      <AppHeader active="timeline" title="Timeline" loadingLabel={loading ? "Loading timeline…" : undefined} />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
 
@@ -81,7 +72,8 @@ export default function TimelineView() {
         <section className="timeline-card" aria-labelledby="timeline-heading">
           <TimelineToolbar
             days={range.days}
-            hideDone={preferences.hideDone}
+            hideDone={preferences?.hideDone ?? true}
+            disabled={!ready}
             onHideDoneChange={(hideDone) => patchPreferences({ hideDone })}
             onCollapseAll={collapseAll}
             onExpandAll={expandAll}
@@ -97,7 +89,7 @@ export default function TimelineView() {
             onClear={filters.clear}
           />
 
-          <TimelineGrid
+          {graph && ready ? <TimelineGrid
             graph={graph}
             scheduleMode={scheduleMode}
             days={range.days}
@@ -108,7 +100,7 @@ export default function TimelineView() {
             filterExpandedIds={filters.expandedTaskIds}
             filterActive={filters.active}
             taskColumnWidth={
-              preferences.taskColumnWidth ?? DEFAULT_TASK_COLUMN_WIDTH
+              preferences?.taskColumnWidth ?? DEFAULT_TASK_COLUMN_WIDTH
             }
             collapsedIds={collapsedIds}
             onGraphChange={setGraph}
@@ -122,7 +114,7 @@ export default function TimelineView() {
             onNameChange={taskActions.rename}
             onAddChild={taskActions.addChild}
             onCreate={taskActions.addTopLevel}
-          />
+          /> : <div className="loading-region" aria-busy={loading} />}
         </section>
 
         <TaskInspector

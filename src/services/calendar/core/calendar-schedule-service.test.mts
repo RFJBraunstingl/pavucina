@@ -106,6 +106,10 @@ test("task moves and edge adjustments still use task schedule rules", () => {
   );
   const item = getDaySchedule(scheduled, day, "leaf", false).events[0];
   assert.equal(canRescheduleCalendarItem(scheduled, item, "leaf"), true);
+  assert.equal(canRescheduleCalendarItem({
+    ...scheduled,
+    nodes: scheduled.nodes.filter((node) => node.id !== singleDayTask.id),
+  }, item, "leaf"), false);
   const moved = moveCalendarItem(scheduled, item, "2026-09-14", "11:30");
   assert.equal(
     getTaskDate(moved, singleDayTask.id, "plannedStartDate"),

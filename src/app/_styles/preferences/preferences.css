@@ -104,6 +104,8 @@
 .calendar-import-toggle span { display: grid; color: var(--muted); gap: 4px; font-size: 13px; line-height: 1.45; }
 .calendar-import-toggle strong { color: var(--ink); }
 .calendar-import-note { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.calendar-import-status,
+.account-links-status { min-height: 3em; }
 .calendar-import-error { color: #7a2920; font-size: 12px; }
 
 .startup-page-options {

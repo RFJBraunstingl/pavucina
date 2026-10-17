@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 
 import { useCalendarImport } from "@/providers/calendar-import-provider";
+import LoadingIndicator from "@/app/_components/common/loading-indicator";
 
 export default function CalendarImportSettings() {
   const { status } = useSession();
@@ -11,7 +12,10 @@ export default function CalendarImportSettings() {
     <section className="preferences-card" aria-labelledby="calendar-import-heading">
       <header>
         <p className="eyebrow">Connected data</p>
-        <h2 id="calendar-import-heading">Calendar event import</h2>
+        <h2 id="calendar-import-heading">
+          Calendar event import
+          <LoadingIndicator active={calendarImport.busy} label="Synchronizing calendar events…" />
+        </h2>
       </header>
       <label className="calendar-import-toggle">
         <input
@@ -32,19 +36,15 @@ export default function CalendarImportSettings() {
         active, and when Calendar is refreshed. The current device time zone is
         used. Disabling import deletes imported event data and its history.
       </p>
-      {!calendarImport.available && (
-        <p className="calendar-import-note">
-          {status === "authenticated"
-            ? "Load or restore your graph to manage calendar event import."
-            : "Sign in to enable server-side import."}
-        </p>
-      )}
-      {calendarImport.busy && <p role="status">Synchronizing calendar events…</p>}
-      {calendarImport.lastSyncedAt && !calendarImport.busy && (
-        <p className="calendar-import-note" role="status">
-          Last synchronized {new Date(calendarImport.lastSyncedAt).toLocaleString()}.
-        </p>
-      )}
+      <p className="calendar-import-note calendar-import-status">
+        {calendarImport.lastSyncedAt
+          ? `Last synchronized ${new Date(calendarImport.lastSyncedAt).toLocaleString()}.`
+          : status === "unauthenticated"
+            ? "Sign in to enable server-side import."
+            : !calendarImport.available && status === "authenticated"
+              ? "Load or restore your graph to manage calendar event import."
+              : "\u00a0"}
+      </p>
       {calendarImport.error && (
         <p className="calendar-import-error" role="alert">{calendarImport.error}</p>
       )}

@@ -1,11 +1,11 @@
 import { useGraph } from "@/providers/graph-provider";
 import TaskDeleteControl from "./task-delete-control";
 import TaskScheduleFields from "./task-schedule-fields";
+import TaskDescriptionField from "./task-description-field";
 import {
   deleteTask,
   getParentTaskNames,
   renameTask,
-  setTaskDescription,
 } from "@/services/task/core/task-service";
 import {
   isNodeDone,
@@ -26,9 +26,8 @@ export default function TaskInspector({
   const selected = graph?.nodes.find(
     (node): node is TaskNode => node.id === selectedId && node.type === "task",
   );
-  if (!graph) return null;
-  const done = selected ? isNodeDone(graph, selected.id) : false;
-  const parentNames = selected ? getParentTaskNames(graph, selected.id) : [];
+  const done = graph && selected ? isNodeDone(graph, selected.id) : false;
+  const parentNames = graph && selected ? getParentTaskNames(graph, selected.id) : [];
 
   function updateName(taskId: string, value: string) {
     setGraph((current) =>
@@ -43,12 +42,6 @@ export default function TaskInspector({
           ? reopenNode(current, taskId, today)
           : markNodeDone(current, taskId, today)
         : current,
-    );
-  }
-
-  function updateDescription(taskId: string, value: string) {
-    setGraph((current) =>
-      current ? setTaskDescription(current, taskId, value) : current,
     );
   }
 
@@ -93,12 +86,10 @@ export default function TaskInspector({
           </label>
           <label>
             Description
-            <textarea
+            <TaskDescriptionField
+              key={selected.id}
+              taskId={selected.id}
               rows={5}
-              value={selected.properties.description ?? ""}
-              onChange={(event) =>
-                updateDescription(selected.id, event.currentTarget.value)
-              }
             />
           </label>
           <TaskScheduleFields

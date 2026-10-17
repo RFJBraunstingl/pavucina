@@ -16,6 +16,7 @@
 
 html {
   background: var(--canvas);
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -130,13 +131,17 @@ h1 {
 }
 
 .auth-controls {
+  width: 112px;
+  min-width: 112px;
+  flex-shrink: 0;
+  min-height: 33px;
+  justify-content: flex-end;
   color: var(--muted);
   font-size: 12px;
   white-space: nowrap;
 }
 
 .auth-controls button,
-.loading-screen button,
 .sync-error button {
   padding: 8px 11px;
   border: 1px solid var(--line);
@@ -166,21 +171,4 @@ h1 {
 
 .sync-error button {
   margin-left: 8px;
-}
-
-.loading-screen {
-  display: grid;
-  min-height: 100vh;
-  color: var(--muted);
-  place-content: center;
-  place-items: center;
-}
-
-.loading-screen p {
-  margin: 12px 0 0;
-  font-size: 13px;
-}
-
-.loading-screen button {
-  margin-top: 10px;
 }

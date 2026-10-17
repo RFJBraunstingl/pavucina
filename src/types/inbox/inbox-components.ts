@@ -12,6 +12,7 @@ import type {
 } from "@/types/preferences/preferences";
 
 export type SourcePanelProps = {
+  disabled: boolean;
   onAdd: (message: MailMessage) => void;
 };
 
@@ -23,8 +24,9 @@ export type DisconnectMailboxDialogProps = {
 };
 
 export type MailMessageListProps = {
+  disabled: boolean;
   messages: MailMessage[];
-  loading: boolean;
+  loaded: boolean;
   busy: string | null;
   onAdd: (message: MailMessage) => void;
   onArchive: (message: MailMessage) => void;
@@ -40,7 +42,8 @@ export type MailboxConnectionPickerProps = {
 };
 
 export type InboxTaskPanelProps = {
-  graph: Graph;
+  graph: Graph | null;
+  disabled: boolean;
   scheduleMode: ScheduleMode;
   today: string;
   selectedId: string | null;
@@ -63,11 +66,11 @@ export type MoveTaskDialogProps = {
 };
 
 export type ScratchpadPanelProps = {
+  disabled: boolean;
   nodes: TaskNode[];
   draggingId: string | null;
   onCreate: (name: string) => void;
   onRename: (id: string, name: string) => void;
-  onDescriptionChange: (id: string, description: string) => void;
   onDelete: (id: string) => void;
   onMoveRequest: (id: string) => void;
   onDragStart: (event: PointerEvent<HTMLButtonElement>, id: string) => void;

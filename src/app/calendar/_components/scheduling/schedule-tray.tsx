@@ -56,7 +56,7 @@ export default function ScheduleTray(props: ScheduleTrayProps) {
             {props.days.length === 1 ? "Plan this day" : "Plan this week"}
           </h3>
         </div>
-        <span>{taskCount}</span>
+        <span>{props.loading ? "—" : taskCount}</span>
       </div>
       {props.overdue.length > 0 && rescheduleDate && (
         <div className="schedule-tray-overdue">
@@ -77,7 +77,9 @@ export default function ScheduleTray(props: ScheduleTrayProps) {
           <div className="schedule-tray-day" key={date}>
             <h4><time dateTime={date}>{compactDateLabel(date)}</time></h4>
             {tasks.length ? tasks.map((task) => taskButton(task, date)) : (
-              <p className="schedule-tray-empty">No unscheduled tasks.</p>
+              <p className="schedule-tray-empty" style={{ visibility: props.loading ? "hidden" : undefined }}>
+                No unscheduled tasks.
+              </p>
             )}
           </div>
         ))}

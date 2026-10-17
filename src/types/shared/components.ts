@@ -17,3 +17,8 @@ export type SyncStatusProps = {
 };
 
 export type GraphLoadingProps = SyncStatusProps & { label: string };
+
+export type LoadingIndicatorProps = {
+  active: boolean;
+  label: string;
+};

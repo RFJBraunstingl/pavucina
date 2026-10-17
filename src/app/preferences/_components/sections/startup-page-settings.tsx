@@ -35,20 +35,20 @@ export default function StartupPageSettings({
         <p className="eyebrow">Preferences</p>
         <h2 id="startup-page-heading">Opening page</h2>
       </header>
-      <div className="startup-page-options">
+      <fieldset className="loading-controls startup-page-options" disabled={!preferences}>
         <StartupPageSelect
           label="Desktop"
           description="For windows wider than 680px."
-          value={preferences.desktopStartPage ?? "last"}
+          value={preferences?.desktopStartPage ?? "last"}
           onChange={(desktopStartPage) => onChange({ desktopStartPage })}
         />
         <StartupPageSelect
           label="Mobile"
           description="For windows 680px wide or narrower."
-          value={preferences.mobileStartPage ?? "last"}
+          value={preferences?.mobileStartPage ?? "last"}
           onChange={(mobileStartPage) => onChange({ mobileStartPage })}
         />
-      </div>
+      </fieldset>
     </section>
   );
 }

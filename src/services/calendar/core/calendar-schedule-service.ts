@@ -20,7 +20,8 @@ function nativeRange(graph: Graph, item: EditableCalendarItem) {
 export function canRescheduleCalendarItem(
   graph: Graph, item: EditableCalendarItem, scheduleMode: ScheduleMode,
 ) {
-  return "task" in item ? isTaskSchedulable(graph, item.task.id, scheduleMode)
+  return "task" in item ? graph.nodes.some((node) => node.id === item.task.id && node.type === "task") &&
+    isTaskSchedulable(graph, item.task.id, scheduleMode)
     : Boolean(nativeRange(graph, item));
 }
 

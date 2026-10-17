@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import LoadingIndicator from "../common/loading-indicator";
 
 import type { SyncConflictDialogProps } from "@/types/shared/sync-conflict";
 
@@ -39,7 +40,10 @@ export default function SyncConflictDialog({
       aria-labelledby={titleId}
       onCancel={(event) => event.preventDefault()}
     >
-      <h2 id={titleId}>Resolve conflicting changes</h2>
+      <h2 id={titleId}>
+        Resolve conflicting changes
+        <LoadingIndicator active={busy} label="Resolving changes…" />
+      </h2>
       <p>Your edits are kept until you choose which values to save.</p>
       <div className="sync-conflict-list">
         {conflicts.map((conflict, index) => (

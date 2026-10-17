@@ -9,6 +9,21 @@ import type { CalendarLayoutItem, EditableCalendarItem } from "./calendar-layout
 export type CalendarResizeEdge = "start" | "end";
 export type CalendarDragMode = "move" | CalendarResizeEdge;
 
+export type CalendarPointerPosition = Pick<PointerEvent<HTMLElement>, "clientX" | "clientY">;
+
+export type CalendarDragTarget = {
+  date: string;
+  time: string;
+  amount: number;
+  key: string;
+};
+
+export type CalendarDragPreview = {
+  graph: Graph;
+  item: EditableCalendarItem;
+  days: string[];
+};
+
 export type CalendarDragState = {
   pointerId: number;
   item: EditableCalendarItem;
@@ -16,8 +31,10 @@ export type CalendarDragState = {
   originX: number;
   originY: number;
   originGraph: Graph;
-  startDayIndex: number;
-  startTime: string;
+  originMinutes: number;
+  days: string[];
+  captureTarget: HTMLDivElement;
+  position: CalendarPointerPosition;
   lastTarget: string;
   moved: boolean;
 };
@@ -59,7 +76,7 @@ export type CalendarInteractionOptions = {
   scheduleMode: ScheduleMode;
   days: string[];
   bodyRef: RefObject<HTMLDivElement | null>;
-  onGraphChange: (graph: Graph) => void;
+  onGraphChange: (update: GraphUpdate) => void;
   onSelect: (taskId: string, date: string) => void;
   onOpenEvent: (eventId: string) => void;
   locked: boolean;

@@ -12,24 +12,33 @@ import {
 import type { InboxTaskPanelProps } from "@/types/inbox/inbox-components";
 
 export default function InboxTaskPanel(props: InboxTaskPanelProps) {
+  const graph = props.graph;
   const tasks = useMemo(
-    () => flattenTasks(props.graph, props.collapsedIds).filter(
-      ({ task }) => !props.hideDone || !isNodeDone(props.graph, task.id),
-    ),
-    [props.collapsedIds, props.graph, props.hideDone],
+    () => graph ? flattenTasks(graph, props.collapsedIds).filter(
+      ({ task }) => !props.hideDone || !isNodeDone(graph, task.id),
+    ) : [],
+    [props.collapsedIds, graph, props.hideDone],
   );
 
   function addChild(parentId: string) {
+    if (!graph) {
+      console.warn("Expected a loaded graph; creating a child task was cancelled.");
+      return;
+    }
     const id = crypto.randomUUID();
     props.onGraphChange(
-      addChildTask(props.graph, parentId, id, props.scheduleMode),
+      addChildTask(graph, parentId, id, props.scheduleMode),
     );
     props.onSelect(id);
   }
 
   function addTopLevel() {
+    if (!graph) {
+      console.warn("Expected a loaded graph; creating a task was cancelled.");
+      return;
+    }
     const id = crypto.randomUUID();
-    props.onGraphChange(addTopLevelTask(props.graph, id));
+    props.onGraphChange(addTopLevelTask(graph, id));
     props.onSelect(id);
   }
 
@@ -47,6 +56,7 @@ export default function InboxTaskPanel(props: InboxTaskPanelProps) {
           <input
             type="checkbox"
             checked={props.hideDone}
+            disabled={props.disabled}
             onChange={(event) => props.onHideDoneChange(event.target.checked)}
           />
           Hide done
@@ -54,14 +64,16 @@ export default function InboxTaskPanel(props: InboxTaskPanelProps) {
         <div className="tree-actions" aria-label="Task hierarchy">
           <button
             type="button"
+            disabled={props.disabled}
             onClick={() =>
-              props.onCollapsedIdsChange(getParentTaskIds(props.graph))
+              graph && props.onCollapsedIdsChange(getParentTaskIds(graph))
             }
           >
             Collapse all
           </button>
           <button
             type="button"
+            disabled={props.disabled}
             onClick={() => props.onCollapsedIdsChange(new Set())}
           >
             Expand all
@@ -69,8 +81,8 @@ export default function InboxTaskPanel(props: InboxTaskPanelProps) {
         </div>
       </header>
       <div className="inbox-task-tree">
-        <TimelineGrid
-          graph={props.graph}
+        {graph && !props.disabled && <TimelineGrid
+          graph={graph}
           scheduleMode={props.scheduleMode}
           days={[]}
           today={props.today}
@@ -85,11 +97,11 @@ export default function InboxTaskPanel(props: InboxTaskPanelProps) {
           onTaskColumnWidthChange={() => undefined}
           onSelect={props.onSelect}
           onNameChange={(id, name) =>
-            props.onGraphChange(renameTask(props.graph, id, name))
+            props.onGraphChange(renameTask(graph, id, name))
           }
           onAddChild={addChild}
           onCreate={addTopLevel}
-        />
+        />}
       </div>
     </section>
   );

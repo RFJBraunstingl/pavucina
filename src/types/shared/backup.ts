@@ -3,6 +3,6 @@ import type { UserPreferences } from "@/types/preferences/preferences";
 
 export type BackupRestoreProps = {
   graph: Graph | null;
-  preferences: UserPreferences;
+  preferences: UserPreferences | null;
   onRestore: (graph: Graph, preferences: UserPreferences) => Promise<boolean>;
 };

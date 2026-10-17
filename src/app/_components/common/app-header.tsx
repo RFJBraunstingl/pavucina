@@ -2,9 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 import AuthControls from "../auth/auth-controls";
+import LoadingIndicator from "./loading-indicator";
 import type { AppHeaderProps } from "@/types/preferences/navigation";
 
-export default function AppHeader({ active, title }: AppHeaderProps) {
+export default function AppHeader({ active, title, loadingLabel }: AppHeaderProps) {
   return (
     <header className="app-header">
       <div className="brand">
@@ -19,7 +20,10 @@ export default function AppHeader({ active, title }: AppHeaderProps) {
       </div>
       <div>
         <p className="eyebrow">Workspace</p>
-        <h1>{title}</h1>
+        <h1>
+          {title}
+          <LoadingIndicator active={Boolean(loadingLabel)} label={loadingLabel ?? ""} />
+        </h1>
       </div>
       <div className="header-actions">
         <nav className="app-nav" aria-label="Views">

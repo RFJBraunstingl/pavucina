@@ -5,7 +5,7 @@ import { createSeedGraph } from "../src/data/seed-graph.ts";
 import { saveNativeEvent } from "../src/services/event/native/native-event-service.ts";
 import { isNodeDone } from "../src/services/event/completion-service.ts";
 import { incrementalFixture } from "./incremental-browser-fixture.mjs";
-import { todayIso } from "../src/utils/shared/date.ts";
+import { todayIso } from "../src/utils/shared/temporal/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 import { calendarInteractions } from "./calendar-smoke-interactions.mjs";
 

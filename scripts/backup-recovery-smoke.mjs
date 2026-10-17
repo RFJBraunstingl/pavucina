@@ -6,7 +6,7 @@ import { incrementalFixture } from "./incremental-browser-fixture.mjs";
 import { createSeedGraph } from "../src/data/seed-graph.ts";
 import { createBackupArchive } from "../src/services/backup/backup-service.ts";
 import { DEFAULT_USER_PREFERENCES } from "../src/services/preferences/preferences-service.ts";
-import { todayIso } from "../src/utils/shared/date.ts";
+import { todayIso } from "../src/utils/shared/temporal/date.ts";
 import { connectChrome, waitFor } from "./chrome-smoke-client.mjs";
 
 const appUrl = process.argv[2] ?? "http://127.0.0.1:3000";
@@ -168,11 +168,11 @@ try {
   await wait("document.querySelector('.backup-message')?.textContent === 'Backup restored.'");
 
   await browser.send("Page.navigate", { url: `${appUrl}/preferences` });
-  await wait("Boolean(document.querySelector('.backup-actions'))");
+  await wait("document.querySelector('.backup-actions button')?.disabled === false");
   assert.equal(await evaluate("document.querySelector('.backup-actions button').disabled"), false);
   userId = null;
   await browser.send("Page.navigate", { url: `${appUrl}/preferences` });
-  await wait("Boolean(document.querySelector('.backup-actions'))");
+  await wait("document.querySelector('.backup-actions button:nth-of-type(2)')?.disabled === false");
   await confirm();
   await wait("document.querySelector('.backup-message')?.textContent === 'Backup restored.'");
   await browser.send("Page.navigate", { url: `${appUrl}/todo` });

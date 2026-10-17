@@ -1,7 +1,7 @@
 "use client";
 
 import AppHeader from "@/app/_components/common/app-header";
-import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { GraphSyncError } from "@/app/_components/sync/graph-state";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import AccountLinks from "./sections/account-links/account-links";
 import BackupRestore from "./sections/backup-restore";
@@ -25,19 +25,9 @@ export default function PreferencesView({ version }: AppVersionProps) {
     retry: retryPreferences,
   } = usePreferences();
 
-  if (!hydrated || (!graph && !syncError)) {
-    return <GraphLoading label="Loading preferences…" error={syncError} onRetry={retry} />;
-  }
-  if (!preferences) {
-    return (
-      <GraphLoading
-        label="Loading preferences…"
-        error={preferencesError}
-        onRetry={retryPreferences}
-      />
-    );
-  }
-  const scheduleMode = resolvedScheduleMode(preferences);
+  const loading = ((!hydrated || !graph) && !syncError) ||
+    (!preferences && !preferencesError);
+  const scheduleMode = preferences ? resolvedScheduleMode(preferences) : "leaf";
 
   function updateScheduleMode(mode: "leaf" | "all") {
     patchPreferences({ scheduleMode: mode });
@@ -52,12 +42,12 @@ export default function PreferencesView({ version }: AppVersionProps) {
 
   return (
     <main className="app-shell">
-      <AppHeader active="preferences" title="Preferences" />
+      <AppHeader active="preferences" title="Preferences" loadingLabel={loading ? "Loading preferences…" : undefined} />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <TimelineSettings
         scheduleMode={scheduleMode}
-        disabled={!graph}
+        disabled={!graph || !preferences}
         onScheduleModeChange={updateScheduleMode}
         onEnableLeafMode={enableLeafMode}
       />

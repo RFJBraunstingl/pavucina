@@ -20,7 +20,8 @@ overlays from Google Calendar and Outlook Calendar.
   preserves its full duration, including events spanning midnight.
 - Drag either edge to change the start or end. Multi-day events expose handles
   only at their actual start and end, including an end at midnight.
-- Moves snap in 30-minute steps and edge adjustments in 15-minute steps.
+- Moves and edge adjustments snap in 15-minute steps. Drag previews stay local
+  until release, when the final schedule is saved.
   Arrow keys on a block or edge provide the same adjustments. Events retain a
   minimum duration of 15 minutes when resizing; imported events remain read-only.
 - Select a task to edit its name, description, dates, and times; mark it done or

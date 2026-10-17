@@ -18,6 +18,14 @@
   max-height: calc(100vh - 250px);
 }
 
+.calendar-card > .loading-region {
+  height: calc(100vh - 250px);
+}
+
+@media (max-width: 1050px) {
+  .calendar-card > .loading-region { height: 65vh; }
+}
+
 .calendar-week {
   min-width: 980px;
 }
@@ -78,17 +86,16 @@
 }
 
 .calendar-times {
-  display: flex;
+  position: relative;
   padding: 0 10px;
   border-right: 1px solid var(--line);
   background: #fbfcfb;
   color: var(--muted);
-  align-items: flex-end;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 .calendar-times span {
+  position: absolute;
+  right: 10px;
   font-size: 10px;
   transform: translateY(-50%);
 }

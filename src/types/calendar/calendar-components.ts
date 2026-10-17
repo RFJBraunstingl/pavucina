@@ -7,6 +7,7 @@ import type {
 } from "react";
 
 import type { Graph } from "@/types/graph/graph";
+import type { GraphUpdate } from "@/types/graph/graph-sync-controller";
 import type { ScheduleMode } from "@/types/preferences/preferences";
 import type { EventNode, EventTimeRange } from "./events/event";
 import type { ExternalCalendarEvent } from "./events/external-calendar";
@@ -29,7 +30,7 @@ export type CalendarGridProps = {
   selectedId: string | null;
   locked: boolean;
   bodyRef: RefObject<HTMLDivElement | null>;
-  onGraphChange: (graph: Graph) => void;
+  onGraphChange: (update: GraphUpdate) => void;
   onSelect: (taskId: string, date: string) => void;
   onSelectEvent: (eventId: string) => void;
   onCreateEvent: (range: EventTimeRange) => void;
@@ -74,6 +75,7 @@ export type CalendarEventProps = {
 };
 
 export type CalendarRangeControlsProps = {
+  disabled: boolean;
   day: string;
   today: string;
   dayCount: number;
@@ -100,7 +102,7 @@ export type CalendarCreatePreviewProps = {
 };
 
 export type CalendarInspectorProps = {
-  graph: Graph;
+  graph: Graph | null;
   selectedId: string | null;
   scheduleMode: ScheduleMode;
   scheduleDate: string;

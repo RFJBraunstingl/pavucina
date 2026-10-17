@@ -21,6 +21,7 @@ tree.
 - Enter a task name and press Enter or choose **Add** to capture it.
 - Add descriptions inline, or rename and delete captured tasks before organizing
   them.
+- Descriptions save after a 500 ms typing pause or when you leave the field.
 - Move a captured task below an existing task with **Move…** or by dragging it
   onto the task tree.
 

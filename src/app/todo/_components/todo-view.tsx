@@ -6,7 +6,7 @@ import TodoDetailsDialog from "./todo-details-dialog";
 import TodoHeader from "./todo-header";
 import TodoListItem from "./todo-list-item";
 import AppHeader from "@/app/_components/common/app-header";
-import { GraphLoading, GraphSyncError } from "@/app/_components/sync/graph-state";
+import { GraphSyncError } from "@/app/_components/sync/graph-state";
 import { useExternalCalendars } from "@/app/_components/sync/calendar/use-external-calendars";
 import { usePreferences } from "@/app/_components/sync/use-preferences";
 import { useGraph } from "@/providers/graph-provider";
@@ -31,28 +31,13 @@ export default function TodoView() {
     retry: retryPreferences,
   } = usePreferences();
 
-  if (!hydrated || !graph) {
-    return (
-      <GraphLoading
-        label="Loading tasks…"
-        error={syncError}
-        onRetry={retry}
-      />
-    );
-  }
-  if (!preferences) {
-    return (
-      <GraphLoading
-        label="Loading preferences…"
-        error={preferencesError}
-        onRetry={retryPreferences}
-      />
-    );
-  }
-
-  const items = getTodoItemsForDate(graph, today, calendars.data?.connections);
-  const doneCount = items.filter((item) => isNodeDone(graph, item.id)).length;
-  const visibleItems = preferences.hideDone
+  const ready = Boolean(hydrated && graph && preferences);
+  const loading = ((!hydrated || !graph) && !syncError) ||
+    (!preferences && !preferencesError);
+  const items = graph && ready
+    ? getTodoItemsForDate(graph, today, calendars.data?.connections) : [];
+  const doneCount = graph ? items.filter((item) => isNodeDone(graph, item.id)).length : 0;
+  const visibleItems = graph && preferences?.hideDone
     ? items.filter((item) => !isNodeDone(graph, item.id))
     : items;
   const detailsItem = items.find((item) => item.id === detailsItemId) ?? null;
@@ -73,7 +58,7 @@ export default function TodoView() {
 
   return (
     <main className="app-shell">
-      <AppHeader active="todo" title="ToDo" />
+      <AppHeader active="todo" title="ToDo" loadingLabel={loading ? "Loading tasks…" : undefined} />
       <GraphSyncError error={syncError} onRetry={retry} />
       <GraphSyncError error={preferencesError} onRetry={retryPreferences} />
       <GraphSyncError error={calendarError} onRetry={() => void calendars.refresh()} />
@@ -84,31 +69,30 @@ export default function TodoView() {
           date={today}
           doneCount={doneCount}
           itemCount={items.length}
-          hideDone={preferences.hideDone}
-          showFullTaskPath={preferences.showFullTaskPath ?? false}
+          hideDone={preferences?.hideDone ?? true}
+          showFullTaskPath={preferences?.showFullTaskPath ?? false}
+          disabled={!ready}
+          loading={loadingEvents}
           onHideDoneChange={(hideDone) => patchPreferences({ hideDone })}
           onShowFullTaskPathChange={(showFullTaskPath) =>
             patchPreferences({ showFullTaskPath })
           }
         />
 
-        {loadingEvents && (
-          <p className="todo-empty" role="status">Loading calendar events…</p>
-        )}
-        {visibleItems.length > 0 ? (
+        {graph && visibleItems.length > 0 ? (
           <ul className="todo-list">
             {visibleItems.map((item) => (
               <TodoListItem
                 key={item.id}
                 graph={graph}
                 item={item}
-                showFullTaskPath={preferences.showFullTaskPath ?? false}
+                showFullTaskPath={preferences?.showFullTaskPath ?? false}
                 onDetails={setDetailsItemId}
                 onCompletion={updateCompletion}
               />
             ))}
           </ul>
-        ) : !loadingEvents && !calendarError && !calendarImport.error && (
+        ) : ready && !loadingEvents && !calendarError && !calendarImport.error && (
           <p className="todo-empty">
             {items.length > 0
               ? "All tasks and events scheduled for today are done."
@@ -116,11 +100,11 @@ export default function TodoView() {
           </p>
         )}
       </section>
-      <TodoDetailsDialog
+      {graph && <TodoDetailsDialog
         graph={graph}
         item={detailsItem}
         onClose={() => setDetailsItemId(null)}
-      />
+      />}
     </main>
   );
 }

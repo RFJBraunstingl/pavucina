@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Providers from "@/app/_components/providers";
 import "@/app/globals.css";
 import "@/app/_styles/common/base.css";
+import "@/app/_styles/common/loading.css";
 import "@/app/_styles/common/controls.css";
 import "@/app/_styles/common/dialog.css";
 import "@/app/_styles/timeline/timeline-grid.css";
