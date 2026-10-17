@@ -21,7 +21,7 @@ Task bars show planned start and end dates alongside the task that owns them.
 - Click an empty date cell to schedule an unscheduled task on that day.
 - Drag a task bar to move its date range.
 - Drag either edge of a bar to change its start or end date.
-- Move the visible range backward or forward by four weeks, or return to today.
+- Move the 28-day visible range backward or forward by one week, or return to today.
 - Hide completed tasks with **Hide done**.
 
 ## Task details

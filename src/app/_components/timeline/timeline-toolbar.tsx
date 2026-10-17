@@ -30,13 +30,13 @@ export default function TimelineToolbar({
           />
           Hide done
         </label>
-        <button type="button" aria-label="Previous four weeks" onClick={onPrevious}>
+        <button type="button" aria-label="Previous week" onClick={onPrevious}>
           ←
         </button>
         <button type="button" className="today-button" onClick={onToday}>
           Today
         </button>
-        <button type="button" aria-label="Next four weeks" onClick={onNext}>
+        <button type="button" aria-label="Next week" onClick={onNext}>
           →
         </button>
       </div>

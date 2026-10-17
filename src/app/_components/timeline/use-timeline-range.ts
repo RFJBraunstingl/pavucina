@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { addDays, makeDateRange } from "@/utils/shared/temporal/date";
 
-const RANGE_SIZE = 28;
+const NAVIGATION_STEP = 7;
 
 export function useTimelineRange(today: string) {
   const [rangeStart, setRangeStart] = useState(() => addDays(today, -14));
@@ -11,8 +11,8 @@ export function useTimelineRange(today: string) {
   return {
     rangeStart,
     days,
-    showPrevious: () => setRangeStart((date) => addDays(date, -RANGE_SIZE)),
+    showPrevious: () => setRangeStart((date) => addDays(date, -NAVIGATION_STEP)),
     showToday: () => setRangeStart(addDays(today, -14)),
-    showNext: () => setRangeStart((date) => addDays(date, RANGE_SIZE)),
+    showNext: () => setRangeStart((date) => addDays(date, NAVIGATION_STEP)),
   };
 }
