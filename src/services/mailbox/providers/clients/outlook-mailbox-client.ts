@@ -28,16 +28,16 @@ export async function loadUnreadOutlookMessages(
     .filter((message): message is MailMessage => Boolean(message));
 }
 
-export async function markOutlookMessageRead(
+export async function archiveOutlookMessage(
   connection: MailboxConnectionDocument,
   messageId: string,
 ) {
   await mailboxRequest(connection)(
-    `https://graph.microsoft.com/v1.0/me/messages/${encodeURIComponent(messageId)}`,
+    `https://graph.microsoft.com/v1.0/me/messages/${encodeURIComponent(messageId)}/move`,
     {
-      method: "PATCH",
+      method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ isRead: true }),
+      body: JSON.stringify({ destinationId: "archive" }),
     },
   );
 }

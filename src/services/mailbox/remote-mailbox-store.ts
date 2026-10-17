@@ -16,7 +16,7 @@ export async function beginMailboxConnection(source: MailboxSource) {
   await requireSuccess(response, "Could not connect mailbox");
 }
 
-export async function markRemoteMessageRead(
+export async function archiveRemoteMessage(
   connectionId: string,
   messageId: string,
 ) {
@@ -26,7 +26,7 @@ export async function markRemoteMessageRead(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ messageId }),
   });
-  await requireSuccess(response, "Could not mark message as read");
+  await requireSuccess(response, "Could not archive message");
 }
 
 export async function disconnectMailbox(connectionId: string) {

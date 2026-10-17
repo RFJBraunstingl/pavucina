@@ -27,9 +27,9 @@ export default function MailMessageList(props: MailMessageListProps) {
               <button
                 type="button"
                 disabled={disabled}
-                onClick={() => props.onIgnore(message)}
+                onClick={() => props.onArchive(message)}
               >
-                Ignore
+                Archive
               </button>
               <button
                 type="button"

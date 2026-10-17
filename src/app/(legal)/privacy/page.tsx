@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <header>
         <p className="eyebrow">Legal</p>
         <h1>Privacy Policy</h1>
-        <p>Last updated 13 September 2026</p>
+        <p>Last updated 17 October 2026</p>
       </header>
 
       <section>
@@ -49,7 +49,8 @@ export default function PrivacyPage() {
           calendar events are normally fetched only for display and are not
           stored by themselves. Converting an email into a task stores its
           subject, sender, preview, and source identifiers as task data.
-          Pavucina can also mark that message as read at your provider.
+          Adding an email to the scratchpad or choosing Archive archives it at
+          your provider without changing its read/unread status.
         </p>
         <p>
           If you explicitly enable calendar event import in Settings,

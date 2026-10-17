@@ -1,7 +1,7 @@
 import "server-only";
 
-import { loadUnreadGmailMessages, markGmailMessageRead } from "./clients/gmail-mailbox-client";
-import { loadUnreadOutlookMessages, markOutlookMessageRead } from "./clients/outlook-mailbox-client";
+import { archiveGmailMessage, loadUnreadGmailMessages } from "./clients/gmail-mailbox-client";
+import { archiveOutlookMessage, loadUnreadOutlookMessages } from "./clients/outlook-mailbox-client";
 import type { MailboxConnectionDocument } from "@/types/mailbox/mailbox";
 
 export { mailboxSourceAvailability } from "./mailbox-auth";
@@ -12,11 +12,11 @@ export function loadUnreadMailboxMessages(connection: MailboxConnectionDocument)
     : loadUnreadOutlookMessages(connection);
 }
 
-export function markMailboxMessageRead(
+export function archiveMailboxMessage(
   connection: MailboxConnectionDocument,
   messageId: string,
 ) {
   return connection.source === "gmail"
-    ? markGmailMessageRead(connection, messageId)
-    : markOutlookMessageRead(connection, messageId);
+    ? archiveGmailMessage(connection, messageId)
+    : archiveOutlookMessage(connection, messageId);
 }

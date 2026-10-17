@@ -73,7 +73,7 @@ export default function SourcePanel({ onAdd }: SourcePanelProps) {
           loading={!data || busy === "refresh"}
           busy={busy}
           onAdd={(mail) => mailboxes.handleMessage(mail, true)}
-          onIgnore={(mail) => mailboxes.handleMessage(mail, false)}
+          onArchive={(mail) => mailboxes.handleMessage(mail, false)}
         />
       </div>
       <DisconnectMailboxDialog

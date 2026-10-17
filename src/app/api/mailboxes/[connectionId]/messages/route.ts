@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { markMailboxMessageRead } from "@/services/mailbox/providers/mailbox-provider";
+import { archiveMailboxMessage } from "@/services/mailbox/providers/mailbox-provider";
 import { findMailboxConnection } from "@/services/mailbox/mailbox-repository";
 import { isUuid } from "@/utils/shared/id";
 
@@ -31,14 +31,14 @@ export async function PATCH(
   );
   if (!connection) return new Response(null, { status: 404 });
   try {
-    await markMailboxMessageRead(connection, messageId);
+    await archiveMailboxMessage(connection, messageId);
     return new Response(null, { status: 204 });
   } catch (error) {
     return Response.json(
       {
         error: error instanceof Error
           ? error.message
-          : "Could not update message",
+          : "Could not archive message",
       },
       { status: 502 },
     );

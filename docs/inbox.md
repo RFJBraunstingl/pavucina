@@ -11,8 +11,9 @@ tree.
 - Review up to 25 of the newest unread messages per mail provider.
 - Add a message to the scratchpad as a task. Its subject becomes the task name,
   and its sender, received time, and preview are saved in the description.
-- Ignore a message without creating a task. Adding or ignoring marks the source
-  message as read.
+- Archive a message without creating a task. Adding to the scratchpad or
+  archiving removes the source message from its inbox and preserves its
+  read/unread status.
 - Refresh, reconnect, or disconnect mailbox accounts from the page.
 
 ## Scratchpad

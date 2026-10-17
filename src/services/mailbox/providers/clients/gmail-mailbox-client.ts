@@ -42,7 +42,7 @@ export async function loadUnreadGmailMessages(
   return messages.filter((message): message is MailMessage => Boolean(message));
 }
 
-export async function markGmailMessageRead(
+export async function archiveGmailMessage(
   connection: MailboxConnectionDocument,
   messageId: string,
 ) {
@@ -51,7 +51,7 @@ export async function markGmailMessageRead(
     {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ removeLabelIds: ["UNREAD"] }),
+      body: JSON.stringify({ removeLabelIds: ["INBOX"] }),
     },
   );
 }

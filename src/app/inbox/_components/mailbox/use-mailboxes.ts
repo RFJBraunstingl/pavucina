@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 
 import {
+  archiveRemoteMessage,
   beginMailboxConnection,
   disconnectMailbox,
   loadMailboxes,
-  markRemoteMessageRead,
 } from "@/services/mailbox/remote-mailbox-store";
 import type {
   MailboxConnectionSummary,
@@ -72,8 +72,8 @@ export function useMailboxes(onAdd: (message: MailMessage) => void) {
           item.connectionId !== mail.connectionId || item.id !== mail.id,
       ),
     }));
-    void markRemoteMessageRead(mail.connectionId, mail.id).catch((error) => {
-      setMessage(errorMessage(error, "Could not update message"));
+    void archiveRemoteMessage(mail.connectionId, mail.id).catch((error) => {
+      setMessage(errorMessage(error, "Could not archive message"));
     });
   }
 

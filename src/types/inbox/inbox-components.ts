@@ -27,7 +27,7 @@ export type MailMessageListProps = {
   loading: boolean;
   busy: string | null;
   onAdd: (message: MailMessage) => void;
-  onIgnore: (message: MailMessage) => void;
+  onArchive: (message: MailMessage) => void;
 };
 
 export type MailboxConnectionPickerProps = {

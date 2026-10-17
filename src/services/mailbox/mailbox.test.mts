@@ -12,7 +12,7 @@ import {
   normalizeGmailMessage,
   normalizeOutlookMessage,
 } from "./mailbox-message.ts";
-import { markRemoteMessageRead } from "./remote-mailbox-store.ts";
+import { archiveRemoteMessage } from "./remote-mailbox-store.ts";
 import type {
   MailboxConnectionDocument,
   MailMessage,
@@ -104,7 +104,7 @@ test("provider messages normalize and keep the newest 25 per source", () => {
   );
 });
 
-test("marking a message read uses a navigation-safe request", async () => {
+test("archiving a message uses a navigation-safe request", async () => {
   const originalFetch = globalThis.fetch;
   let request: { input: string; init?: RequestInit } | undefined;
   globalThis.fetch = async (input, init) => {
@@ -113,7 +113,7 @@ test("marking a message read uses a navigation-safe request", async () => {
   };
 
   try {
-    await markRemoteMessageRead("connection-id", "message-id");
+    await archiveRemoteMessage("connection-id", "message-id");
     assert.equal(request?.input, "/api/mailboxes/connection-id/messages");
     assert.equal(request?.init?.method, "PATCH");
     assert.equal(request?.init?.keepalive, true);
@@ -123,4 +123,16 @@ test("marking a message read uses a navigation-safe request", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("archiving a message reports server errors", async (context) => {
+  context.mock.method(globalThis, "fetch", async () => Response.json(
+    { error: "Could not access mailbox (403)" },
+    { status: 502 },
+  ));
+
+  await assert.rejects(
+    archiveRemoteMessage("connection-id", "message-id"),
+    { message: "Could not access mailbox (403)" },
+  );
 });
